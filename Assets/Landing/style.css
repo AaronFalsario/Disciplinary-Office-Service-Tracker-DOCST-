@@ -42,23 +42,10 @@ nav {
     color: var(--text);
 }
 
-.nav-logo-icon {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--blue);
-}
-
-.nav-logo span {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: .02em;
-    color: var(--text);
-}
-
-.nav-actions { 
-    display: flex; 
-    align-items: center;
-    gap: 10px; 
+.nav-logo-icon img {
+    width: 40px;
+    height:40px;
+    object-fit: contain;
 }
 
 .btn-outline {
