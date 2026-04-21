@@ -1,14 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOCST Admin Dashboard</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DOCST--Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="/Assets/Admin dashboard/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    
+
+<!-- Drawer Overlay -->
+<div class="drawer-overlay" id="overlay"></div>
+
+<!-- Navigation Drawer -->
+<nav class="drawer" id="drawer" aria-label="Main navigation">
+    <div class="drawer-header">
+        <button class="drawer-close" id="drawerClose" aria-label="Close menu">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+    </button>
+    <div class="drawer-profile">
+    <div class="drawer-avatar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+    </div>
+    <div class="drawer-info">
+        <div class="drawer-name">Administrator</div>
+        <div class="drawer-role">Campus Care Admin</div>
+    </div>
+    <span class="drawer-badge">Admin</span>
+    </div>
+</div>
+
+<div class="drawer-nav">
+    <button class="drawer-item active" data-page="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+    <span>Dashboard</span>
+    </button>
+    <button class="drawer-item" data-page="incidents">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+    </svg>
+    <span>Incidents</span>
+    </button>
+    <button class="drawer-item" data-page="users">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    <span>Users</span>
+    </button>
+    <hr class="drawer-divider"/>
+    <button class="drawer-item" data-page="settings">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>Settings</span>
+    </button>
+    <button class="drawer-item" data-page="reports">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+    </svg>
+    <span>Reports</span>
+    </button>
+</div>
+
+<div class="drawer-footer">
+    <button class="drawer-logout" id="logoutBtn" aria-label="Logout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+    </button>
+</div>
+</nav>
+
+<!-- Header -->
+<header class="topbar">
+<div class="topbar-left">
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+    </button>
+    <div class="brand">
+    <div class="brand-logo">
+        <img src="/Images/DOCST LOGO.png" alt="DOCST Logo" width="28" height="28"/>
+    </div>
+    <span class="brand-name">DOCST</span>
+</div>
+</div>
+    <button class="admin-pill" id="adminPill" aria-label="Admin menu">Admin</button>
+</header>
+
+<!-- Main Content -->
+<main>
+    <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon-bg icon-blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <span class="stat-label">Total Students</span>
+                </div>
+                <div class="stat-value" id="statTotal">—</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon-bg icon-blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
+                    </div>
+                    <span class="stat-label">Total Penalties</span>
+                </div>
+                <div class="stat-value">1</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon-bg icon-blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <span class="stat-label">Pending Cases</span>
+                </div>
+                <div class="stat-value">1</div>
+            </div>
+        </div>
+
+        <div class="management-card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Manage Penalties</h2>
+                    <p class="card-subtitle">Add, Edit, Delete, Community Service Penalties</p>
+                </div>
+                <button class="add-penalty-btn" id="addIncBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Penalty
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Violation</th>
+                            <th>Service Type</th>
+                            <th>Hours</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incidentTableBody">
+                        <tr>
+                            <td>2024xxxxx</td>
+                            <td>Uniform</td>
+                            <td>Garden cleaning</td>
+                            <td>3</td>
+                            <td><span class="status-pill pending">Pending</span></td>
+                            <td>05/13/2026</td>
+                            <td>
+                                <div class="action-group">
+                                    <button class="edit-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                    <button class="delete-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add / Edit Incident Modal -->
+<div class="modal-overlay" id="incidentModal">
+    <div class="modal edit-modal">
+        <div class="modal-header">
+            <div class="modal-title">
+                Edit Penalty
+                <p>Edit student Community Service penalty record</p>
+            </div>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Student ID *</label>
+                <input type="text" id="fStudentId" placeholder="Enter Student ID">
+            </div>
+
+            <div class="form-group">
+                <label>Violation *</label>
+                <input type="text" id="fViolation" placeholder="e.g., Uniform Violation">
+            </div>
+
+            <div class="form-group">
+                <label>Service Type</label>
+                <input type="text" id="fServiceType" placeholder="e.g., Garden cleaning">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Hours Required</label>
+                    <input type="number" id="fHoursReq">
+                </div>
+                <div class="form-group">
+                    <label>Hours Completed</label>
+                    <input type="number" id="fHoursComp">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status</label>
+                    <input type="text" id="fStatus" placeholder="e.g., Pending">
+                </div>
+                <div class="form-group">
+                    <label>Deadline</label>
+                    <input type="date" id="fDeadline">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descript</label>
+                <textarea id="fDescription" placeholder="Additional description of the penalty..."></textarea>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel-new" id="modalCancel">Cancel</button>
+            <button class="btn-primary-new" id="modalSave">Add Penalty</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:360px">
+        <div class="modal-header">
+            <div class="modal-title">Delete Incident</div>
+                <button class="modal-close" id="deleteClose">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+    <div class="confirm-body">
+        <div class="confirm-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+    </div>
+        <div class="modal-title">Are you sure?</div>
+        <div class="confirm-msg">This incident will be permanently deleted and cannot be recovered.</div>
+    </div>
+    <div class="modal-footer">
+            <button class="btn-cancel" id="deleteCancelBtn">Cancel</button>
+            <button   button class="btn-danger" id="deleteConfirmBtn">Delete</button>
+        </div>
+    </div>
+</div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 <script src="/Assets/Admin dashboard/funct.js"></script>
 </body>
 </html>
