@@ -59,18 +59,14 @@ function enable(btn, text) {
     btn.innerHTML = text
 }
 
-/* ==========================================
-   STEP SWITCHER
-========================================== */
+// step switching
 window.goToStep = function(step) {
     qs('step1')?.classList.remove('active')
     qs('step2')?.classList.remove('active')
     qs(`step${step}`)?.classList.add('active')
 }
 
-/* ==========================================
-   PASSWORD TOGGLE
-========================================== */
+// see password toggle
 window.togglePassword = function(inputId, btn) {
     const input = qs(inputId)
     if (!input) return
@@ -83,9 +79,7 @@ window.togglePassword = function(inputId, btn) {
         : '<i class="fas fa-eye"></i>'
 }
 
-/* ==========================================
-   OTP BOXES
-========================================== */
+// placeholders sa otp 
 function setupOTPInputs() {
     const inputs = document.querySelectorAll('.otp-input')
 
@@ -108,9 +102,7 @@ function setupOTPInputs() {
     })
 }
 
-/* ==========================================
-   OTP TIMER
-========================================== */
+// duration ng existing OTP
 function startCountdown(seconds = 300) {
     clearInterval(countdownInterval)
 
@@ -134,9 +126,7 @@ function startCountdown(seconds = 300) {
     }, 1000)
 }
 
-/* ==========================================
-   RESEND TIMER
-========================================== */
+// timer ng resend otp
 function startResendCooldown(seconds = 30) {
     clearInterval(resendCooldown)
 
@@ -159,9 +149,7 @@ function startResendCooldown(seconds = 30) {
     }, 1000)
 }
 
-/* ==========================================
-   STEP 1 LOGIN
-========================================== */
+// step 1  ng otp verification
 async function handleLogin() {
 
     const usernameInput = qs('admin-username')
@@ -239,9 +227,7 @@ async function handleLogin() {
     enable(loginBtn, 'Continue')
 }
 
-/* ==========================================
-   STEP 2 VERIFY OTP
-========================================== */
+// 2 step verification ng otp
 async function handleVerifyOTP() {
 
     const btn = qs('verifyBtn')
@@ -314,9 +300,7 @@ async function handleVerifyOTP() {
     enable(btn, 'Verify & Login')
 }
 
-/* ==========================================
-   RESEND OTP
-========================================== */
+// re send ng otp kapag nag expire or something like that
 async function resendOTP() {
 
     if (!currentAdmin) return
@@ -351,17 +335,13 @@ async function resendOTP() {
     }
 }
 
-/* ==========================================
-   AUTO LOGIN
-========================================== */
+// auth sa log in page
 const saved = localStorage.getItem('currentAdmin')
 
 if (saved && location.pathname.includes('Admin.html')) {
     location.href = '../../Admin dashboard/Admin.html'
 }
-/* ==========================================
-   REMEMBERED ADMIN
-========================================== */
+// remember me admin page
 const remembered = localStorage.getItem('rememberedAdmin')
 
 if (remembered) {
@@ -369,9 +349,7 @@ if (remembered) {
     qs('rememberMe').checked = true
 }
 
-/* ==========================================
-   EVENTS
-========================================== */
+// events 
 qs('loginBtn')?.addEventListener('click', handleLogin)
 qs('verifyBtn')?.addEventListener('click', handleVerifyOTP)
 qs('resendBtn')?.addEventListener('click', resendOTP)
@@ -390,9 +368,7 @@ qs('admin-password')?.addEventListener('input', function() {
 
 setupOTPInputs()
 
-/* ==========================================
-   GLOBAL EXPORTS
-========================================== */
+// exports 
 window.handleLogin = handleLogin
 window.handleVerifyOTP = handleVerifyOTP
 window.resendOTP = resendOTP
