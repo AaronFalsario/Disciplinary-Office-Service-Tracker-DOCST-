@@ -38,7 +38,6 @@
                     window.closeDrawer();
                     drawer.classList.remove('open');
                 } else {
-                    // On mobile, ensure drawer starts closed
                     drawer.classList.remove('open');
                 }
             });

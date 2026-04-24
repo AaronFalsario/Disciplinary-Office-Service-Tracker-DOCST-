@@ -211,64 +211,69 @@
     </main>
 
     <!-- Add/Edit Student Modal -->
-    <div class="modal-overlay" id="studentModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Add New Student</h3>
-                <button class="modal-close" id="closeModalBtn">&times;</button>
-            </div>
-            <form id="studentForm">
-                <input type="hidden" id="studentId">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="studentName" required placeholder="e.g., Juan M. Dela Cruz">
-                </div>
-                <div class="form-group">
-                    <label>ID Number</label>
-                    <input type="text" id="studentIdNumber" required placeholder="e.g., 2024-00123">
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="studentEmail" required placeholder="student.name@gordoncollege.edu.ph">
-                    <div class="email-hint">📧 Must end with @gordoncollege.edu.ph</div>
-                </div>
-                <div class="form-group">
-                    <label>Course</label>
-                    <select id="studentCourse" required>
-                        <option value="">Select Course</option>
-                        <option value="BSCS">BSCS - Computer Science</option>
-                        <option value="BSIT">BSIT - Information Technology</option>
-                        <option value="BSIS">BSIS - Information Systems</option>
-                        <option value="BSECE">BSECE - Electronics Engineering</option>
-                        <option value="BSME">BSME - Mechanical Engineering</option>
-                        <option value="BSCE">BSCE - Civil Engineering</option>
-                        <option value="BSA">BSA - Accountancy</option>
-                        <option value="BSBA">BSBA - Business Administration</option>
-                        <option value="BSEd">BSEd - Secondary Education</option>
-                        <option value="BEEd">BEEd - Elementary Education</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Year Level</label>
-                    <select id="studentYear" required>
-                        <option value="">Select Year</option>
-                        <option value="1">1st Year</option>
-                        <option value="2">2nd Year</option>
-                        <option value="3">3rd Year</option>
-                        <option value="4">4th Year</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="studentStatus">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                <button type="submit" class="modal-submit">Save Student</button>
-            </form>
+    <form id="studentForm">
+    <input type="hidden" id="studentId">
+    
+    <div class="form-group">
+        <label><i class="fas fa-user"></i> Full Name</label>
+        <input type="text" id="studentName" required placeholder="e.g., Juan M. Dela Cruz">
+    </div>
+    
+    <div class="form-group">
+        <label><i class="fas fa-id-card"></i> ID Number</label>
+        <input type="text" id="studentIdNumber" required placeholder="e.g., 2024-00123">
+    </div>
+    
+    <div class="form-group">
+        <label><i class="fas fa-envelope"></i> Email Address</label>
+        <input type="email" id="studentEmail" required placeholder="student.name@gordoncollege.edu.ph">
+        <div class="email-hint">
+            <i class="fas fa-info-circle"></i> Must end with @gordoncollege.edu.ph
         </div>
     </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label><i class="fas fa-graduation-cap"></i> Course</label>
+            <select id="studentCourse" required>
+                <option value="">Select Course</option>
+                <option value="BSCS">BSCS - Computer Science</option>
+                <option value="BSIT">BSIT - Information Technology</option>
+                <option value="BSIS">BSIS - Information Systems</option>
+                <option value="BSECE">BSECE - Electronics Engineering</option>
+                <option value="BSME">BSME - Mechanical Engineering</option>
+                <option value="BSCE">BSCE - Civil Engineering</option>
+                <option value="BSA">BSA - Accountancy</option>
+                <option value="BSBA">BSBA - Business Administration</option>
+                <option value="BSEd">BSEd - Secondary Education</option>
+                <option value="BEEd">BEEd - Elementary Education</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label><i class="fas fa-calendar-alt"></i> Year Level</label>
+            <select id="studentYear" required>
+                <option value="">Select Year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label><i class="fas fa-toggle-on"></i> Status</label>
+        <select id="studentStatus">
+            <option value="active">🟢 Active</option>
+            <option value="inactive">🔴 Inactive</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="modal-submit">
+        <i class="fas fa-save"></i> Save Student
+    </button>
+</form>
 
 <script src="/Assets/Admin dashboard/students/rec.js"></script>
 </body>

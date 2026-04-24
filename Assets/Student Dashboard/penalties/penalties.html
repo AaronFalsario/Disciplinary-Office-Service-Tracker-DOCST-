@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>DOCST — Student Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/Assets/Student Dashboard/style.css">
-    <link rel="icon" href="/Images/DOCST LOGO.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCST — My Penalties</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="/Images/DOCST LOGO.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/Student Dashboard/penalties/pen.css">
 </head>
 <body>
-    <!-- Drawer Navigation -->
+    <!-- Navigation Drawer -->
     <div class="drawer-overlay" id="overlay"></div>
     <nav class="drawer" id="drawer">
         <div class="drawer-header">
@@ -34,7 +34,7 @@
             </div>
         </div>
         <div class="drawer-nav">
-            <button class="drawer-item active">
+            <button class="drawer-item" onclick="window.location.href='/Assets/Student Dashboard/stud.html'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <rect x="3" y="3" width="7" height="7"/>
                     <rect x="14" y="3" width="7" height="7"/>
@@ -43,7 +43,7 @@
                 </svg>
                 Dashboard
             </button>
-            <button class="drawer-item" onclick="window.location.href='/Assets/Student Dashboard/penalties/penalties.html'">
+            <button class="drawer-item active" onclick="window.location.href='/Assets/Student Dashboard/penalties/penalties.html'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                     <circle cx="12" cy="12" r="3"/>
@@ -85,7 +85,7 @@
         </div>
     </nav>
 
-    <!-- Topbar -->
+    <!-- Header -->
     <header class="topbar">
         <div class="topbar-left">
             <button class="hamburger" id="hamburger">
@@ -97,147 +97,92 @@
                 </div>
                 <span class="brand-name">DOCST</span>
             </div>
-        </div>
-        <div class="student-pill">
-            <i class="fas fa-graduation-cap"></i>
-            <span>Student Portal</span>
+            <div class="student-pill">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Student Portal</span>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="dashboard-main">
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <h1 class="welcome-title" id="welcomeMessage">Good morning, Student 👋</h1>
-            <p class="welcome-date" id="currentDate"></p>
+    <main class="users-section">
+        <div class="page-header">
+            <h1 class="page-title">My Penalties</h1>
+            <p class="page-sub">View your community service penalties and track your progress</p>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="stats-grid">
+        <!-- Statistics Cards -->
+        <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12 6 12 12 16 14"/>
                     </svg>
                 </div>
-                <div class="stat-value" id="pendingPenalties">0</div>
-                <div class="stat-label">Pending Penalties</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="pendingPenalties">0</div>
+                    <div class="stat-label">Pending Penalties</div>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                         <polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
                 </div>
-                <div class="stat-value" id="completedHours">0</div>
-                <div class="stat-label">Completed Hours</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="completedHours">0</div>
+                    <div class="stat-label">Completed Hours</div>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
                     </svg>
                 </div>
-                <div class="stat-value" id="totalViolations">0</div>
-                <div class="stat-label">Total Violations</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="totalViolations">0</div>
+                    <div class="stat-label">Total Violations</div>
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
                 </div>
-                <div class="stat-value" id="complianceRate">0%</div>
-                <div class="stat-label">Compliance Rate</div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="action-cards">
-            <div class="action-card" onclick="viewPenalties()">
-                <div class="action-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h3>View Penalties</h3>
-                <p>Check your active penalties and violations</p>
-            </div>
-            <div class="action-card" onclick="viewHistory()">
-                <div class="action-icon">
-                    <i class="fas fa-history"></i>
-                </div>
-                <h3>View History</h3>
-                <p>See your completed penalties record</p>
-            </div>
-            <div class="action-card" onclick="submitAppeal()">
-                <div class="action-icon">
-                    <i class="fas fa-file-alt"></i>
-                </div>
-                <h3>Submit Appeal</h3>
-                <p>Appeal a penalty decision</p>
-            </div>
-        </div>
-
-        <!-- Two Column Layout -->
-        <div class="two-columns">
-            <!-- Recent Activity -->
-            <div class="activity-feed">
-                <div class="card-header">
-                    <div class="card-title">Recent Activity</div>
-                </div>
-                <div id="activityContainer">
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <div>No recent activity</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Upcoming Deadlines -->
-            <div class="deadlines-list">
-                <div class="card-header">
-                    <div class="card-title">Upcoming Deadlines</div>
-                </div>
-                <div id="deadlinesContainer">
-                    <div class="empty-state">
-                        <div class="empty-icon">📅</div>
-                        <div>No upcoming deadlines</div>
-                    </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="complianceRate">0%</div>
+                    <div class="stat-label">Compliance Rate</div>
                 </div>
             </div>
         </div>
 
-        <!-- My Penalties Table -->
-        <div class="penalties-table">
-            <div class="card-header" style="padding: 16px 20px 0;">
-                <div class="card-title">My Penalties</div>
-            </div>
-            <table>
+        <!-- Penalties Table -->
+        <div class="section-hdr">
+            <h2 class="section-title">My Penalty Records</h2>
+        </div>
+
+        <div class="table-wrap">
+            <table role="table" aria-label="Penalties table">
                 <thead>
                     <tr>
-                        <th>Violation</th>
-                        <th>Service Type</th>
-                        <th>Hours</th>
-                        <th>Status</th>
-                        <th>Deadline</th>
+                        <th>VIOLATION</th>
+                        <th>SERVICE TYPE</th>
+                        <th>HOURS</th>
+                        <th>STATUS</th>
+                        <th>DEADLINE</th>
                     </tr>
                 </thead>
                 <tbody id="penaltiesTableBody">
-                    <tr>
-                        <td colspan="5" class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <div>No penalty records found</div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
-
-    <script type="module" src="/Assets/Student Dashboard/func.js"></script>
+<script src="/Assets/Student Dashboard/penalties/pen.js"></script>
 </body>
 </html>
