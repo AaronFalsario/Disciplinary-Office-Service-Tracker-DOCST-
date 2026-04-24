@@ -1,249 +1,297 @@
-let incidents = [
-    { id:1, name:'Sharp knife',          location:'Room 504, 5th floor',      category:'Security',    priority:'High',   status:'Pending',     reporter:'Lebron K. James', notes:'', time:'2h ago' },
-    { id:2, name:'Dirty Toilet',         location:'5th floor, near room 517', category:'Janitorial',  priority:'Medium', status:'Resolved',    reporter:'Michael Jordan',  notes:'', time:'5h ago' },
-    { id:3, name:'Broken sparking wire', location:'Room 504, 5th floor',      category:'Maintenance', priority:'High',   status:'In Progress', reporter:'Gerald Anderson', notes:'', time:'8h ago' },
-];
-let nextId   = 4;
-let editId   = null;
-let deleteId = null;
-let curFilter = 'all';
-
-/* ── ICON MAP ── */
-const catIcon = {
-    Security:    { cls:'ics-red',    svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>` },
-    Janitorial:  { cls:'ics-teal',   svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>` },
-    Maintenance: { cls:'ics-blue',   svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>` },
-    Health:      { cls:'ics-teal',   svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>` },
-    Admin:       { cls:'ics-purple', svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>` },
-};
-
-const catBadge  = { Security:'b-security', Janitorial:'b-janitorial', Maintenance:'b-maintenance', Health:'b-health', Admin:'b-admin' };
-const prioBadge = { High:'b-high', Medium:'b-medium', Low:'b-low' };
-const statBadge = { Pending:'b-pending', 'In Progress':'b-inprogress', Resolved:'b-resolved' };
-
-/* ── HELPERS ── */
-const badge = (cls, text) => `<span class="badge ${cls}">${text}</span>`;
-
-const iconHtml = cat => {
-    const c = catIcon[cat] || catIcon['Admin'];
-    return `<div class="inc-icon-sm ${c.cls}" aria-hidden="true">${c.svg}</div>`;
-};
-
-const editSvg = () => `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
-const delSvg  = () => `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
-
-const filtered = () => {
-    if (curFilter === 'all') return incidents;
-    const map = { pending:'Pending', 'in-progress':'In Progress', resolved:'Resolved' };
-    return incidents.filter(i => i.status === map[curFilter]);
-};
-
-/* ── RENDER ── */
-function render() {
-    const list  = filtered();
-    const tbody = document.getElementById('incidentTableBody');
-    const cards = document.getElementById('incidentMobileCards');
-
-    const emptyHTML = `<div class="empty-state"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;display:block;opacity:0.3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>No incidents found.</p></div>`;
-
-    if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="6">${emptyHTML}</td></tr>`;
-        cards.innerHTML = emptyHTML;
-} else {
-    tbody.innerHTML = list.map(inc => `
-    <tr>
-        <td>
-            <div class="inc-cell">
-                ${iconHtml(inc.category)}
-            <div>
-                <div class="inc-name">${inc.name}</div>
-                <div class="inc-loc">${inc.location}</div>
-            </div>
-            </div>
-        </td>
-        <td>${badge(catBadge[inc.category] || 'b-admin', inc.category)}</td>
-        <td>${badge(prioBadge[inc.priority] || 'b-low', inc.priority)}</td>
-        <td>${badge(statBadge[inc.status] || 'b-pending', inc.status)}</td>
-        <td><span class="reporter-name">${inc.reporter}</span></td>
-        <td>
-            <div class="action-btns">
-                <button class="action-btn" onclick="openEdit(${inc.id})" aria-label="Edit incident">${editSvg()}</button>
-                <button class="action-btn del" onclick="openDelete(${inc.id})" aria-label="Delete incident">${delSvg()}</button>
-            </div>
-        </td>
-    </tr>`).join('');
-
-    cards.innerHTML = list.map(inc => `
-        <article class="m-card">
-        <div class="m-card-top">
-            ${iconHtml(inc.category)}
-            <div>
-        <div class="inc-name">${inc.name}</div>
-            <div class="inc-loc">${inc.location}</div>
-            </div>
-        </div>
-        <div class="m-card-body">
-            <div><div class="m-field-label">Category</div>${badge(catBadge[inc.category] || 'b-admin', inc.category)}</div>
-            <div><div class="m-field-label">Priority</div>${badge(prioBadge[inc.priority] || 'b-low', inc.priority)}</div>
-            <div><div class="m-field-label">Status</div>${badge(statBadge[inc.status] || 'b-pending', inc.status)}</div>
-            <div><div class="m-field-label">Reporter</div><div class="reporter-mobile">${inc.reporter}</div></div>
-        </div>
-        <div class="m-card-footer">
-            <div class="m-timestamp">${inc.time}</div>
-            <div class="action-btns">
-                <button class="action-btn" onclick="openEdit(${inc.id})" aria-label="Edit incident">${editSvg()}</button>
-                <button class="action-btn del" onclick="openDelete(${inc.id})" aria-label="Delete incident">${delSvg()}</button>
-            </div>
-        </div>
-    </article>`).join('');
-}
-
-updateStats();
-}
-
-function updateStats() {
-    document.getElementById('statTotal').textContent    = incidents.length;
-    document.getElementById('statPending').textContent  = incidents.filter(i => i.status === 'Pending').length;
-    document.getElementById('statProgress').textContent = incidents.filter(i => i.status === 'In Progress').length;
-    document.getElementById('statResolved').textContent = incidents.filter(i => i.status === 'Resolved').length;
-}
-
-/* ── DRAWER ── */
-const drawer  = document.getElementById('drawer');
+// Drawer functionality - Always visible on desktop, toggle on mobile
 const overlay = document.getElementById('overlay');
-const openDrawer  = () => { drawer.classList.add('open');  overlay.classList.add('open'); };
-const closeDrawer = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
+const drawer = document.getElementById('drawer');
+const hamburger = document.getElementById('hamburger');
+const drawerClose = document.getElementById('drawerClose');
+const adminPill = document.getElementById('adminPill');
 
-document.getElementById('hamburger').addEventListener('click', openDrawer);
-document.getElementById('drawerClose').addEventListener('click', closeDrawer);
-overlay.addEventListener('click', closeDrawer);
-
-/* ── NAV ── */
-document.querySelectorAll('.drawer-item[data-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.drawer-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById('page-' + btn.dataset.page);
-        if (target) target.classList.add('active');
-        closeDrawer();
-    });
-});
-
-/* ── LOGOUT ── */
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    closeDrawer();
-    showToast('Logged out successfully.');
-});
-
-/* ── ADMIN PILL ── */
-document.getElementById('adminPill').addEventListener('click', () => {
-    showToast('Logged in as Administrator.');
-});
-
-/* ── FILTER TABS ── */
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        curFilter = btn.dataset.filter;
-        render();
-    });
-});
-
-/* ── ADD / EDIT MODAL ── */
-function clearForm() {
-    ['fName','fLocation','fReporter','fNotes'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('fCategory').value = '';
-    document.getElementById('fPriority').value = '';
-    document.getElementById('fStatus').value   = 'Pending';
-}
-
-function openAdd() {
-    editId = null;
-    clearForm();
-    document.getElementById('modalTitle').textContent = 'Add Incident';
-    document.getElementById('modalSave').textContent  = 'Save Incident';
-    document.getElementById('incidentModal').classList.add('open');
-}
-
-function openEdit(id) {
-    const inc = incidents.find(i => i.id === id);
-    if (!inc) return;
-    editId = id;
-    document.getElementById('fName').value     = inc.name;
-    document.getElementById('fLocation').value = inc.location;
-    document.getElementById('fCategory').value = inc.category;
-    document.getElementById('fPriority').value = inc.priority;
-    document.getElementById('fStatus').value   = inc.status;
-    document.getElementById('fReporter').value = inc.reporter;
-    document.getElementById('fNotes').value    = inc.notes;
-    document.getElementById('modalTitle').textContent = 'Edit Incident';
-    document.getElementById('modalSave').textContent  = 'Update Incident';
-    document.getElementById('incidentModal').classList.add('open');
-}
-
-function closeModal() { document.getElementById('incidentModal').classList.remove('open'); }
-
-document.getElementById('addIncBtn').addEventListener('click', openAdd);
-document.getElementById('modalClose').addEventListener('click', closeModal);
-document.getElementById('modalCancel').addEventListener('click', closeModal);
-document.getElementById('incidentModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-
-document.getElementById('modalSave').addEventListener('click', () => {
-    const name     = document.getElementById('fName').value.trim();
-    const location = document.getElementById('fLocation').value.trim();
-    const category = document.getElementById('fCategory').value;
-    const priority = document.getElementById('fPriority').value;
-    const status   = document.getElementById('fStatus').value;
-    const reporter = document.getElementById('fReporter').value.trim();
-    const notes    = document.getElementById('fNotes').value.trim();
-
-if (!name || !location || !category || !priority || !reporter) {
-    showToast('Please fill in all required fields.');
-    return;
-}
-
-    if (editId) {
-        Object.assign(incidents.find(i => i.id === editId), { name, location, category, priority, status, reporter, notes });
-        showToast('Incident updated.');
-    } else {
-        incidents.unshift({ id: nextId++, name, location, category, priority, status, reporter, notes, time: 'Just now' });
-        showToast('Incident added.');
+    function openDrawer() {
+        overlay.classList.add('open');
+        drawer.classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
-    closeModal();
-    render();
-});
 
-  /* ── DELETE MODAL ── */
-function openDelete(id) {
-    deleteId = id;
-    document.getElementById('deleteModal').classList.add('open');
-}
+        function closeDrawer() {
+            overlay.classList.remove('open');
+            drawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
 
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('open');
-    deleteId = null;
-}
+        if (window.innerWidth <= 768) {
+            hamburger?.addEventListener('click', openDrawer);
+            drawerClose?.addEventListener('click', closeDrawer);
+            overlay?.addEventListener('click', closeDrawer);
+            adminPill?.addEventListener('click', openDrawer);
+        } else {
+            drawer.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                closeDrawer();
+                drawer.classList.remove('open');
+            }
+        });
 
-    document.getElementById('deleteClose').addEventListener('click', closeDeleteModal);
-    document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
-    document.getElementById('deleteModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDeleteModal(); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDrawer();
+        });
 
-    document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
-        incidents = incidents.filter(i => i.id !== deleteId);
-        closeDeleteModal();
-        render();
-    showToast('Incident deleted.');
-});
+        // Set current date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-/* ── TOAST ── */
-    let toastTimer;
-        function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-    clearTimeout(toastTimer);
-toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-render();
+        // Load admin name from localStorage
+        const currentAdmin = localStorage.getItem('currentAdmin');
+        if (currentAdmin) {
+            try {
+                const admin = JSON.parse(currentAdmin);
+                if (admin.name) {
+                    document.getElementById('adminName').textContent = admin.name;
+                }
+            } catch(e) {}
+        }
+
+        // Load data from localStorage
+        function loadDashboardData() {
+            // Load students
+            let students = [];
+            const studentsData = localStorage.getItem('campus_care_students');
+            if (studentsData) {
+                students = JSON.parse(studentsData);
+            }
+            
+            // Load penalties
+            let penalties = [];
+            const penaltiesData = localStorage.getItem('campus_care_penalties');
+            if (penaltiesData) {
+                penalties = JSON.parse(penaltiesData);
+            }
+            
+            // Update stats
+            const totalStudents = students.length;
+            const activePenalties = penalties.filter(p => p.status !== 'completed').length;
+            const completedHours = penalties
+                .filter(p => p.status === 'completed')
+                .reduce((sum, p) => sum + (parseInt(p.hours) || 0), 0);
+            const complianceRate = totalStudents > 0 ? Math.min(Math.round((completedHours / (totalStudents * 10)) * 100), 100) : 0;
+            
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('activePenalties').textContent = activePenalties;
+            document.getElementById('completedHours').textContent = completedHours;
+            document.getElementById('complianceRate').textContent = complianceRate;
+            
+            // Update recent penalties table
+            const recentPenalties = [...penalties].sort((a, b) => b.id - a.id).slice(0, 5);
+            const tbody = document.getElementById('recentPenaltiesBody');
+            
+            if (recentPenalties.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-icon">⚠️</div><div>No penalty records found</div></td></tr>`;
+            } else {
+                tbody.innerHTML = recentPenalties.map(p => `
+                    <tr>
+                        <td><strong>${escapeHtml(p.studentId)}</strong></td>
+                        <td>${escapeHtml(p.violation)}</td>
+                        <td>${p.hours} hrs</td>
+                        <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span></td>
+                        <td>${formatDate(p.deadline)}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Update top violations
+            const violationCount = {};
+            penalties.forEach(p => {
+                const violation = p.violation;
+                violationCount[violation] = (violationCount[violation] || 0) + 1;
+            });
+            
+            const topViolations = Object.entries(violationCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            const violationsContainer = document.getElementById('violationsContainer');
+            if (topViolations.length === 0) {
+                violationsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div>No violations recorded yet</div></div>`;
+            } else {
+                violationsContainer.innerHTML = topViolations.map(([name, count]) => `
+                    <div class="violation-item">
+                        <span class="violation-name">${escapeHtml(name)}</span>
+                        <span class="violation-count">${count} cases</span>
+                    </div>
+                `).join('');
+            }
+            
+            // Update chart
+            updateChart(penalties);
+            
+            // Update activity feed
+            updateActivityFeed(students, penalties);
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        let penaltyChart;
+        
+        function updateChart(penalties) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const last6Months = [];
+            const currentDate = new Date();
+            
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                last6Months.push(months[d.getMonth()] + ' ' + d.getFullYear());
+            }
+            
+            const monthlyCounts = last6Months.map(() => 0);
+            
+            penalties.forEach(penalty => {
+                if (penalty.dateCreated) {
+                    const date = new Date(penalty.dateCreated);
+                    const monthYear = months[date.getMonth()] + ' ' + date.getFullYear();
+                    const index = last6Months.indexOf(monthYear);
+                    if (index !== -1) {
+                        monthlyCounts[index]++;
+                    }
+                }
+            });
+            
+            const ctx = document.getElementById('penaltyChart').getContext('2d');
+            
+            if (penaltyChart) {
+                penaltyChart.destroy();
+            }
+            
+            penaltyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last6Months,
+                    datasets: [{
+                        label: 'Penalties Issued',
+                        data: monthlyCounts,
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2563EB',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#E2E8F0'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateActivityFeed(students, penalties) {
+            const activities = [];
+            
+            // Add student activities
+            students.forEach(student => {
+                if (student.dateAdded) {
+                    activities.push({
+                        type: 'student',
+                        text: `New student registered: ${student.name}`,
+                        time: new Date(student.dateAdded),
+                        icon: '👨‍🎓'
+                    });
+                }
+            });
+            
+            // Add penalty activities
+            penalties.forEach(penalty => {
+                if (penalty.dateCreated) {
+                    activities.push({
+                        type: 'penalty',
+                        text: `Penalty issued to ${penalty.studentId} for ${penalty.violation}`,
+                        time: new Date(penalty.dateCreated),
+                        icon: '⚠️'
+                    });
+                }
+            });
+            
+            // Sort by time (most recent first)
+            activities.sort((a, b) => b.time - a.time);
+            const recentActivities = activities.slice(0, 5);
+            
+            const activityContainer = document.getElementById('activityContainer');
+            if (recentActivities.length === 0) {
+                activityContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div>No recent activity</div></div>`;
+            } else {
+                activityContainer.innerHTML = recentActivities.map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon">${activity.icon}</div>
+                        <div class="activity-content">
+                            <div class="activity-text">${escapeHtml(activity.text)}</div>
+                            <div class="activity-time">${formatRelativeTime(activity.time)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function formatRelativeTime(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentAdmin');
+                window.location.href = '/LANDING PAGE/land.html';
+            }
+        });
+        
+        // Notification button
+        document.getElementById('notifyBtn')?.addEventListener('click', () => {
+            alert('🔔 No new notifications at this time.');
+        });
+        loadDashboardData()
+        setInterval(loadDashboardData, 30000);

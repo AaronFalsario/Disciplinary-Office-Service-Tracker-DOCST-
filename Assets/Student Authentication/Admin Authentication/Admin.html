@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>DOCST — Admin Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Student Authentication/Admin Authentication/Admin.css">
+    <link rel="icon" href="/Images/DOCST LOGO.png">
 </head>
 <body>
 <div class="card">
@@ -13,7 +14,7 @@
     <div class="left">
         <div class="left-brand">
             <div class="left-brand-icon">
-                <img src="/Images/DOCST LOGO.png" alt="DOCST Logo">
+                <img src="/Images/DOCST LOGO.png" alt="DOCST Logo" onerror="this.style.backgroundColor='rgba(255,255,255,0.2)'">
             </div>
             <div class="left-brand-text">
                 <div class="top">Disciplinary Office</div>
@@ -39,10 +40,11 @@
             </div>
         </div>
     </div>
+
     <!-- RIGHT PANEL -->
     <div class="right">
         <!-- STEP 1 — Credentials -->
-        <div class="panel active" id="admin-step1">
+        <div class="panel active" id="step1">
             <div class="panel-title">Admin Login</div>
             <div class="admin-badge"><i class="fas fa-shield-halved"></i> Admin Portal</div>
             <div class="panel-desc">Restricted access. Authorized personnel only.</div>
@@ -56,31 +58,30 @@
                 <div class="ib-sub">This portal is for authorized administrators only. All login attempts are logged.</div>
             </div>
             <div class="field">
-                <label>Admin ID / Username</label>
+                <label>Admin ID or Email</label>
                 <div class="input-wrap">
                     <i class="fas fa-user-shield"></i>
-                    <input type="text" id="admin-id" placeholder="Enter your admin username">
+                    <input type="text" id="admin-username" placeholder="ADMIN-001 or admin@docst.edu.ph">
                 </div>
             </div>
             <div class="field">
                 <label>Password</label>
                 <div class="input-wrap">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="admin-pw" placeholder="Enter your password">
-                    <button class="eye-btn" onclick="togglePw('admin-pw', this)"><i class="fas fa-eye"></i></button>
+                    <input type="password" id="admin-password" placeholder="Enter your password">
+                    <button class="eye-btn" type="button" onclick="togglePassword('admin-password', this)"><i class="fas fa-eye"></i></button>
                 </div>
             </div>
             <div class="row-check">
-                <label class="check-label"><input type="checkbox"> Keep me signed in</label>
+                <label class="check-label"><input type="checkbox" id="rememberMe"> Keep me signed in</label>
                 <a href="#" class="forgot-link">Forgot Password?</a>
             </div>
-            <button class="btn-submit" onclick="goAdminStep2()">
-                Continue <i class="fas fa-arrow-right"></i>
-            </button>
+            <button class="btn-submit" id="loginBtn">Continue <i class="fas fa-arrow-right"></i></button>
         </div>
+
         <!-- STEP 2 — OTP -->
-        <div class="panel" id="admin-step2">
-            <button class="back-link" onclick="showRaw('admin-step1')">
+        <div class="panel" id="step2">
+            <button class="back-link" onclick="goToStep(1)">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
             <div class="panel-title">Verify Identity</div>
@@ -96,27 +97,23 @@
             </div>
             <div class="field">
                 <label>Enter OTP Code</label>
-                <div class="otp-row">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,0)">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,1)">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,2)">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,3)">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,4)">
-                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,5)">
+                <div class="otp-row" id="otpContainer">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="0">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="1">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="2">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="3">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="4">
+                    <input class="otp-input" maxlength="1" type="text" inputmode="numeric" data-index="5">
                 </div>
             </div>
             <div class="otp-hint">
                 Code expires in <span id="countdown" style="font-weight:600;color:var(--blue)">05:00</span>
-                &mdash; <a href="#" class="forgot-link">Resend</a>
             </div>
-            <button class="btn-submit" onclick="completeLogin()">
-                <i class="fas fa-check"></i> Verify &amp; Login
-            </button>
+            <button class="btn-submit" id="verifyBtn">Verify &amp; Login</button>
         </div>
     </div>
 </div>
 
-
-<script src="/Assets/Student Authentication/Admin Authentication/Admin.js"></script>
+<script type="module" src="/Assets/Student Authentication/Admin Authentication/Admin.js"></script>
 </body>
 </html>
