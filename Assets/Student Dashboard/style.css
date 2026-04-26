@@ -38,6 +38,19 @@ html, body {
     color: var(--text);
     font-size: 14px;
     line-height: 1.5;
+    animation: fadeInPage 0.5s ease-out;
+}
+
+/* PAGE FADE IN */
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* DRAWER */
@@ -71,12 +84,36 @@ html, body {
     overflow-y: auto;
     border-right: 1px solid var(--border);
     box-shadow: none;
+    animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .drawer-header {
     background: var(--blue);
     padding: 24px 20px 20px;
     position: relative;
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .drawer-close {
@@ -110,6 +147,18 @@ html, body {
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
+    animation: fadeInScale 0.4s ease-out 0.1s both;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .drawer-info {
@@ -120,12 +169,25 @@ html, body {
     font-size: 15px;
     font-weight: 600;
     color: #fff;
+    animation: fadeInRight 0.4s ease-out 0.15s both;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .drawer-role {
     font-size: 11px;
     color: rgba(255,255,255,0.8);
     margin-top: 3px;
+    animation: fadeInRight 0.4s ease-out 0.2s both;
 }
 
 .drawer-badge {
@@ -138,6 +200,7 @@ html, body {
     letter-spacing: 0.06em;
     padding: 3px 10px;
     border-radius: 20px;
+    animation: fadeInRight 0.4s ease-out 0.25s both;
 }
 
 .drawer-nav {
@@ -152,7 +215,7 @@ html, body {
     padding: 10px 20px;
     color: var(--text-2);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     background: none;
     border: none;
     border-left: 3px solid transparent;
@@ -161,7 +224,13 @@ html, body {
     text-align: left;
     cursor: pointer;
     transition: all 0.15s;
+    animation: fadeInRight 0.4s ease-out;
+    animation-fill-mode: both;
 }
+
+.drawer-item:nth-child(1) { animation-delay: 0.05s; }
+.drawer-item:nth-child(2) { animation-delay: 0.1s; }
+.drawer-item:nth-child(3) { animation-delay: 0.15s; }
 
 .drawer-item:hover {
     background: var(--bg);
@@ -179,11 +248,34 @@ html, body {
     background: var(--border);
     margin: 8px 20px;
     border: none;
+    animation: scaleX 0.4s ease-out 0.2s both;
+    transform-origin: left;
+}
+
+@keyframes scaleX {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
 }
 
 .drawer-footer {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
+    animation: fadeInUp 0.4s ease-out 0.3s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .drawer-logout {
@@ -220,6 +312,7 @@ html, body {
     z-index: 100;
     margin-left: var(--drawer-w);
     width: calc(100% - var(--drawer-w));
+    animation: slideDown 0.5s ease-out;
 }
 
 .topbar-left {
@@ -244,6 +337,7 @@ html, body {
     height: 2px;
     background: var(--text-3);
     border-radius: 2px;
+    transition: all 0.2s ease;
 }
 
 .brand {
@@ -256,12 +350,14 @@ html, body {
     width: 40px;
     height: 40px;
     border-radius: 8px;
+    animation: fadeInScale 0.4s ease-out;
 }
 
 .brand-name {
     font-size: 16px;
     font-weight: 700;
     color: var(--text);
+    animation: fadeInRight 0.4s ease-out 0.05s both;
 }
 
 .student-pill {
@@ -274,6 +370,18 @@ html, body {
     display: flex;
     align-items: center;
     gap: 6px;
+    animation: fadeInLeft 0.4s ease-out 0.1s both;
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* MAIN CONTENT */
@@ -281,11 +389,24 @@ html, body {
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
     max-width: calc(1400px - var(--drawer-w));
+    animation: fadeInUp 0.5s ease-out;
 }
 
 /* Welcome Section */
 .welcome-section {
     margin-bottom: 32px;
+    animation: slideDownFade 0.5s ease-out;
+}
+
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .welcome-title {
@@ -293,11 +414,13 @@ html, body {
     font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
+    animation: fadeInRight 0.4s ease-out 0.1s both;
 }
 
 .welcome-date {
     font-size: 14px;
     color: var(--text-3);
+    animation: fadeInRight 0.4s ease-out 0.15s both;
 }
 
 /* Stats Grid */
@@ -314,7 +437,18 @@ html, body {
     padding: 20px;
     border: 1px solid var(--border);
     transition: all 0.2s;
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0; /
 }
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
 
 .stat-card:hover {
     transform: translateY(-2px);
@@ -331,12 +465,25 @@ html, body {
     justify-content: center;
     margin-bottom: 12px;
     color: var(--blue);
+    animation: fadeInScale 0.3s ease-out;
 }
 
 .stat-value {
     font-size: 28px;
     font-weight: 700;
     color: var(--text);
+    animation: countUp 0.6s ease-out;
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: scale(1.2);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .stat-label {
@@ -361,7 +508,13 @@ html, body {
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
 }
+
+.action-card:nth-child(1) { animation-delay: 0.1s; }
+.action-card:nth-child(2) { animation-delay: 0.15s; }
+.action-card:nth-child(3) { animation-delay: 0.2s; }
 
 .action-card:hover {
     transform: translateY(-3px);
@@ -406,6 +559,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
+    animation: fadeInUp 0.5s ease-out 0.15s both;
 }
 
 .card-header {
@@ -425,7 +579,14 @@ html, body {
     gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
+    animation: fadeInRight 0.3s ease-out;
+    animation-fill-mode: both;
 }
+
+.activity-item:nth-child(1) { animation-delay: 0.2s; }
+.activity-item:nth-child(2) { animation-delay: 0.25s; }
+.activity-item:nth-child(3) { animation-delay: 0.3s; }
+.activity-item:nth-child(4) { animation-delay: 0.35s; }
 
 .activity-item:last-child {
     border-bottom: none;
@@ -464,6 +625,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
+    animation: fadeInUp 0.5s ease-out 0.2s both;
 }
 
 .deadline-item {
@@ -472,7 +634,13 @@ html, body {
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
+    animation: fadeInRight 0.3s ease-out;
+    animation-fill-mode: both;
 }
+
+.deadline-item:nth-child(1) { animation-delay: 0.25s; }
+.deadline-item:nth-child(2) { animation-delay: 0.3s; }
+.deadline-item:nth-child(3) { animation-delay: 0.35s; }
 
 .deadline-item:last-child {
     border-bottom: none;
@@ -514,6 +682,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     overflow: hidden;
+    animation: fadeInUp 0.5s ease-out 0.1s both;
 }
 
 .penalties-table table {
@@ -536,7 +705,13 @@ html, body {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
+    animation: fadeInRight 0.3s ease-out;
+    animation-fill-mode: both;
 }
+
+.penalties-table tr:nth-child(1) td { animation-delay: 0.15s; }
+.penalties-table tr:nth-child(2) td { animation-delay: 0.2s; }
+.penalties-table tr:nth-child(3) td { animation-delay: 0.25s; }
 
 .status-badge {
     display: inline-block;
@@ -570,12 +745,23 @@ html, body {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
+    animation: bounce 1s ease-out;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .drawer {
         transform: translateX(-100%);
+        animation: none;
     }
     .drawer.open {
         transform: translateX(0);

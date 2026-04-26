@@ -1,34 +1,25 @@
-
 //STUDENT PENALTIES PAGE 
         let currentStudent = null;
         let myPenalties = [];
-
-        // Load current student from localStorage
-        function loadCurrentStudent() {
-            const stored = localStorage.getItem('currentStudent');
-            if (stored) {
-                currentStudent = JSON.parse(stored);
-                
-                // Update drawer with student info
-                const nameEl = document.getElementById('studentName');
-                const idEl = document.getElementById('studentId');
-                
-                if (nameEl) nameEl.textContent = currentStudent.name || 'Student';
-                if (idEl) idEl.textContent = `ID: ${currentStudent.studentId || currentStudent.id || '---'}`;
-            } else {
-                // Demo student for preview
-                currentStudent = {
-                    id: "STU-2024-1001",
-                    name: "Juan Dela Cruz",
-                    studentId: "2024-1001"
-                };
-                const nameEl = document.getElementById('studentName');
-                const idEl = document.getElementById('studentId');
-                if (nameEl) nameEl.textContent = currentStudent.name;
-                if (idEl) idEl.textContent = `ID: ${currentStudent.studentId}`;
-            }
-            return currentStudent;
-        }
+//load students
+function loadCurrentStudent() {
+    const stored = localStorage.getItem('currentStudent');
+    if (stored) {
+        currentStudent = JSON.parse(stored);
+        
+        // Update drawer with student info
+        const nameEl = document.getElementById('studentName');
+        const idEl = document.getElementById('studentId');
+        
+        if (nameEl) nameEl.textContent = currentStudent.name || 'Student';
+        if (idEl) idEl.textContent = `ID: ${currentStudent.studentId || currentStudent.id || '---'}`;
+        return true;
+    } else {
+        // NO DEMO - redirect to login
+        window.location.href = '/Assets/Student Authentication/Student.html';
+        return false;
+    }
+}
 
         // Load only current student's penalties
         function loadMyPenalties() {
@@ -243,7 +234,7 @@ document.addEventListener('DOMContentLoaded', initializeDrawer);
 
         // Initialize page
         function init() {
-            loadCurrentStudent();
+            if (!loadCurrentStudent()) return;
             initializeDrawer();
             loadMyPenalties();
             updateStats();

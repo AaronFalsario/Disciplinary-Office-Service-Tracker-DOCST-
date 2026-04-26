@@ -1,5 +1,6 @@
 // Storage key for Gordon College students only
 const STUDENTS_STORAGE_KEY = 'gordon_college_students';
+const STUDENT_CREDENTIALS_KEY = 'student_login_credentials';
 const ALLOWED_DOMAIN = '@gordoncollege.edu.ph';
 
 let students = [];
@@ -28,19 +29,16 @@ function closeDrawer() {
 // Function to check screen size and setup drawer behavior
 function setupResponsiveDrawer() {
     if (window.innerWidth > 768) {
-        // Desktop: Drawer is always visible (no open class)
         drawer.classList.remove('open');
         overlay.classList.remove('open');
         document.body.style.overflow = '';
     } else {
-        // Mobile: Drawer starts hidden
         drawer.classList.remove('open');
         overlay.classList.remove('open');
         document.body.style.overflow = '';
     }
 }
 
-// Add event listeners based on screen size
 function attachEventListeners() {
     if (window.innerWidth <= 768) {
         hamburger?.addEventListener('click', openDrawer);
@@ -48,7 +46,6 @@ function attachEventListeners() {
         overlay?.addEventListener('click', closeDrawer);
         adminPill?.addEventListener('click', openDrawer);
     } else {
-        // Remove mobile listeners on desktop to prevent conflicts
         hamburger?.removeEventListener('click', openDrawer);
         drawerClose?.removeEventListener('click', closeDrawer);
         overlay?.removeEventListener('click', closeDrawer);
@@ -56,29 +53,25 @@ function attachEventListeners() {
     }
 }
 
-// Initial setup
 setupResponsiveDrawer();
 attachEventListeners();
 
-// Handle window resize
 window.addEventListener('resize', () => {
     setupResponsiveDrawer();
     attachEventListeners();
 });
 
-// Close drawer on escape key (only for mobile)
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && window.innerWidth <= 768) {
         closeDrawer();
     }
 });
 
-// Load students from localStorage (only Gordon College email domain)
+// Load students from localStorage
 function loadStudents() {
     const stored = localStorage.getItem(STUDENTS_STORAGE_KEY);
     if (stored) {
         students = JSON.parse(stored);
-        // Filter to ensure only Gordon College emails
         students = students.filter(s => s.email && s.email.toLowerCase().endsWith(ALLOWED_DOMAIN));
     } else {
         students = [];
@@ -90,6 +83,134 @@ function loadStudents() {
 
 function saveStudents() {
     localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
+    // Update student credentials when students are saved
+    updateStudentCredentials();
+}
+
+// Generate a random password for new student
+function generateRandomPassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+}
+
+// Update student login credentials storage
+function updateStudentCredentials() {
+    const credentials = {};
+    students.forEach(student => {
+        if (student.email && student.password) {
+            credentials[student.email] = {
+                password: student.password,
+                studentId: student.idNumber,
+                name: student.name,
+                status: student.status
+            };
+        } else if (student.email && !student.password) {
+            // Generate default password for existing students without password
+            const defaultPassword = generateRandomPassword();
+            student.password = defaultPassword;
+            credentials[student.email] = {
+                password: defaultPassword,
+                studentId: student.idNumber,
+                name: student.name,
+                status: student.status
+            };
+        }
+    });
+    localStorage.setItem(STUDENT_CREDENTIALS_KEY, JSON.stringify(credentials));
+    saveStudents(); // Save updated passwords back to students array
+}
+
+// Get student credentials for login
+function getStudentCredentials() {
+    const stored = localStorage.getItem(STUDENT_CREDENTIALS_KEY);
+    return stored ? JSON.parse(stored) : {};
+}
+
+// Verify student login (called from student login page)
+window.verifyStudentLogin = function(email, password) {
+    const credentials = getStudentCredentials();
+    const student = credentials[email];
+    
+    if (student && student.password === password) {
+        if (student.status !== 'active') {
+            return { success: false, message: 'Account is inactive. Please contact administrator.' };
+        }
+        
+        // Store current student session
+        const session = {
+            email: email,
+            studentId: student.studentId,
+            name: student.name,
+            loginTime: new Date().toISOString()
+        };
+        localStorage.setItem('currentStudentSession', JSON.stringify(session));
+        
+        return { 
+            success: true, 
+            student: {
+                name: student.name,
+                studentId: student.studentId,
+                email: email
+            }
+        };
+    }
+    return { success: false, message: 'Invalid email or password' };
+}
+
+// Get current logged-in student
+window.getCurrentStudent = function() {
+    const session = localStorage.getItem('currentStudentSession');
+    if (session) {
+        return JSON.parse(session);
+    }
+    return null;
+};
+
+// Logout student
+window.studentLogout = function() {
+    localStorage.removeItem('currentStudentSession');
+    window.location.href = '/student-login.html';
+};
+
+// Reset student password (admin function)
+function resetStudentPassword(studentId, newPassword = null) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return false;
+    
+    const password = newPassword || generateRandomPassword();
+    student.password = password;
+    saveStudents();
+    updateStudentCredentials();
+    
+    showNotification(`Password reset for ${student.name}. New password: ${password}`, 'info');
+    return password;
+}
+
+// Send email notification to student (simulated)
+function sendStudentCredentials(student) {
+    // This would integrate with EmailJS or your email service
+    console.log(`Email would be sent to ${student.email}:`);
+    console.log(`Subject: Your DOCST Account Credentials`);
+    console.log(`Body: 
+        Dear ${student.name},
+        
+        Your DOCST account has been created successfully.
+        
+        Student ID: ${student.idNumber}
+        Email: ${student.email}
+        Password: ${student.password || 'Use the password provided by the administrator'}
+        
+        Please login at: /student-login.html
+        
+        Regards,
+        DOCST Administration
+    `);
+    
+    showNotification(`Credentials sent to ${student.email} (simulated)`, 'info');
 }
 
 function validateEmail(email) {
@@ -127,7 +248,7 @@ function renderStudentsTable() {
     if (filteredStudents.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty-state">
+                <td colspan="8" class="empty-state">
                     <div class="empty-icon">${searchTerm ? '🔍' : '👨‍🎓'}</div>
                     <div class="empty-title">${searchTerm ? 'No matching students found' : 'No students enrolled yet'}</div>
                     <div class="empty-sub">${searchTerm ? 'Try a different search term' : 'Click "Add Student" to enroll a new student'}</div>
@@ -164,6 +285,13 @@ function renderStudentsTable() {
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                     </button>
+                    <button class="action-icon" onclick="resetStudentPasswordPrompt(${student.id})" title="Reset Password">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 2L15 8M3 12h9m-9 4h9m-9 4h9"/>
+                            <path d="M17 8v8a2 2 0 0 1-2 2"/>
+                            <path d="M21 12a4 4 0 0 0-4-4h-2"/>
+                        </svg>
+                    </button>
                     <button class="action-icon delete" onclick="deleteStudent(${student.id})" title="Delete">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"/>
@@ -172,9 +300,22 @@ function renderStudentsTable() {
                     </button>
                 </div>
             </td>
-        </tr>
+         </tr>
     `).join('');
 }
+
+// Reset password prompt
+window.resetStudentPasswordPrompt = function(id) {
+    const student = students.find(s => s.id === id);
+    if (!student) return;
+    
+    const customPassword = prompt(`Enter new password for ${student.name} (leave empty for auto-generated):`);
+    const newPassword = resetStudentPassword(id, customPassword || null);
+    
+    if (confirm(`Send login credentials to ${student.email}?`)) {
+        sendStudentCredentials(student);
+    }
+};
 
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
@@ -221,6 +362,14 @@ function openModal(editId = null) {
         if (form) form.reset();
         const studentIdField = document.getElementById('studentId');
         if (studentIdField) studentIdField.value = '';
+        
+        // Pre-generate student ID
+        const idNumberField = document.getElementById('studentIdNumber');
+        if (idNumberField && students.length > 0) {
+            const year = new Date().getFullYear();
+            const nextNumber = students.length + 1;
+            idNumberField.value = `${year}-${String(nextNumber).padStart(5, '0')}`;
+        }
     }
     if (modal) modal.classList.add('open');
 }
@@ -245,7 +394,6 @@ if (studentForm) {
         const emailInput = document.getElementById('studentEmail');
         const email = emailInput ? emailInput.value.trim() : '';
         
-        // Validate Gordon College email
         if (!validateEmail(email)) {
             alert(`Invalid email domain. Only ${ALLOWED_DOMAIN} emails are allowed.`);
             return;
@@ -262,11 +410,10 @@ if (studentForm) {
             idNumber: idNumberInput ? idNumberInput.value.trim() : '',
             email: email,
             course: courseInput ? courseInput.value : '',
-            year: yearInput ? yearInput.value : '',
+            year: yearInput ? parseInt(yearInput.value) : 1,
             status: statusInput ? statusInput.value : 'active'
         };
         
-        // Check for duplicate ID
         if (!currentEditId) {
             const existingId = students.find(s => s.idNumber === studentData.idNumber);
             if (existingId) {
@@ -282,21 +429,25 @@ if (studentForm) {
         }
         
         if (currentEditId) {
-            // Update existing
             const index = students.findIndex(s => s.id === currentEditId);
             if (index !== -1) {
                 students[index] = { ...students[index], ...studentData };
                 showNotification('Student updated successfully!');
             }
         } else {
-            // Add new
+            const newPassword = generateRandomPassword();
             const newStudent = {
                 id: Date.now(),
                 ...studentData,
+                password: newPassword,
                 dateAdded: new Date().toISOString()
             };
             students.push(newStudent);
-            showNotification('Student enrolled successfully!');
+            showNotification(`Student enrolled successfully! Password: ${newPassword}`, 'info');
+            
+            if (confirm(`Send login credentials to ${email}?`)) {
+                sendStudentCredentials(newStudent);
+            }
         }
         
         saveStudents();
@@ -341,15 +492,16 @@ if (logoutBtn) {
     });
 }
 
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.textContent = message;
+    const bgColor = type === 'success' ? '#1D4ED8' : (type === 'warning' ? '#D97706' : '#10B981');
     notification.style.cssText = `
         position: fixed;
         bottom: 20px;
         right: 20px;
         padding: 12px 20px;
-        background: var(--blue);
+        background: ${bgColor};
         color: white;
         border-radius: 10px;
         font-size: 13px;
@@ -374,3 +526,10 @@ function escapeHtml(text) {
 
 // Initialize
 loadStudents();
+
+// Export for student login page
+window.DOCSTAuth = {
+    verifyLogin: window.verifyStudentLogin,
+    getCurrentStudent: window.getCurrentStudent,
+    logout: window.studentLogout
+};

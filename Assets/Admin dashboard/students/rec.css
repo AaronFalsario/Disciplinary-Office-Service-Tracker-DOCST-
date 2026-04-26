@@ -40,6 +40,12 @@ html, body {
     color: var(--text);
     font-size: 14px;
     line-height: 1.5;
+    animation: fadeInPage 0.5s ease-out;
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* DRAWER */
@@ -72,11 +78,18 @@ html, body {
     transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
     border-right: 1px solid var(--border);
+    animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 @media (max-width: 768px) {
     .drawer {
         transform: translateX(-100%);
+        animation: none;
     }
     .drawer.open {
         transform: translateX(0);
@@ -87,6 +100,12 @@ html, body {
     background: var(--blue);
     padding: 24px 20px 20px;
     position: relative;
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-100%); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .drawer-close {
@@ -131,6 +150,12 @@ html, body {
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
+    animation: fadeInScale 0.4s ease-out 0.1s both;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .drawer-info {
@@ -142,12 +167,19 @@ html, body {
     font-size: 15px;
     font-weight: 600;
     color: #fff;
+    animation: fadeInRight 0.4s ease-out 0.15s both;
+}
+
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 .drawer-role {
     font-size: 11px;
     color: rgba(255,255,255,0.8);
     margin-top: 3px;
+    animation: fadeInRight 0.4s ease-out 0.2s both;
 }
 
 .drawer-badge {
@@ -160,6 +192,7 @@ html, body {
     letter-spacing: 0.06em;
     padding: 3px 10px;
     border-radius: 20px;
+    animation: fadeInRight 0.4s ease-out 0.25s both;
 }
 
 .drawer-nav {
@@ -183,7 +216,15 @@ html, body {
     text-align: left;
     cursor: pointer;
     transition: all 0.15s;
+    animation: fadeInRight 0.4s ease-out;
+    animation-fill-mode: both;
 }
+
+.drawer-item:nth-child(1) { animation-delay: 0.05s; }
+.drawer-item:nth-child(2) { animation-delay: 0.1s; }
+.drawer-item:nth-child(3) { animation-delay: 0.15s; }
+.drawer-item:nth-child(4) { animation-delay: 0.2s; }
+.drawer-item:nth-child(5) { animation-delay: 0.25s; }
 
 .drawer-item:hover {
     background: var(--bg);
@@ -201,11 +242,24 @@ html, body {
     background: var(--border);
     margin: 8px 20px;
     border: none;
+    animation: scaleX 0.4s ease-out 0.2s both;
+    transform-origin: left;
+}
+
+@keyframes scaleX {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
 }
 
 .drawer-footer {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
+    animation: fadeInUp 0.4s ease-out 0.3s both;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .drawer-logout {
@@ -242,6 +296,7 @@ html, body {
     z-index: 100;
     margin-left: var(--drawer-w);
     width: calc(100% - var(--drawer-w));
+    animation: slideDown 0.5s ease-out;
 }
 
 @media (max-width: 768px) {
@@ -279,6 +334,7 @@ html, body {
     height: 2px;
     background: var(--text-3);
     border-radius: 2px;
+    transition: all 0.2s ease;
 }
 
 .brand {
@@ -292,12 +348,14 @@ html, body {
     height: 36px;
     border-radius: 8px;
     object-fit: contain;
+    animation: fadeInScale 0.4s ease-out;
 }
 
 .brand-name {
     font-size: 18px;
     font-weight: 700;
     color: var(--text);
+    animation: fadeInRight 0.4s ease-out 0.05s both;
 }
 
 .brand-tagline {
@@ -306,6 +364,7 @@ html, body {
     margin-left: 8px;
     padding-left: 8px;
     border-left: 1px solid var(--border);
+    animation: fadeInRight 0.4s ease-out 0.1s both;
 }
 
 .topbar-right {
@@ -323,6 +382,18 @@ html, body {
     border-radius: 24px;
     border: none;
     cursor: pointer;
+    transition: all 0.2s;
+    animation: fadeInLeft 0.4s ease-out 0.1s both;
+}
+
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-pill:hover {
+    background: var(--blue-dark);
+    transform: translateY(-1px);
 }
 
 /* MAIN CONTENT */
@@ -330,6 +401,7 @@ html, body {
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
     max-width: calc(1400px - var(--drawer-w));
+    animation: fadeInUp 0.5s ease-out;
 }
 
 @media (max-width: 768px) {
@@ -342,6 +414,12 @@ html, body {
 
 .page-header {
     margin-bottom: 28px;
+    animation: slideDownFade 0.5s ease-out;
+}
+
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .page-title {
@@ -349,11 +427,13 @@ html, body {
     font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
+    animation: fadeInRight 0.4s ease-out 0.1s both;
 }
 
 .page-sub {
     font-size: 14px;
     color: var(--text-3);
+    animation: fadeInRight 0.4s ease-out 0.15s both;
 }
 
 .college-badge {
@@ -367,6 +447,7 @@ html, body {
     font-size: 12px;
     font-weight: 500;
     margin-top: 12px;
+    animation: fadeInScale 0.3s ease-out 0.2s both;
 }
 
 /* Stats Cards */
@@ -391,6 +472,18 @@ html, body {
     display: flex;
     align-items: center;
     gap: 16px;
+    transition: all 0.2s;
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
 }
 
 .stat-icon {
@@ -402,12 +495,19 @@ html, body {
     align-items: center;
     justify-content: center;
     color: var(--blue);
+    animation: fadeInScale 0.3s ease-out;
 }
 
 .stat-info h3 {
     font-size: 28px;
     font-weight: 700;
     color: var(--text);
+    animation: countUp 0.6s ease-out;
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: scale(1.2); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .stat-info p {
@@ -424,6 +524,7 @@ html, body {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    animation: fadeInUp 0.4s ease-out 0.1s both;
 }
 
 .search-input-wrapper {
@@ -442,6 +543,7 @@ html, body {
 .search-input-wrapper:focus-within {
     border-color: var(--blue);
     box-shadow: 0 0 0 3px var(--blue-light);
+    transform: scale(1.01);
 }
 
 .search-input-wrapper input {
@@ -471,7 +573,12 @@ html, body {
 
 .add-student-btn:hover {
     background: var(--blue-dark);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.add-student-btn:active {
+    transform: translateY(0);
 }
 
 /* Table */
@@ -480,6 +587,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     overflow-x: auto;
+    animation: fadeInUp 0.5s ease-out 0.15s both;
 }
 
 table {
@@ -509,8 +617,21 @@ td {
     font-size: 13px;
 }
 
+tbody tr {
+    transition: all 0.2s;
+    animation: fadeInRight 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
 tbody tr:hover {
     background: var(--bg);
+    transform: translateX(2px);
 }
 
 .student-avatar {
@@ -568,6 +689,7 @@ tbody tr:hover {
 .action-icon:hover {
     background: var(--blue-light);
     color: var(--blue);
+    transform: scale(1.1);
 }
 
 .action-icon.delete:hover {
@@ -579,12 +701,19 @@ tbody tr:hover {
 .empty-state {
     text-align: center;
     padding: 60px 20px;
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .empty-icon {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
+    animation: bounce 1s ease-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 .empty-title {
@@ -615,6 +744,12 @@ tbody tr:hover {
 
 .modal-overlay.open {
     display: flex;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal {
@@ -626,6 +761,18 @@ tbody tr:hover {
     overflow-y: auto;
     padding: 28px;
     box-shadow: var(--card-shadow);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .modal::-webkit-scrollbar {
@@ -663,17 +810,27 @@ tbody tr:hover {
     font-size: 24px;
     cursor: pointer;
     color: var(--text-3);
-    transition: color 0.2s;
+    transition: all 0.2s;
 }
 
 .modal-close:hover {
     color: var(--red);
+    transform: rotate(90deg);
 }
 
 /* Form Groups */
 .form-group {
     margin-bottom: 20px;
+    animation: fadeInUp 0.3s ease-out;
+    animation-fill-mode: both;
 }
+
+.form-group:nth-child(1) { animation-delay: 0.05s; }
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.15s; }
+.form-group:nth-child(4) { animation-delay: 0.2s; }
+.form-group:nth-child(5) { animation-delay: 0.25s; }
+.form-group:nth-child(6) { animation-delay: 0.3s; }
 
 .form-group label {
     display: block;
@@ -707,6 +864,7 @@ tbody tr:hover {
     border-color: var(--blue);
     background: var(--surface);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    transform: translateY(-1px);
 }
 
 .form-group input:hover {
@@ -799,16 +957,36 @@ tbody tr:hover {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
 }
 
 .modal-submit:hover {
     background: var(--blue-dark);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .modal-submit:active {
     transform: translateY(0);
+}
+
+.modal-submit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.modal-submit:active::after {
+    width: 200px;
+    height: 200px;
 }
 
 /* Course Badge */
