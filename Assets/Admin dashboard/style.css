@@ -21,10 +21,10 @@
     --slate-light: #F1F5F9;
     --teal: #10B981;
     --navy: #162d4d;
-    --text: #0F172A;
+    --text: #1E293B;
     --text-2: #475569;
-    --text-3: #94A3B8;
-    --bg: #F8FAFC;
+    --text-3: #64748B;
+    --bg: #F0F2F5;
     --surface: #FFFFFF;
     --border: #E2E8F0;
     --border-2: #CBD5E1;
@@ -42,11 +42,10 @@ html, body {
     background: var(--bg);
     color: var(--text);
     font-size: 14px;
-    line-height: 1.5;
-    transition: background 0.3s ease, color 0.3s ease;
+    line-height: 1.5;   
 }
 
-/* ============ DRAWER - DARK NAVY THEME ============ */
+/* ============ DRAWER - DESKTOP (DEFAULT) ============ */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -78,15 +77,6 @@ html, body {
     box-shadow: 2px 0 12px rgba(0,0,0,0.08);
 }
 
-@media (max-width: 768px) {
-    .drawer {
-        transform: translateX(-100%);
-    }
-    .drawer.open {
-        transform: translateX(0);
-    }
-}
-
 .drawer-header {
     background: var(--navy);
     padding: 24px 20px 20px;
@@ -111,12 +101,6 @@ html, body {
 .drawer-close:hover {
     background: rgba(255,255,255,0.2);
     color: #fff;
-}
-
-@media (max-width: 768px) {
-    .drawer-close {
-        display: flex;
-    }
 }
 
 .drawer-profile {
@@ -261,6 +245,83 @@ html, body {
     border-radius: 4px;
 }
 
+/* ============ MOBILE BOTTOM NAVIGATION (ONLY FOR ≤768px) ============ */
+@media (max-width: 768px) {
+    .drawer {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        transform: translateY(100%);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        border-right: none;
+        border-radius: 20px 20px 0 0;
+        transition: transform 0.3s ease;
+        background: var(--navy);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+    }
+    
+    .drawer.open {
+        transform: translateY(0);
+    }
+    
+    .drawer-header {
+        display: none;
+    }
+    
+    .drawer-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--navy);
+    }
+    
+    .drawer-item {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 12px;
+        border-left: none;
+        border-radius: 12px;
+        justify-content: center;
+        text-align: center;
+        font-size: 10px;
+        flex: 1;
+    }
+    
+    .drawer-item svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .drawer-item span {
+        font-size: 10px;
+    }
+    
+    .drawer-item:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .drawer-item.active {
+        border-left: none;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+    
+    .drawer-divider {
+        display: none;
+    }
+    
+    .drawer-footer {
+        display: none;
+    }
+}
+
 /* ============ TOPBAR ============ */
 .topbar {
     background: var(--surface);
@@ -282,6 +343,15 @@ html, body {
     .topbar {
         margin-left: 0;
         width: 100%;
+        padding: 0 16px;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .brand-tagline {
+        display: none;
     }
 }
 
@@ -299,12 +369,6 @@ html, body {
     border: none;
     cursor: pointer;
     padding: 4px;
-}
-
-@media (max-width: 768px) {
-    .hamburger {
-        display: flex;
-    }
 }
 
 .hamburger span {
@@ -337,10 +401,11 @@ html, body {
 }
 
 .brand-tagline {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--text-3);
     margin-left: 8px;
     padding-left: 8px;
+    margin-top: -4px;
     border-left: 1px solid var(--border);
     transition: color 0.3s ease, border-color 0.3s ease;
 }
@@ -348,7 +413,12 @@ html, body {
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 4px;
+}
+
+.topbar-right .icon-btn,
+.topbar-right .admin-pill {
+    margin: 0;
 }
 
 .admin-pill {
@@ -386,36 +456,38 @@ html, body {
     color: var(--blue);
 }
 
-/* ============ MAIN CONTENT ============ */
+/* ============ MAIN CONTENT - SOFT GRAY BACKGROUND ============ */
 .dashboard-main {
     max-width: calc(1600px - var(--drawer-w));
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
-    animation: fadeInUp 0.5s ease-out;
     transition: background 0.3s ease;
+    animation: contentFadeIn 0.4s ease-out;
+    background: #F0F2F5; /* Soft gray background */
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes contentFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @media (max-width: 768px) {
     .dashboard-main {
         margin-left: 0;
         max-width: 100%;
-        padding: 16px;
+        padding: 16px 16px 80px 16px;
+        background: #F0F2F5;
     }
 }
 
 /* Welcome Section */
 .welcome-section {
     margin-bottom: 32px;
-    animation: slideDownFade 0.5s ease-out;
+    animation: slideUp 0.4s ease-out 0.05s both;
 }
 
-@keyframes slideDownFade {
-    from { opacity: 0; transform: translateY(-30px); }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -473,13 +545,12 @@ html, body {
     padding: 20px;
     border: 1px solid var(--border);
     transition: all 0.3s ease;
-    animation: fadeInUpStats 0.5s ease-out;
-    animation-fill-mode: both;
+    animation: cardFadeIn 0.3s ease-out backwards;
 }
 
-@keyframes fadeInUpStats {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes cardFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.05s; }
@@ -557,6 +628,12 @@ html, body {
     gap: 12px;
     margin-bottom: 32px;
     flex-wrap: wrap;
+    animation: fadeInUp 0.3s ease-out 0.05s both;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
@@ -579,13 +656,12 @@ html, body {
     color: var(--text-2);
     cursor: pointer;
     transition: all 0.2s;
-    animation: fadeInUpAction 0.4s ease-out;
-    animation-fill-mode: both;
+    animation: btnFadeIn 0.3s ease-out backwards;
 }
 
-@keyframes fadeInUpAction {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes btnFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 @media (max-width: 480px) {
@@ -601,10 +677,10 @@ html, body {
     }
 }
 
-.action-btn:nth-child(1) { animation-delay: 0.1s; }
-.action-btn:nth-child(2) { animation-delay: 0.15s; }
-.action-btn:nth-child(3) { animation-delay: 0.2s; }
-.action-btn:nth-child(4) { animation-delay: 0.25s; }
+.action-btn:nth-child(1) { animation-delay: 0.05s; }
+.action-btn:nth-child(2) { animation-delay: 0.1s; }
+.action-btn:nth-child(3) { animation-delay: 0.15s; }
+.action-btn:nth-child(4) { animation-delay: 0.2s; }
 
 .action-btn:hover {
     background: var(--blue);
@@ -643,13 +719,13 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
-    animation: fadeInUpChart 0.5s ease-out 0.15s both;
     transition: background 0.3s ease, border-color 0.3s ease;
+    animation: chartFadeIn 0.4s ease-out 0.1s both;
 }
 
-@keyframes fadeInUpChart {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes chartFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .card-header {
@@ -683,13 +759,13 @@ canvas {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
-    animation: fadeInUpViolations 0.5s ease-out 0.2s both;
     transition: background 0.3s ease, border-color 0.3s ease;
+    animation: violationsFadeIn 0.4s ease-out 0.15s both;
 }
 
-@keyframes fadeInUpViolations {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes violationsFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .violation-item {
@@ -698,15 +774,20 @@ canvas {
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
-    animation: fadeInRightViolation 0.3s ease-out;
-    animation-fill-mode: both;
     transition: border-color 0.3s ease;
+    animation: itemSlideIn 0.3s ease-out backwards;
 }
 
-@keyframes fadeInRightViolation {
-    from { opacity: 0; transform: translateX(-20px); }
+@keyframes itemSlideIn {
+    from { opacity: 0; transform: translateX(-10px); }
     to { opacity: 1; transform: translateX(0); }
 }
+
+.violation-item:nth-child(1) { animation-delay: 0.05s; }
+.violation-item:nth-child(2) { animation-delay: 0.1s; }
+.violation-item:nth-child(3) { animation-delay: 0.15s; }
+.violation-item:nth-child(4) { animation-delay: 0.2s; }
+.violation-item:nth-child(5) { animation-delay: 0.25s; }
 
 .violation-item:last-child {
     border-bottom: none;
@@ -735,13 +816,13 @@ canvas {
     border: 1px solid var(--border);
     overflow-x: auto;
     margin-bottom: 32px;
-    animation: fadeInUpTable 0.5s ease-out 0.1s both;
     transition: background 0.3s ease, border-color 0.3s ease;
+    animation: tableFadeIn 0.4s ease-out 0.2s both;
 }
 
-@keyframes fadeInUpTable {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes tableFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .recent-table table {
@@ -775,20 +856,19 @@ canvas {
 }
 
 .recent-table tr {
-    animation: fadeInRightTable 0.3s ease-out;
-    animation-fill-mode: both;
+    animation: rowFadeIn 0.25s ease-out backwards;
 }
 
-@keyframes fadeInRightTable {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+@keyframes rowFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.recent-table tr:nth-child(1) { animation-delay: 0.15s; }
-.recent-table tr:nth-child(2) { animation-delay: 0.2s; }
-.recent-table tr:nth-child(3) { animation-delay: 0.25s; }
-.recent-table tr:nth-child(4) { animation-delay: 0.3s; }
-.recent-table tr:nth-child(5) { animation-delay: 0.35s; }
+.recent-table tr:nth-child(1) { animation-delay: 0.05s; }
+.recent-table tr:nth-child(2) { animation-delay: 0.1s; }
+.recent-table tr:nth-child(3) { animation-delay: 0.15s; }
+.recent-table tr:nth-child(4) { animation-delay: 0.2s; }
+.recent-table tr:nth-child(5) { animation-delay: 0.25s; }
 
 .recent-table tr:hover {
     background: var(--bg);
@@ -822,13 +902,13 @@ canvas {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
-    animation: fadeInUpActivity 0.5s ease-out 0.2s both;
     transition: background 0.3s ease, border-color 0.3s ease;
+    animation: activityFadeIn 0.4s ease-out 0.25s both;
 }
 
-@keyframes fadeInUpActivity {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes activityFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .activity-item {
@@ -836,15 +916,19 @@ canvas {
     gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
-    animation: fadeInRightActivity 0.3s ease-out;
-    animation-fill-mode: both;
     transition: border-color 0.3s ease;
+    animation: activityItemSlide 0.3s ease-out backwards;
 }
 
-@keyframes fadeInRightActivity {
-    from { opacity: 0; transform: translateX(-20px); }
+@keyframes activityItemSlide {
+    from { opacity: 0; transform: translateX(-10px); }
     to { opacity: 1; transform: translateX(0); }
 }
+
+.activity-item:nth-child(1) { animation-delay: 0.05s; }
+.activity-item:nth-child(2) { animation-delay: 0.1s; }
+.activity-item:nth-child(3) { animation-delay: 0.15s; }
+.activity-item:nth-child(4) { animation-delay: 0.2s; }
 
 .activity-item:last-child {
     border-bottom: none;
@@ -893,13 +977,12 @@ canvas {
     opacity: 0.5;
 }
 
-/* ============ DARK MODE STYLES - ALL MAIN CONTENT ELEMENTS ============ */
+/* ============ DARK MODE STYLES ============ */
 body.dark-mode {
     background: #0F172A;
     color: #F1F5F9;
 }
 
-/* Drawer Dark Mode */
 body.dark-mode .drawer {
     background: #0F172A;
 }
@@ -917,7 +1000,6 @@ body.dark-mode .drawer-item.active {
     background: #1E293B;
 }
 
-/* Topbar Dark Mode */
 body.dark-mode .topbar {
     background: #1E293B;
     border-bottom-color: #334155;
@@ -945,7 +1027,10 @@ body.dark-mode .icon-btn:hover {
     color: #3B82F6;
 }
 
-/* Cards and Containers */
+body.dark-mode .dashboard-main {
+    background: #0F172A;
+}
+
 body.dark-mode .stat-card,
 body.dark-mode .chart-card,
 body.dark-mode .violations-list,
@@ -955,23 +1040,35 @@ body.dark-mode .activity-feed {
     border-color: #334155;
 }
 
-/* Text Colors */
+body.dark-mode .violation-name {
+    color: #F1F5F9 !important;
+}
+
+body.dark-mode .violation-count {
+    background: #0F172A !important;
+    color: #60A5FA !important;
+}
+
+body.dark-mode .card-title {
+    color: #F1F5F9 !important;
+}
+
+body.dark-mode .card-sub {
+    color: #94A3B8 !important;
+}
+
 body.dark-mode .welcome-title,
-body.dark-mode .card-title,
 body.dark-mode .stat-value,
-body.dark-mode .violation-name,
 body.dark-mode .activity-text {
     color: #F1F5F9;
 }
 
 body.dark-mode .welcome-date,
-body.dark-mode .card-sub,
 body.dark-mode .stat-label,
 body.dark-mode .activity-time {
     color: #94A3B8;
 }
 
-/* Table Dark Mode */
 body.dark-mode .recent-table th {
     background: #0F172A;
     color: #94A3B8;
@@ -980,13 +1077,13 @@ body.dark-mode .recent-table th {
 
 body.dark-mode .recent-table td {
     border-bottom-color: #334155;
+    color: #CBD5E1;
 }
 
 body.dark-mode .recent-table tr:hover {
     background: #0F172A;
 }
 
-/* Status Badges Dark Mode */
 body.dark-mode .status-pending {
     background: #451A03;
     color: #F59E0B;
@@ -1002,7 +1099,6 @@ body.dark-mode .status-completed {
     color: #10B981;
 }
 
-/* Stat Icons Dark Mode */
 body.dark-mode .stat-icon.blue {
     background: #1E3A5F;
     color: #3B82F6;
@@ -1023,7 +1119,6 @@ body.dark-mode .stat-icon.purple {
     color: #8B5CF6;
 }
 
-/* Stat Trends Dark Mode */
 body.dark-mode .stat-trend.up {
     background: #064E3B;
     color: #10B981;
@@ -1034,7 +1129,6 @@ body.dark-mode .stat-trend.down {
     color: #EF4444;
 }
 
-/* Buttons Dark Mode */
 body.dark-mode .action-btn {
     background: #1E293B;
     border-color: #334155;
@@ -1043,29 +1137,14 @@ body.dark-mode .action-btn {
 
 body.dark-mode .action-btn:hover {
     background: #3B82F6;
-    border-color: #3B82F6;
     color: white;
 }
 
-body.dark-mode .action-btn.primary {
-    background: #3B82F6;
-    border-color: #3B82F6;
-    color: white;
-}
-
-/* Violation Count Dark Mode */
-body.dark-mode .violation-count {
-    background: #0F172A;
-    color: #3B82F6;
-}
-
-/* Activity Icon Dark Mode */
 body.dark-mode .activity-icon {
     background: #1E3A5F;
     color: #3B82F6;
 }
 
-/* Scrollbar Dark Mode */
 body.dark-mode .drawer::-webkit-scrollbar-track {
     background: #1E293B;
 }
@@ -1074,7 +1153,6 @@ body.dark-mode .drawer::-webkit-scrollbar-thumb {
     background: #334155;
 }
 
-/* Hamburger Menu Dark Mode */
 body.dark-mode .hamburger span {
     background: #94A3B8;
 }

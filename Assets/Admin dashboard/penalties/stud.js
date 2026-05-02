@@ -39,6 +39,27 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
 });
 
+// ============ GET ADMIN INITIALS ============
+function getAdminInitials(fullName) {
+    if (!fullName || fullName === 'Administrator') return 'AD';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function updateDrawerAvatar(adminName) {
+    const drawerAvatar = document.querySelector('.drawer-avatar');
+    if (drawerAvatar) {
+        const initials = getAdminInitials(adminName);
+        drawerAvatar.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = initials;
+        drawerAvatar.appendChild(span);
+    }
+}
+
 // ============ LOAD ADMIN NAME ============
 async function loadAdminName() {
     try {
@@ -53,6 +74,7 @@ async function loadAdminName() {
             if (admin && admin.full_name) {
                 const adminNameEl = document.querySelector('.drawer-name');
                 if (adminNameEl) adminNameEl.textContent = admin.full_name;
+                updateDrawerAvatar(admin.full_name);
             }
         }
     } catch (error) {
@@ -133,8 +155,6 @@ function renderPenaltiesTable() {
                     <div class="empty-icon">⚠️</div>
                     <div class="empty-title">No Penalty Records</div>
                     <div class="empty-sub">Click "Add Penalty" to create a new penalty record</div>
-                 </div>
-                 </span>
                 </td>
             </tr>
         `;
@@ -147,21 +167,21 @@ function renderPenaltiesTable() {
         <tr data-penalty-id="${penalty.id}">
             <td>
                 <input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}" ${selectedPenalties.has(penalty.id) ? 'checked' : ''}>
-             </span>
+            </td>
             <td><strong>${escapeHtml(penalty.studentId)}</strong></td>
-            <td>${escapeHtml(penalty.violation)}</span></td>
-            <td>${escapeHtml(penalty.serviceType)}</span></td>
+            <td>${escapeHtml(penalty.violation)}</td>
+            <td>${escapeHtml(penalty.serviceType)}</td>
             <td>${penalty.hours}</td>
             <td>
                 <span class="status-badge status-${penalty.status === 'in-progress' ? 'in-progress' : penalty.status}">
                     ${penalty.status === 'in-progress' ? 'In Progress' : penalty.status.charAt(0).toUpperCase() + penalty.status.slice(1)}
                 </span>
-             </span>
-            <td>${formatDate(penalty.deadline)}</span></td>
+            </td>
+            <td>${formatDate(penalty.deadline)}</td>
             <td>
                 <button class="action-icon edit-penalty" data-id="${penalty.id}" title="Edit">✏️</button>
                 <button class="action-icon delete-penalty" data-id="${penalty.id}" title="Delete">🗑️</button>
-             </span>
+            </td>
         </tr>
     `).join('');
     
@@ -357,7 +377,7 @@ function renderFilteredTable(filtered) {
     if (!tbody) return;
     
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No community service penalties found</td</tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No community service penalties found</td></tr>`;
         return;
     }
     
@@ -365,15 +385,15 @@ function renderFilteredTable(filtered) {
         <tr data-penalty-id="${penalty.id}">
             <td><input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}"></td>
             <td><strong>${escapeHtml(penalty.studentId)}</strong></td>
-            <td>${escapeHtml(penalty.violation)}</span></td>
-            <td>${escapeHtml(penalty.serviceType)}</span></td>
+            <td>${escapeHtml(penalty.violation)}</td>
+            <td>${escapeHtml(penalty.serviceType)}</td>
             <td>${penalty.hours}</td>
-            <td><span class="status-badge status-${penalty.status}">${penalty.status}</span></span></td>
-            <td>${formatDate(penalty.deadline)}</span></td>
+            <td><span class="status-badge status-${penalty.status}">${penalty.status}</span></td>
+            <td>${formatDate(penalty.deadline)}</td>
             <td>
                 <button class="action-icon edit-penalty" data-id="${penalty.id}">✏️</button>
                 <button class="action-icon delete-penalty" data-id="${penalty.id}">🗑️</button>
-             </span>
+            </td>
         </tr>
     `).join('');
     
@@ -459,6 +479,93 @@ async function handleLogout() {
     }
 }
 
+// ============ DARK MODE ============
+function updateDarkModeButtonIcon(isDark) {
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    if (!darkModeBtn) return;
+    
+    if (isDark) {
+        darkModeBtn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        `;
+    } else {
+        darkModeBtn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        `;
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
+    updateDarkModeButtonIcon(isDark);
+    showNotification(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'success');
+}
+
+function setupDarkModeToggle() {
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    if (darkModeBtn) {
+        const savedDarkMode = localStorage.getItem('docst_dark_mode');
+        if (savedDarkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            updateDarkModeButtonIcon(true);
+        } else {
+            updateDarkModeButtonIcon(false);
+        }
+        darkModeBtn.onclick = toggleDarkMode;
+    }
+}
+
+// Add animation keyframes and styles
+const styleElement = document.createElement('style');
+styleElement.textContent = `
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(20px); }
+        15% { opacity: 1; transform: translateX(0); }
+        85% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+    
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-2);
+        transition: all 0.2s;
+        margin: 0;
+    }
+    
+    .icon-btn:hover {
+        background: var(--bg);
+        color: var(--blue);
+    }
+`;
+document.head.appendChild(styleElement);
+
 // ============ SETUP EVENT LISTENERS ============
 function setupEventListeners() {
     document.getElementById('addPenaltyBtn')?.addEventListener('click', openAddPenaltyModal);
@@ -494,86 +601,7 @@ function setupEventListeners() {
         });
     }
 }
-// ============ DARK MODE ============
-// Check saved preference on page load
-const savedDarkMode = localStorage.getItem('docst_dark_mode');
-if (savedDarkMode === 'enabled') {
-    document.body.classList.add('dark-mode');
-}
 
-// Function to toggle dark mode
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
-    
-    // Optional: Show notification
-    const notification = document.createElement('div');
-    notification.textContent = isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 10px 20px;
-        background: ${isDark ? '#1E293B' : '#1D4ED8'};
-        color: white;
-        border-radius: 8px;
-        font-size: 13px;
-        z-index: 10000;
-        animation: fadeInOut 2s ease;
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 2000);
-}
-
-// Add dark mode toggle button to topbar
-function addDarkModeButton() {
-    const topbarRight = document.querySelector('.topbar-right');
-    if (topbarRight && !document.getElementById('darkModeToggleBtn')) {
-        const btn = document.createElement('button');
-        btn.id = 'darkModeToggleBtn';
-        btn.className = 'icon-btn';
-        btn.style.marginRight = '8px';
-        btn.onclick = toggleDarkMode;
-        
-        // Set initial icon based on current mode
-        const isDark = document.body.classList.contains('dark-mode');
-        btn.innerHTML = isDark ? '☀️' : '🌙';
-        
-        topbarRight.insertBefore(btn, topbarRight.firstChild);
-    }
-}
-
-// Update button icon when dark mode toggles (optional)
-function updateDarkModeButtonIcon() {
-    const btn = document.getElementById('darkModeToggleBtn');
-    if (btn) {
-        const isDark = document.body.classList.contains('dark-mode');
-        btn.innerHTML = isDark ? '☀️' : '🌙';
-    }
-}
-
-// Override toggleDarkMode to update button
-const originalToggle = toggleDarkMode;
-window.toggleDarkMode = function() {
-    originalToggle();
-    updateDarkModeButtonIcon();
-};
-
-// Add animation keyframes
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translateX(20px); }
-        15% { opacity: 1; transform: translateX(0); }
-        85% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(20px); }
-    }
-`;
-document.head.appendChild(style);
-
-// Call this when page loads
-document.addEventListener('DOMContentLoaded', addDarkModeButton);
 // ============ INITIALIZE ============
 async function init() {
     console.log('Initializing Penalties Management...');
@@ -581,6 +609,7 @@ async function init() {
     await loadStudentsCount();
     await loadPenalties();
     setupEventListeners();
+    setupDarkModeToggle();
 }
 
 init();

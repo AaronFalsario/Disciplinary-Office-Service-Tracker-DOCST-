@@ -39,6 +39,31 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
 });
 
+// ============ GET ADMIN INITIALS ============
+function getAdminInitials(fullName) {
+    if (!fullName || fullName === 'Administrator') return 'AD';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function updateDrawerAvatar(adminName) {
+    const drawerAvatar = document.querySelector('.drawer-avatar');
+    if (drawerAvatar) {
+        const initials = getAdminInitials(adminName);
+        // Clear the avatar and add text initials
+        drawerAvatar.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = initials;
+        span.style.fontSize = '18px';
+        span.style.fontWeight = '600';
+        span.style.color = 'white';
+        drawerAvatar.appendChild(span);
+    }
+}
+
 // ============ SET CURRENT DATE ============
 const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 const currentDateEl = document.getElementById('currentDate');
@@ -76,6 +101,8 @@ async function loadAdminName() {
                     if (adminNameEl) {
                         adminNameEl.textContent = adminName;
                         console.log('✅ Admin name loaded from localStorage:', adminName);
+                        // Update drawer avatar with initials
+                        updateDrawerAvatar(adminName);
                         updateGreeting();
                         return;
                     }
@@ -135,6 +162,8 @@ async function loadAdminName() {
             const adminNameEl = document.getElementById('adminName');
             if (adminNameEl) {
                 adminNameEl.textContent = emailName;
+                // Update drawer avatar with email name
+                updateDrawerAvatar(emailName);
                 updateGreeting();
             }
             return;
@@ -153,6 +182,9 @@ async function loadAdminName() {
             console.error('❌ adminName element not found in DOM');
         }
         
+        // Update drawer avatar with initials
+        updateDrawerAvatar(adminName);
+        
         // Save to localStorage for faster loading next time
         localStorage.setItem('currentAdmin', JSON.stringify({ full_name: adminName, email: user.email }));
         
@@ -169,6 +201,7 @@ async function loadAdminName() {
                 const adminNameEl = document.getElementById('adminName');
                 if (adminNameEl && adminName) {
                     adminNameEl.textContent = adminName;
+                    updateDrawerAvatar(adminName);
                     updateGreeting();
                 }
             } catch(e) {}
@@ -264,9 +297,8 @@ function updateRecentPenalties() {
                 <td colspan="5" class="empty-state">
                     <div class="empty-icon">⚠️</div>
                     <div>No penalty records found</div>
-                 </div>
-                 </span>
-                </td>
+                </div>
+                </span>
             </tr>
         `;
         return;
@@ -508,6 +540,7 @@ function forceSetAdminName() {
                 const name = admin.full_name || admin.name;
                 if (name) {
                     adminNameEl.textContent = name;
+                    updateDrawerAvatar(name);
                     updateGreeting();
                     return;
                 }
@@ -527,8 +560,7 @@ async function init() {
     setInterval(refreshDashboard, 30000);
 }
 
-// Dark Mode - Add this at the END of your funct.js file
-
+// ============ DARK MODE ============
 // Check saved preference
 const savedDarkMode = localStorage.getItem('docst_dark_mode');
 if (savedDarkMode === 'enabled') {
@@ -541,22 +573,72 @@ function addDarkModeToggle() {
     if (topbarRight && !document.getElementById('darkModeToggle')) {
         const btn = document.createElement('button');
         btn.id = 'darkModeToggle';
-        btn.innerHTML = '🌙';
+        btn.className = 'icon-btn';
+        
+        // Check current dark mode state
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        // Set initial SVG based on current mode
+        btn.innerHTML = isDark ? `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        ` : `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        `;
+        
         btn.style.cssText = `
             background: none;
             border: none;
-            font-size: 18px;
             cursor: pointer;
-            margin-right: 10px;
-            padding: 5px 10px;
-            border-radius: 20px;
+            padding: 8px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
         `;
+        
         btn.onclick = () => {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
-            btn.innerHTML = isDark ? '☀️' : '🌙';
+            const nowDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+            
+            // Update SVG icon
+            if (nowDark) {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                `;
+            } else {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                `;
+            }
         };
+        
+        // Insert at the beginning of topbar-right
         topbarRight.insertBefore(btn, topbarRight.firstChild);
     }
 }

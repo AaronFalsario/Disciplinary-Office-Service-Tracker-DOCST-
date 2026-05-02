@@ -42,27 +42,100 @@ function setupDrawer() {
     });
 }
 
-// ============ DARK MODE ============
-function initDarkMode() {
-    const savedDarkMode = localStorage.getItem('docst_dark_mode');
-    if (savedDarkMode === 'enabled') {
-        document.body.classList.add('dark-mode');
+// ============ GET ADMIN INITIALS ============
+function getAdminInitials(fullName) {
+    if (!fullName || fullName === 'Administrator') return 'AD';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
     }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
+function updateDrawerAvatar(adminName) {
+    const drawerAvatar = document.querySelector('.drawer-avatar');
+    if (drawerAvatar) {
+        const initials = getAdminInitials(adminName);
+        drawerAvatar.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = initials;
+        drawerAvatar.appendChild(span);
+    }
+}
+
+// ============ DARK MODE TOGGLE ============
+const savedDarkMode = localStorage.getItem('docst_dark_mode');
+if (savedDarkMode === 'enabled') {
+    document.body.classList.add('dark-mode');
+}
+
+function addDarkModeToggle() {
     const topbarRight = document.querySelector('.topbar-right');
     if (topbarRight && !document.getElementById('darkModeToggle')) {
         const btn = document.createElement('button');
         btn.id = 'darkModeToggle';
-        btn.innerHTML = savedDarkMode === 'enabled' ? '☀️' : '🌙';
         btn.className = 'icon-btn';
-        btn.style.marginRight = '8px';
-        btn.style.fontSize = '16px';
+        
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        btn.innerHTML = isDark ? `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        ` : `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        `;
+        
+        btn.style.cssText = `
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        `;
+        
         btn.onclick = () => {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
-            btn.innerHTML = isDark ? '☀️' : '🌙';
+            const nowDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+            
+            if (nowDark) {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                `;
+            } else {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                `;
+            }
         };
+        
         topbarRight.insertBefore(btn, topbarRight.firstChild);
     }
 }
@@ -84,7 +157,7 @@ async function loadAdminProfile() {
             if (drawerRole) drawerRole.textContent = 'Disciplinary Officer';
             if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
             if (drawerAvatar) {
-                const initials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                const initials = getAdminInitials(adminName);
                 drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
             }
             return;
@@ -109,7 +182,7 @@ async function loadAdminProfile() {
                 if (drawerName) drawerName.textContent = admin.full_name;
                 if (adminPill) adminPill.textContent = admin.full_name?.split(' ')[0] || 'Admin';
                 if (drawerAvatar) {
-                    const initials = admin.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    const initials = getAdminInitials(admin.full_name);
                     drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
                 }
             }
@@ -171,7 +244,7 @@ function renderStudents() {
     }
     
     if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div>TeD</td</td>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div>TeD</td</tr>`;
         return;
     }
     
@@ -218,7 +291,7 @@ function renderStudents() {
                         <div class="student-id-small">${escapeHtml(student.idNumber)}</div>
                     </div>
                 </div>
-            </td>
+            </span>
             <td class="id-col">
                 <span class="id-badge">${escapeHtml(student.idNumber)}</span>
             </span>
@@ -244,7 +317,7 @@ function renderStudents() {
                     <button class="action-icon delete delete-student" data-id="${student.id}" title="Delete">🗑️</button>
                 </div>
             </span>
-        </tr>
+        </td>
     `}).join('');
     
     // Attach event listeners
@@ -530,7 +603,7 @@ async function updateStudentData() {
 async function init() {
     console.log('Initializing Student Management...');
     setupDrawer();
-    initDarkMode();
+    addDarkModeToggle();
     await loadAdminProfile();
     await loadStudents();
     // Uncomment to update student data
