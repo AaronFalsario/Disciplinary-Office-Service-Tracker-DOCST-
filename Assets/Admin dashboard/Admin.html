@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-    <script type="module" src="Admin.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOCST — Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="icon" href="/Images/DOCST LOGO.png" type="image/png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/Assets/Admin dashboard/style.css">
 </head>
 <body>
@@ -98,7 +97,7 @@
             </button>
             <div class="brand">
                 <div class="brand-logo">
-                    <img src="/Images/DOCST LOGO.png" alt="CampusCare Logo" onerror="this.src='https://via.placeholder.com/36x36?text=CC'">
+                    <img src="/Assets/Images/DOCST LOGO.png" alt="CampusCare Logo" onerror="this.src='https:/via.placeholder.com/36x36?text=CC'">
                 </div>
                 <div>
                     <span class="brand-name">DOCST</span>
@@ -121,7 +120,7 @@
     <main class="dashboard-main">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <h1 class="welcome-title">Good morning, Administrator 👋</h1>
+            <h1 class="welcome-title" id="welcomeTitle">Good morning, Administrator 👋</h1>
             <p class="welcome-date" id="currentDate"></p>
         </div>
 
@@ -271,6 +270,7 @@
                         <td colspan="5" class="empty-state">
                             <div class="empty-icon">⚠️</div>
                             <div>No penalty records found</div>
+                        </span>
                         </td>
                     </tr>
                 </tbody>
@@ -294,6 +294,7 @@
         </div>
     </main>
 
-    <script src="/Assets/Admin dashboard/funct.js"></script>
+    <!-- ONLY ONE SCRIPT - Remove Admin.js, keep funct.js -->
+    <script type="module" src="/Assets/Admin dashboard/funct.js"></script>
 </body>
 </html>

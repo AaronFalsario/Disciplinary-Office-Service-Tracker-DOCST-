@@ -1,226 +1,294 @@
-// Storage key for Gordon College students only
-const STUDENTS_STORAGE_KEY = 'gordon_college_students';
-const STUDENT_CREDENTIALS_KEY = 'student_login_credentials';
-const ALLOWED_DOMAIN = '@gordoncollege.edu.ph';
+// rec.js - Students Management (Clean Version)
+import { supabase } from '../funct.js';
 
 let students = [];
-let currentEditId = null;
+let editingStudentId = null;
+let currentAdmin = null;
 let searchTerm = '';
 
-// Drawer functionality - FIXED RESPONSIVE
-const overlay = document.getElementById('overlay');
-const drawer = document.getElementById('drawer');
-const hamburger = document.getElementById('hamburger');
-const drawerClose = document.getElementById('drawerClose');
-const adminPill = document.getElementById('adminPill');
+// ============ DRAWER SETUP ============
+function setupDrawer() {
+    const overlay = document.getElementById('overlay');
+    const drawer = document.getElementById('drawer');
+    const hamburger = document.getElementById('hamburger');
+    const drawerClose = document.getElementById('drawerClose');
+    const adminPill = document.getElementById('adminPill');
 
-function openDrawer() {
-    overlay.classList.add('open');
-    drawer.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
+    window.openDrawer = function() {
+        overlay?.classList.add('open');
+        drawer?.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
 
-function closeDrawer() {
-    overlay.classList.remove('open');
-    drawer.classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-// Function to check screen size and setup drawer behavior
-function setupResponsiveDrawer() {
-    if (window.innerWidth > 768) {
-        drawer.classList.remove('open');
-        overlay.classList.remove('open');
+    window.closeDrawer = function() {
+        overlay?.classList.remove('open');
+        drawer?.classList.remove('open');
         document.body.style.overflow = '';
-    } else {
-        drawer.classList.remove('open');
-        overlay.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-}
+    };
 
-function attachEventListeners() {
     if (window.innerWidth <= 768) {
-        hamburger?.addEventListener('click', openDrawer);
-        drawerClose?.addEventListener('click', closeDrawer);
-        overlay?.addEventListener('click', closeDrawer);
-        adminPill?.addEventListener('click', openDrawer);
-    } else {
-        hamburger?.removeEventListener('click', openDrawer);
-        drawerClose?.removeEventListener('click', closeDrawer);
-        overlay?.removeEventListener('click', closeDrawer);
-        adminPill?.removeEventListener('click', openDrawer);
+        if (hamburger) hamburger.addEventListener('click', window.openDrawer);
+        if (drawerClose) drawerClose.addEventListener('click', window.closeDrawer);
+        if (overlay) overlay.addEventListener('click', window.closeDrawer);
+        if (adminPill) adminPill.addEventListener('click', window.openDrawer);
     }
-}
 
-setupResponsiveDrawer();
-attachEventListeners();
-
-window.addEventListener('resize', () => {
-    setupResponsiveDrawer();
-    attachEventListeners();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && window.innerWidth <= 768) {
-        closeDrawer();
-    }
-});
-
-// Load students from localStorage
-function loadStudents() {
-    const stored = localStorage.getItem(STUDENTS_STORAGE_KEY);
-    if (stored) {
-        students = JSON.parse(stored);
-        students = students.filter(s => s.email && s.email.toLowerCase().endsWith(ALLOWED_DOMAIN));
-    } else {
-        students = [];
-        saveStudents();
-    }
-    updateStats();
-    renderStudentsTable();
-}
-
-function saveStudents() {
-    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
-    // Update student credentials when students are saved
-    updateStudentCredentials();
-}
-
-// Generate a random password for new student
-function generateRandomPassword() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let password = '';
-    for (let i = 0; i < 8; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-}
-
-// Update student login credentials storage
-function updateStudentCredentials() {
-    const credentials = {};
-    students.forEach(student => {
-        if (student.email && student.password) {
-            credentials[student.email] = {
-                password: student.password,
-                studentId: student.idNumber,
-                name: student.name,
-                status: student.status
-            };
-        } else if (student.email && !student.password) {
-            // Generate default password for existing students without password
-            const defaultPassword = generateRandomPassword();
-            student.password = defaultPassword;
-            credentials[student.email] = {
-                password: defaultPassword,
-                studentId: student.idNumber,
-                name: student.name,
-                status: student.status
-            };
-        }
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) window.closeDrawer();
     });
-    localStorage.setItem(STUDENT_CREDENTIALS_KEY, JSON.stringify(credentials));
-    saveStudents(); // Save updated passwords back to students array
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.closeDrawer();
+    });
 }
 
-// Get student credentials for login
-function getStudentCredentials() {
-    const stored = localStorage.getItem(STUDENT_CREDENTIALS_KEY);
-    return stored ? JSON.parse(stored) : {};
+// ============ DARK MODE ============
+function initDarkMode() {
+    const savedDarkMode = localStorage.getItem('docst_dark_mode');
+    if (savedDarkMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+
+    const topbarRight = document.querySelector('.topbar-right');
+    if (topbarRight && !document.getElementById('darkModeToggle')) {
+        const btn = document.createElement('button');
+        btn.id = 'darkModeToggle';
+        btn.innerHTML = savedDarkMode === 'enabled' ? '☀️' : '🌙';
+        btn.className = 'icon-btn';
+        btn.style.marginRight = '8px';
+        btn.style.fontSize = '16px';
+        btn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
+            btn.innerHTML = isDark ? '☀️' : '🌙';
+        };
+        topbarRight.insertBefore(btn, topbarRight.firstChild);
+    }
 }
 
-// Verify student login (called from student login page)
-window.verifyStudentLogin = function(email, password) {
-    const credentials = getStudentCredentials();
-    const student = credentials[email];
-    
-    if (student && student.password === password) {
-        if (student.status !== 'active') {
-            return { success: false, message: 'Account is inactive. Please contact administrator.' };
+// ============ LOAD ADMIN PROFILE ============
+async function loadAdminProfile() {
+    try {
+        const storedAdmin = localStorage.getItem('currentAdmin');
+        if (storedAdmin) {
+            currentAdmin = JSON.parse(storedAdmin);
+            const adminName = currentAdmin.full_name || currentAdmin.name || 'Administrator';
+            
+            const drawerName = document.querySelector('.drawer-name');
+            const drawerRole = document.querySelector('.drawer-role');
+            const adminPill = document.getElementById('adminPill');
+            const drawerAvatar = document.querySelector('.drawer-avatar');
+            
+            if (drawerName) drawerName.textContent = adminName;
+            if (drawerRole) drawerRole.textContent = 'Disciplinary Officer';
+            if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
+            if (drawerAvatar) {
+                const initials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
+            }
+            return;
         }
         
-        // Store current student session
-        const session = {
-            email: email,
-            studentId: student.studentId,
-            name: student.name,
-            loginTime: new Date().toISOString()
-        };
-        localStorage.setItem('currentStudentSession', JSON.stringify(session));
-        
-        return { 
-            success: true, 
-            student: {
-                name: student.name,
-                studentId: student.studentId,
-                email: email
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email) {
+            const { data: admin } = await supabase
+                .from('admins')
+                .select('full_name, email, role')
+                .eq('email', user.email)
+                .single();
+            
+            if (admin) {
+                currentAdmin = admin;
+                localStorage.setItem('currentAdmin', JSON.stringify(admin));
+                
+                const drawerName = document.querySelector('.drawer-name');
+                const adminPill = document.getElementById('adminPill');
+                const drawerAvatar = document.querySelector('.drawer-avatar');
+                
+                if (drawerName) drawerName.textContent = admin.full_name;
+                if (adminPill) adminPill.textContent = admin.full_name?.split(' ')[0] || 'Admin';
+                if (drawerAvatar) {
+                    const initials = admin.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
+                }
             }
-        };
+        }
+    } catch (error) {
+        console.error('Error loading admin profile:', error);
     }
-    return { success: false, message: 'Invalid email or password' };
 }
 
-// Get current logged-in student
-window.getCurrentStudent = function() {
-    const session = localStorage.getItem('currentStudentSession');
-    if (session) {
-        return JSON.parse(session);
+// ============ LOAD STUDENTS FROM SUPABASE ============
+async function loadStudents() {
+    try {
+        console.log('Loading students from Supabase...');
+        
+        const { data, error } = await supabase
+            .from('students')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            students = data.map(s => ({
+                id: s.id,
+                name: s.name,
+                idNumber: s.id,
+                email: s.email,
+                course: s.course || 'Not Assigned',
+                year: s.year_level || 1,
+                status: s.status || 'active',
+                reports: s.reports || 0,
+                last_login: s.last_login,
+                created_at: s.created_at
+            }));
+            console.log('Processed students:', students);
+        } else {
+            students = [];
+            console.log('No students found in database');
+        }
+        
+        renderStudents();
+        updateStats();
+        
+    } catch (error) {
+        console.error('Error loading students:', error);
+        students = [];
+        renderStudents();
+        updateStats();
+        showNotification('Failed to load students: ' + error.message, 'error');
     }
-    return null;
-};
-
-// Logout student
-window.studentLogout = function() {
-    localStorage.removeItem('currentStudentSession');
-    window.location.href = '/student-login.html';
-};
-
-// Reset student password (admin function)
-function resetStudentPassword(studentId, newPassword = null) {
-    const student = students.find(s => s.id === studentId);
-    if (!student) return false;
-    
-    const password = newPassword || generateRandomPassword();
-    student.password = password;
-    saveStudents();
-    updateStudentCredentials();
-    
-    showNotification(`Password reset for ${student.name}. New password: ${password}`, 'info');
-    return password;
 }
 
-// Send email notification to student (simulated)
-function sendStudentCredentials(student) {
-    // This would integrate with EmailJS or your email service
-    console.log(`Email would be sent to ${student.email}:`);
-    console.log(`Subject: Your DOCST Account Credentials`);
-    console.log(`Body: 
-        Dear ${student.name},
-        
-        Your DOCST account has been created successfully.
-        
-        Student ID: ${student.idNumber}
-        Email: ${student.email}
-        Password: ${student.password || 'Use the password provided by the administrator'}
-        
-        Please login at: /student-login.html
-        
-        Regards,
-        DOCST Administration
-    `);
+// ============ RENDER STUDENTS TABLE - FIXED ============
+function renderStudents() {
+    const tbody = document.getElementById('studentsTableBody');
+    if (!tbody) {
+        console.error('studentsTableBody not found!');
+        return;
+    }
     
-    showNotification(`Credentials sent to ${student.email} (simulated)`, 'info');
+    if (students.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div>TeD</td</td>`;
+        return;
+    }
+    
+    let filtered = students;
+    if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = students.filter(s => 
+            s.name?.toLowerCase().includes(term) ||
+            s.idNumber?.toLowerCase().includes(term) ||
+            s.email?.toLowerCase().includes(term)
+        );
+    }
+    
+    tbody.innerHTML = filtered.map(student => {
+        // Format name - extract proper full name
+        let fullName = student.name || 'Unknown';
+        // If name is in "Last, First" format, convert to "First Last"
+        if (fullName.includes(',')) {
+            const parts = fullName.split(',');
+            fullName = `${parts[1].trim()} ${parts[0].trim()}`;
+        }
+        // Get initials for avatar
+        const initials = getInitials(fullName);
+        
+        // Get year display with proper suffix
+        const yearNum = parseInt(student.year) || 1;
+        const yearSuffix = yearNum === 1 ? 'st' : yearNum === 2 ? 'nd' : yearNum === 3 ? 'rd' : 'th';
+        const yearDisplay = `${yearNum}${yearSuffix} Year`;
+        
+        // Format last login
+        const lastLoginDisplay = formatDate(student.last_login);
+        
+        // Status display
+        const statusDisplay = student.status === 'active' ? '🟢 Active' : '⚫ Inactive';
+        const statusClass = student.status === 'active' ? 'status-active' : 'status-inactive';
+        
+        return `
+        <tr data-id="${student.id}">
+            <td class="student-col">
+                <div class="student-cell">
+                    <div class="student-avatar">${initials}</div>
+                    <div>
+                        <div class="student-name">${escapeHtml(fullName)}</div>
+                        <div class="student-id-small">${escapeHtml(student.idNumber)}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="id-col">
+                <span class="id-badge">${escapeHtml(student.idNumber)}</span>
+            </span>
+            <td class="email-col">
+                <span class="email-badge">${escapeHtml(student.email)}</span>
+            </span>
+            <td class="course-col">
+                <span class="course-badge">${escapeHtml(student.course)}</span>
+            </span>
+            <td class="year-col">
+                ${yearDisplay}
+            </span>
+            <td class="status-col">
+                <span class="status-badge ${statusClass}">${statusDisplay}</span>
+            </span>
+            <td class="last-login-col">
+                ${lastLoginDisplay}
+            </span>
+            <td class="actions-col">
+                <div class="action-btns">
+                    <button class="action-icon edit-student" data-id="${student.id}" title="Edit">✏️</button>
+                    <button class="action-icon toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
+                    <button class="action-icon delete delete-student" data-id="${student.id}" title="Delete">🗑️</button>
+                </div>
+            </span>
+        </tr>
+    `}).join('');
+    
+    // Attach event listeners
+    document.querySelectorAll('.edit-student').forEach(btn => {
+        btn.onclick = (e) => { e.preventDefault(); editStudent(btn.dataset.id); };
+    });
+    
+    document.querySelectorAll('.delete-student').forEach(btn => {
+        btn.onclick = (e) => { e.preventDefault(); deleteStudent(btn.dataset.id); };
+    });
+    
+    document.querySelectorAll('.toggle-status').forEach(btn => {
+        btn.onclick = (e) => { e.preventDefault(); toggleStudentStatus(btn.dataset.id); };
+    });
 }
 
-function validateEmail(email) {
-    return email && email.toLowerCase().endsWith(ALLOWED_DOMAIN);
+function getInitials(fullName) {
+    if (!fullName) return '??';
+    const words = fullName.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function getYearDisplay(year) {
+    if (!year) return '1st Year';
+    const num = parseInt(year);
+    const suffixes = {1: 'st', 2: 'nd', 3: 'rd', 4: 'th'};
+    return `${num}${suffixes[num] || 'th'} Year`;
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffHours = Math.floor((now - date) / 3600000);
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    return date.toLocaleDateString();
 }
 
 function updateStats() {
     const total = students.length;
     const active = students.filter(s => s.status === 'active').length;
-    const verified = students.filter(s => validateEmail(s.email)).length;
+    const verified = students.filter(s => s.email?.endsWith('@gordoncollege.edu.ph')).length;
     
     const totalEl = document.getElementById('totalStudents');
     const activeEl = document.getElementById('activeStudents');
@@ -231,305 +299,242 @@ function updateStats() {
     if (verifiedEl) verifiedEl.textContent = verified;
 }
 
-function renderStudentsTable() {
-    const tbody = document.getElementById('studentsTableBody');
-    if (!tbody) return;
-    
-    let filteredStudents = students;
-    if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        filteredStudents = students.filter(s => 
-            s.name.toLowerCase().includes(term) ||
-            s.idNumber.toLowerCase().includes(term) ||
-            s.email.toLowerCase().includes(term)
-        );
-    }
-    
-    if (filteredStudents.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">
-                    <div class="empty-icon">${searchTerm ? '🔍' : '👨‍🎓'}</div>
-                    <div class="empty-title">${searchTerm ? 'No matching students found' : 'No students enrolled yet'}</div>
-                    <div class="empty-sub">${searchTerm ? 'Try a different search term' : 'Click "Add Student" to enroll a new student'}</div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tbody.innerHTML = filteredStudents.map(student => `
-        <tr data-student-id="${student.id}">
-            <td>
-                <div class="student-cell">
-                    <div class="student-avatar">${getInitials(student.name)}</div>
-                    <div>
-                        <div class="student-name">${escapeHtml(student.name)}</div>
-                    </div>
-                </div>
-            </td>
-            <td><strong>${escapeHtml(student.idNumber)}</strong></td>
-            <td><span class="email-badge">${escapeHtml(student.email)}</span></td>
-            <td>${escapeHtml(student.course || 'N/A')}</td>
-            <td>${student.year}${getYearSuffix(student.year)} Year</td>
-            <td>
-                <span class="status-badge" style="background: ${student.status === 'active' ? 'var(--green-light)' : 'var(--red-light)'}; color: ${student.status === 'active' ? 'var(--green)' : 'var(--red)'}; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;">
-                    ${student.status === 'active' ? 'Active' : 'Inactive'}
-                </span>
-            </td>
-            <td>
-                <div class="action-btns">
-                    <button class="action-icon" onclick="editStudent(${student.id})" title="Edit">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                    </button>
-                    <button class="action-icon" onclick="resetStudentPasswordPrompt(${student.id})" title="Reset Password">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 2L15 8M3 12h9m-9 4h9m-9 4h9"/>
-                            <path d="M17 8v8a2 2 0 0 1-2 2"/>
-                            <path d="M21 12a4 4 0 0 0-4-4h-2"/>
-                        </svg>
-                    </button>
-                    <button class="action-icon delete" onclick="deleteStudent(${student.id})" title="Delete">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                        </svg>
-                    </button>
-                </div>
-            </td>
-         </tr>
-    `).join('');
+function showNotification(message, type = 'success') {
+    const n = document.createElement('div');
+    n.textContent = message;
+    const bgColor = type === 'success' ? '#10B981' : (type === 'error' ? '#DC2626' : '#F59E0B');
+    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${bgColor};color:white;padding:10px 18px;border-radius:40px;z-index:2000;`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
 }
 
-// Reset password prompt
-window.resetStudentPasswordPrompt = function(id) {
-    const student = students.find(s => s.id === id);
-    if (!student) return;
-    
-    const customPassword = prompt(`Enter new password for ${student.name} (leave empty for auto-generated):`);
-    const newPassword = resetStudentPassword(id, customPassword || null);
-    
-    if (confirm(`Send login credentials to ${student.email}?`)) {
-        sendStudentCredentials(student);
-    }
-};
-
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+function escapeHtml(text) { 
+    if (!text) return ''; 
+    const div = document.createElement('div'); 
+    div.textContent = text; 
+    return div.innerHTML; 
 }
 
-function getYearSuffix(year) {
-    const suffixes = {1: 'st', 2: 'nd', 3: 'rd', 4: 'th'};
-    return suffixes[year] || 'th';
-}
-
-// Modal functions
-const modal = document.getElementById('studentModal');
-const addBtn = document.getElementById('addStudentBtn');
-const closeModalBtn = document.getElementById('closeModalBtn');
-
-function openModal(editId = null) {
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('studentForm');
-    
-    if (editId) {
-        currentEditId = editId;
-        const student = students.find(s => s.id === editId);
-        if (student) {
-            modalTitle.textContent = 'Edit Student';
-            const studentIdField = document.getElementById('studentId');
-            const studentNameField = document.getElementById('studentName');
-            const studentIdNumberField = document.getElementById('studentIdNumber');
-            const studentEmailField = document.getElementById('studentEmail');
-            const studentCourseField = document.getElementById('studentCourse');
-            const studentYearField = document.getElementById('studentYear');
-            const studentStatusField = document.getElementById('studentStatus');
-            
-            if (studentIdField) studentIdField.value = student.id;
-            if (studentNameField) studentNameField.value = student.name;
-            if (studentIdNumberField) studentIdNumberField.value = student.idNumber;
-            if (studentEmailField) studentEmailField.value = student.email;
-            if (studentCourseField) studentCourseField.value = student.course || '';
-            if (studentYearField) studentYearField.value = student.year;
-            if (studentStatusField) studentStatusField.value = student.status;
-        }
-    } else {
-        currentEditId = null;
-        if (modalTitle) modalTitle.textContent = 'Add New Student';
-        if (form) form.reset();
-        const studentIdField = document.getElementById('studentId');
-        if (studentIdField) studentIdField.value = '';
+// ============ TOGGLE STUDENT STATUS ============
+async function toggleStudentStatus(id) {
+    const student = students.find(s => s.id == id);
+    if (student) {
+        const newStatus = student.status === 'active' ? 'inactive' : 'active';
         
-        // Pre-generate student ID
-        const idNumberField = document.getElementById('studentIdNumber');
-        if (idNumberField && students.length > 0) {
-            const year = new Date().getFullYear();
-            const nextNumber = students.length + 1;
-            idNumberField.value = `${year}-${String(nextNumber).padStart(5, '0')}`;
-        }
-    }
-    if (modal) modal.classList.add('open');
-}
-
-function closeModal() {
-    if (modal) modal.classList.remove('open');
-    currentEditId = null;
-}
-
-if (addBtn) addBtn.addEventListener('click', () => openModal());
-if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-if (modal) modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-});
-
-// Save student
-const studentForm = document.getElementById('studentForm');
-if (studentForm) {
-    studentForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+        const { error } = await supabase
+            .from('students')
+            .update({ status: newStatus })
+            .eq('id', id);
         
-        const emailInput = document.getElementById('studentEmail');
-        const email = emailInput ? emailInput.value.trim() : '';
-        
-        if (!validateEmail(email)) {
-            alert(`Invalid email domain. Only ${ALLOWED_DOMAIN} emails are allowed.`);
+        if (error) {
+            showNotification('Failed to update status', 'error');
             return;
         }
         
-        const nameInput = document.getElementById('studentName');
-        const idNumberInput = document.getElementById('studentIdNumber');
-        const courseInput = document.getElementById('studentCourse');
-        const yearInput = document.getElementById('studentYear');
-        const statusInput = document.getElementById('studentStatus');
+        student.status = newStatus;
+        renderStudents();
+        updateStats();
+        showNotification(`${student.name} is now ${newStatus}`, 'success');
+    }
+}
+
+// ============ DELETE STUDENT ============
+async function deleteStudent(id) {
+    const student = students.find(s => s.id == id);
+    if (!student) return;
+    
+    if (confirm(`Are you sure you want to delete "${student.name}"?`)) {
+        const { error } = await supabase
+            .from('students')
+            .delete()
+            .eq('id', id);
+        
+        if (error) {
+            showNotification('Failed to delete student', 'error');
+            return;
+        }
+        
+        students = students.filter(s => s.id != id);
+        renderStudents();
+        updateStats();
+        showNotification(`✓ ${student.name} has been deleted`, 'success');
+    }
+}
+
+// ============ EDIT STUDENT ============
+function editStudent(id) {
+    const student = students.find(s => s.id == id);
+    if (!student) return;
+    
+    editingStudentId = id;
+    document.getElementById('studentId').value = student.id;
+    document.getElementById('studentFullName').value = student.name;
+    document.getElementById('studentIdNumber').value = student.idNumber;
+    document.getElementById('studentCourse').value = student.course;
+    document.getElementById('studentYear').value = student.year;
+    document.getElementById('studentEmail').value = student.email;
+    document.getElementById('studentStatus').value = student.status;
+    document.getElementById('modalTitle').textContent = 'Edit Student';
+    openModal();
+}
+
+// ============ ADD/UPDATE STUDENT ============
+async function saveStudent(studentData, isEdit = false) {
+    try {
+        if (isEdit && editingStudentId) {
+            const { error } = await supabase
+                .from('students')
+                .update({
+                    name: studentData.name,
+                    email: studentData.email,
+                    course: studentData.course,
+                    year_level: parseInt(studentData.year),
+                    status: studentData.status
+                })
+                .eq('id', editingStudentId);
+            
+            if (error) throw error;
+            showNotification('Student updated successfully!');
+        } else {
+            const { error } = await supabase
+                .from('students')
+                .insert([{
+                    id: studentData.idNumber,
+                    name: studentData.name,
+                    email: studentData.email,
+                    course: studentData.course,
+                    year_level: parseInt(studentData.year),
+                    status: studentData.status,
+                    created_at: new Date().toISOString()
+                }]);
+            
+            if (error) throw error;
+            showNotification('Student added successfully!');
+        }
+        
+        await loadStudents();
+        closeModal();
+    } catch (error) {
+        console.error('Error saving student:', error);
+        showNotification('Failed to save student: ' + error.message, 'error');
+    }
+}
+
+// ============ FORM SUBMIT ============
+const studentForm = document.getElementById('studentForm');
+if (studentForm) {
+    studentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
         const studentData = {
-            name: nameInput ? nameInput.value.trim() : '',
-            idNumber: idNumberInput ? idNumberInput.value.trim() : '',
-            email: email,
-            course: courseInput ? courseInput.value : '',
-            year: yearInput ? parseInt(yearInput.value) : 1,
-            status: statusInput ? statusInput.value : 'active'
+            name: document.getElementById('studentFullName')?.value.trim() || '',
+            idNumber: document.getElementById('studentIdNumber')?.value.trim() || '',
+            course: document.getElementById('studentCourse')?.value || 'Not Assigned',
+            year: document.getElementById('studentYear')?.value || '1',
+            email: document.getElementById('studentEmail')?.value.trim() || '',
+            status: document.getElementById('studentStatus')?.value || 'active'
         };
         
-        if (!currentEditId) {
-            const existingId = students.find(s => s.idNumber === studentData.idNumber);
-            if (existingId) {
-                alert('A student with this ID number already exists.');
-                return;
-            }
-            
-            const existingEmail = students.find(s => s.email === studentData.email);
-            if (existingEmail) {
-                alert('A student with this email already exists.');
-                return;
-            }
+        if (!studentData.name || !studentData.idNumber || !studentData.email) {
+            showNotification('Please fill in all fields', 'error');
+            return;
         }
         
-        if (currentEditId) {
-            const index = students.findIndex(s => s.id === currentEditId);
-            if (index !== -1) {
-                students[index] = { ...students[index], ...studentData };
-                showNotification('Student updated successfully!');
-            }
+        if (!studentData.email.endsWith('@gordoncollege.edu.ph')) {
+            showNotification('Email must end with @gordoncollege.edu.ph', 'error');
+            return;
+        }
+        
+        const existingId = document.getElementById('studentId')?.value;
+        
+        if (existingId) {
+            editingStudentId = existingId;
+            await saveStudent(studentData, true);
         } else {
-            const newPassword = generateRandomPassword();
-            const newStudent = {
-                id: Date.now(),
-                ...studentData,
-                password: newPassword,
-                dateAdded: new Date().toISOString()
-            };
-            students.push(newStudent);
-            showNotification(`Student enrolled successfully! Password: ${newPassword}`, 'info');
-            
-            if (confirm(`Send login credentials to ${email}?`)) {
-                sendStudentCredentials(newStudent);
-            }
+            await saveStudent(studentData, false);
         }
-        
-        saveStudents();
-        loadStudents();
-        closeModal();
     });
 }
 
-window.editStudent = function(id) {
-    openModal(id);
-};
+// ============ MODAL FUNCTIONS ============
+function openModal() { 
+    const modal = document.getElementById('studentModal');
+    if (modal) modal.classList.add('open'); 
+    document.body.style.overflow = 'hidden'; 
+}
 
-window.deleteStudent = function(id) {
-    const student = students.find(s => s.id === id);
-    if (!student) return;
-    
-    if (confirm(`Are you sure you want to delete ${student.name} from the records?`)) {
-        students = students.filter(s => s.id !== id);
-        saveStudents();
-        loadStudents();
-        showNotification('Student removed successfully!');
-    }
-};
+function closeModal() {
+    const modal = document.getElementById('studentModal');
+    if (modal) modal.classList.remove('open');
+    const form = document.getElementById('studentForm');
+    if (form) form.reset();
+    document.getElementById('studentId').value = '';
+    editingStudentId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Student';
+    document.body.style.overflow = '';
+}
 
-// Search functionality
+// ============ SEARCH ============
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-        searchTerm = e.target.value;
-        renderStudentsTable();
+        searchTerm = e.target.value.toLowerCase();
+        renderStudents();
     });
 }
 
-// Logout
+// ============ LOGOUT ============
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
         if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('currentAdmin');
-            window.location.href = '/LANDING PAGE/land.html';
+            await supabase.auth.signOut();
+            localStorage.clear();
+            window.location.href = '/Assets/Landing/index.html';
         }
     });
 }
 
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    const bgColor = type === 'success' ? '#1D4ED8' : (type === 'warning' ? '#D97706' : '#10B981');
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        background: ${bgColor};
-        color: white;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+// ============ ADD BUTTON ============
+const addBtn = document.getElementById('addStudentBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const studentModal = document.getElementById('studentModal');
+
+if (addBtn) addBtn.addEventListener('click', openModal);
+if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+if (studentModal) {
+    studentModal.addEventListener('click', (e) => {
+        if (e.target === studentModal) closeModal();
+    });
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+// ============ UPDATE DATABASE WITH PROPER DATA ============
+async function updateStudentData() {
+    // Update specific student data
+    const { error } = await supabase
+        .from('students')
+        .update({
+            course: 'BSCS',
+            year_level: 3
+        })
+        .eq('id', '202410312');
+    
+    if (error) {
+        console.error('Error updating student:', error);
+    } else {
+        console.log('Student data updated');
+    }
 }
 
-// Initialize
-loadStudents();
+// ============ INITIALIZE ============
+async function init() {
+    console.log('Initializing Student Management...');
+    setupDrawer();
+    initDarkMode();
+    await loadAdminProfile();
+    await loadStudents();
+    // Uncomment to update student data
+    // await updateStudentData();
+}
 
-// Export for student login page
-window.DOCSTAuth = {
-    verifyLogin: window.verifyStudentLogin,
-    getCurrentStudent: window.getCurrentStudent,
-    logout: window.studentLogout
-};
+init();
