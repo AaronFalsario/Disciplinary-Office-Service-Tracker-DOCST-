@@ -2,19 +2,107 @@ const chartScript = document.createElement('script');
 chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
 chartScript.onload = () => {
     console.log('✅ Chart.js loaded successfully');
-    // Try to update chart after load
     if (typeof updateChart === 'function') {
         setTimeout(() => updateChart(), 100);
     }
 };
 document.head.appendChild(chartScript);
 
-
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// ============ AUTHENTICATION CHECK - PROTECT ADMIN ROUTE ============
+// This runs FIRST before anything else loads
+async function checkAdminAuth() {
+    try {
+        // Get current session from Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+            console.error('Session error:', sessionError);
+            redirectToUnauthorized();
+            return false;
+        }
+        
+        if (!session) {
+            console.log('No session found - unauthorized access');
+            redirectToUnauthorized();
+            return false;
+        }
+        
+        // Check if the logged-in user is an admin
+        const userEmail = session.user.email;
+        
+        // Query the admins table to verify this email belongs to an admin
+        const { data: adminData, error: adminError } = await supabase
+            .from('admins')
+            .select('email, full_name')
+            .eq('email', userEmail)
+            .single();
+        
+        if (adminError || !adminData) {
+            console.log('User is not an admin - access denied');
+            redirectToUnauthorized();
+            return false;
+        }
+        
+        console.log('✅ Admin authorized:', adminData.full_name || adminData.email);
+        return true;
+        
+    } catch (error) {
+        console.error('Auth check error:', error);
+        redirectToUnauthorized();
+        return false;
+    }
+}
+
+function redirectToUnauthorized() {
+    // Show notification before redirect
+    showUnauthorizedNotification();
+    
+    // Clear any stored admin data
+    localStorage.removeItem('currentAdmin');
+    
+    // Redirect to landing page after 2 seconds
+    setTimeout(() => {
+        window.location.href = '/Assets/Landing/index.html';
+    }, 2000);
+}
+
+function showUnauthorizedNotification() {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #DC2626;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            text-align: center;
+            min-width: 300px;
+        ">
+            <div style="margin-bottom: 8px;">⚠️ Unauthorized Access</div>
+            <div style="font-size: 12px; opacity: 0.9;">Redirecting to landing page...</div>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Remove notification after 2 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 2000);
+}
 
 // ============ DRAWER FUNCTIONALITY ============
 const overlay = document.getElementById('overlay');
@@ -64,7 +152,6 @@ function updateDrawerAvatar(adminName) {
     const drawerAvatar = document.querySelector('.drawer-avatar');
     if (drawerAvatar) {
         const initials = getAdminInitials(adminName);
-        // Clear the avatar and add text initials
         drawerAvatar.innerHTML = '';
         const span = document.createElement('span');
         span.textContent = initials;
@@ -101,7 +188,6 @@ async function loadAdminName() {
     try {
         console.log('🔍 Loading admin name...');
         
-        // First, try to get from localStorage (faster)
         const storedAdmin = localStorage.getItem('currentAdmin');
         if (storedAdmin) {
             try {
@@ -112,7 +198,6 @@ async function loadAdminName() {
                     if (adminNameEl) {
                         adminNameEl.textContent = adminName;
                         console.log('✅ Admin name loaded from localStorage:', adminName);
-                        // Update drawer avatar with initials
                         updateDrawerAvatar(adminName);
                         updateGreeting();
                         return;
@@ -121,7 +206,6 @@ async function loadAdminName() {
             } catch(e) {}
         }
         
-        // If not in localStorage, get from Supabase
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -136,11 +220,9 @@ async function loadAdminName() {
         
         console.log('✅ User found:', user.email);
         
-        // Try to get admin from admins table
         let adminData = null;
         let adminError = null;
         
-        // Try with 'full_name' column first
         const { data: data1, error: err1 } = await supabase
             .from('admins')
             .select('*')
@@ -151,9 +233,6 @@ async function loadAdminName() {
         adminError = err1;
         
         if (adminError) {
-            console.error('❌ Admin query error:', adminError);
-            
-            // Try alternative approach - maybe the table is called 'admin' or has different column
             const { data: data2, error: err2 } = await supabase
                 .from('admin')
                 .select('*')
@@ -167,20 +246,16 @@ async function loadAdminName() {
         }
         
         if (adminError || !adminData) {
-            console.log('⚠️ Admin not found in database, using email as name');
-            // Fallback: use email prefix as name
             const emailName = user.email.split('@')[0];
             const adminNameEl = document.getElementById('adminName');
             if (adminNameEl) {
                 adminNameEl.textContent = emailName;
-                // Update drawer avatar with email name
                 updateDrawerAvatar(emailName);
                 updateGreeting();
             }
             return;
         }
         
-        // Get the admin name (try different possible column names)
         const adminName = adminData.full_name || adminData.name || adminData.admin_name || user.email.split('@')[0];
         
         console.log('✅ Admin name found:', adminName);
@@ -193,17 +268,12 @@ async function loadAdminName() {
             console.error('❌ adminName element not found in DOM');
         }
         
-        // Update drawer avatar with initials
         updateDrawerAvatar(adminName);
-        
-        // Save to localStorage for faster loading next time
         localStorage.setItem('currentAdmin', JSON.stringify({ full_name: adminName, email: user.email }));
-        
         updateGreeting();
         
     } catch (error) {
         console.error('❌ Error loading admin name:', error);
-        // Fallback: try to get from localStorage one more time
         const stored = localStorage.getItem('currentAdmin');
         if (stored) {
             try {
@@ -224,7 +294,7 @@ async function loadAdminName() {
 let students = [];
 let penalties = [];
 
-// ============ LOAD STUDENTS FROM SUPABASE (NO SAMPLE DATA) ============
+// ============ LOAD STUDENTS FROM SUPABASE ============
 async function loadStudents() {
     try {
         const { data, error } = await supabase
@@ -242,7 +312,7 @@ async function loadStudents() {
     }
 }
 
-// ============ LOAD PENALTIES FROM SUPABASE (NO SAMPLE DATA) ============
+// ============ LOAD PENALTIES FROM SUPABASE ============
 async function loadPenalties() {
     try {
         const { data, error } = await supabase
@@ -252,7 +322,6 @@ async function loadPenalties() {
         
         if (error) throw error;
         
-        // NO SAMPLE DATA - ONLY REAL DATA FROM DATABASE
         penalties = (data || []).map(p => ({
             id: p.id,
             studentId: p.student_id,
@@ -501,10 +570,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ============ CLEAR LOCALSTORAGE (Remove sample data) ============
-localStorage.removeItem('campus_care_penalties');
-localStorage.removeItem('campus_care_reports');
-
 // ============ REFRESH ALL DASHBOARD DATA ============
 async function refreshDashboard() {
     console.log('🔄 Refreshing dashboard data from Supabase...');
@@ -515,7 +580,7 @@ async function refreshDashboard() {
     updateTopViolations();
     updateActivityFeed();
     updateChart();
-    console.log(`✅ Dashboard updated: ${students.length} students, ${penalties.length} penalties (REAL DATA ONLY)`);
+    console.log(`✅ Dashboard updated: ${students.length} students, ${penalties.length} penalties`);
 }
 
 // ============ LOGOUT ============
@@ -538,12 +603,10 @@ if (notifyBtn) {
     });
 }
 
-// ============ FORCE SET ADMIN NAME (FALLBACK) ============
-// This ensures the admin name is set even if database query fails
+// ============ FORCE SET ADMIN NAME ============
 function forceSetAdminName() {
     const adminNameEl = document.getElementById('adminName');
     if (adminNameEl && (!adminNameEl.textContent || adminNameEl.textContent === 'Administrator')) {
-        // Try to get from localStorage one more time
         const stored = localStorage.getItem('currentAdmin');
         if (stored) {
             try {
@@ -560,25 +623,12 @@ function forceSetAdminName() {
     }
 }
 
-// ============ INITIALIZE ============
-async function init() {
-    console.log('Initializing Admin Dashboard...');
-    await loadAdminName();
-    forceSetAdminName();
-    await refreshDashboard();
-    
-    // Refresh every 30 seconds
-    setInterval(refreshDashboard, 90000);
-}
-
 // ============ DARK MODE ============
-// Check saved preference
 const savedDarkMode = localStorage.getItem('docst_dark_mode');
 if (savedDarkMode === 'enabled') {
     document.body.classList.add('dark-mode');
 }
 
-// Create dark mode toggle button (adds to topbar)
 function addDarkModeToggle() {
     const topbarRight = document.querySelector('.topbar-right');
     if (topbarRight && !document.getElementById('darkModeToggle')) {
@@ -586,10 +636,8 @@ function addDarkModeToggle() {
         btn.id = 'darkModeToggle';
         btn.className = 'icon-btn';
         
-        // Check current dark mode state
         const isDark = document.body.classList.contains('dark-mode');
         
-        // Set initial SVG based on current mode
         btn.innerHTML = isDark ? `
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="12" cy="12" r="5"/>
@@ -625,7 +673,6 @@ function addDarkModeToggle() {
             const nowDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
             
-            // Update SVG icon
             if (nowDark) {
                 btn.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -649,15 +696,32 @@ function addDarkModeToggle() {
             }
         };
         
-        // Insert at the beginning of topbar-right
         topbarRight.insertBefore(btn, topbarRight.firstChild);
     }
 }
 
-// Call this when page loads
 document.addEventListener('DOMContentLoaded', addDarkModeToggle);
 
-// Start the application
+// ============ INITIALIZE - WITH AUTH CHECK FIRST ============
+async function init() {
+    console.log('🔐 Checking admin authentication...');
+    
+    // Check if user is authorized admin
+    const isAuthorized = await checkAdminAuth();
+    if (!isAuthorized) {
+        return; // Stop execution, redirect already happening
+    }
+    
+    console.log('Initializing Admin Dashboard...');
+    await loadAdminName();
+    forceSetAdminName();
+    await refreshDashboard();
+    
+    // Refresh every 90 seconds
+    setInterval(refreshDashboard, 90000);
+}
+
+// Start the application with auth check
 init();
 
 // ============ EXPORT SUPABASE ============
