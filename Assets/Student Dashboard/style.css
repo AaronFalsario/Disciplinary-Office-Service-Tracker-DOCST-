@@ -25,7 +25,7 @@
     --purple: #8B5CF6;
     --purple-light: #EDE9FE;
     --topbar-h: 60px;
-    --drawer-w: 260px;
+    --drawer-w: 280px;
     --radius: 12px;
     --radius-lg: 16px;
     --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 10px 20px -5px rgba(0,0,0,0.05);
@@ -51,28 +51,15 @@ body.dark-mode {
 
 html, body {
     min-height: 100vh;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     background: var(--bg);
     color: var(--text);
     font-size: 14px;
     line-height: 1.5;
     transition: background 0.3s ease, color 0.3s ease;
-    animation: fadeInPage 0.5s ease-out;
 }
 
-/* PAGE FADE IN */
-@keyframes fadeInPage {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* DRAWER */
+/* DRAWER - ENHANCED with Better Colors */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -94,96 +81,79 @@ html, body {
     left: 0;
     bottom: 0;
     width: var(--drawer-w);
-    background: var(--surface);
+    background: linear-gradient(180deg, #162d4d 0%, #0f2340 100%);
     z-index: 300;
     display: flex;
     flex-direction: column;
     transform: translateX(0);
     transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
-    border-right: 1px solid var(--border);
-    box-shadow: none;
-    animation: slideInLeft 0.4s ease-out;
+    border-right: none;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+/* Dark mode drawer */
+body.dark-mode .drawer {
+    background: linear-gradient(180deg, #0F172A 0%, #0B1120 100%);
+    border-right: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .drawer-header {
-    background: var(--blue);
-    padding: 24px 20px 20px;
+    background: rgba(37, 99, 235, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 28px 20px 24px;
     position: relative;
-    animation: slideDown 0.5s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .drawer-close {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(255,255,255,0.15);
+    top: 16px;
+    right: 16px;
+    background: rgba(255,255,255,0.12);
     border: none;
     cursor: pointer;
     color: rgba(255,255,255,0.8);
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.15s;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
     display: none;
+}
+
+.drawer-close:hover {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(90deg);
 }
 
 .drawer-profile {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
 }
 
 .drawer-avatar {
-    width: 52px;
-    height: 52px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
-    animation: fadeInScale 0.4s ease-out 0.1s both;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.drawer-avatar:hover {
+    transform: scale(1.05);
+    background: rgba(255,255,255,0.2);
 }
 
 .drawer-avatar span {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: white;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .drawer-info {
@@ -191,143 +161,158 @@ html, body {
 }
 
 .drawer-name {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     color: #fff;
-    animation: fadeInRight 0.4s ease-out 0.15s both;
-}
-
-@keyframes fadeInRight {
-    from {
-        opacity: 0;
-        transform: translateX(-15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }
 
 .drawer-role {
-    font-size: 11px;
-    color: rgba(255,255,255,0.8);
-    margin-top: 3px;
-    animation: fadeInRight 0.4s ease-out 0.2s both;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    margin-top: 4px;
 }
 
 .drawer-badge {
     display: inline-block;
-    margin-top: 8px;
-    background: rgba(255,255,255,0.25);
-    color: #fff;
+    margin-top: 10px;
+    background: rgba(16, 185, 129, 0.2);
+    color: #10B981;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.06em;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
-    animation: fadeInRight 0.4s ease-out 0.25s both;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Dark mode badge */
+body.dark-mode .drawer-badge {
+    background: rgba(16, 185, 129, 0.15);
 }
 
 .drawer-nav {
     flex: 1;
-    padding: 16px 0;
+    padding: 20px 12px;
 }
 
+/* ENHANCED DRAWER BUTTONS - Larger & More Modern */
 .drawer-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 20px;
-    color: var(--text-2);
-    font-size: 13px;
-    font-weight: 600;
+    gap: 14px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
     background: none;
     border: none;
-    border-left: 3px solid transparent;
+    border-radius: 12px;
     font-family: inherit;
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: all 0.15s;
-    animation: fadeInRight 0.4s ease-out;
-    animation-fill-mode: both;
+    transition: all 0.2s ease;
 }
 
-.drawer-item:nth-child(1) { animation-delay: 0.05s; }
-.drawer-item:nth-child(2) { animation-delay: 0.1s; }
-.drawer-item:nth-child(3) { animation-delay: 0.15s; }
+.drawer-item svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.8;
+    flex-shrink: 0;
+}
 
 .drawer-item:hover {
-    background: var(--bg);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(4px);
 }
 
 .drawer-item.active {
-    color: var(--blue);
-    border-left-color: var(--blue);
-    background: var(--blue-light);
+    color: #fff;
+    font-weight: 600;
+    background: rgba(37, 99, 235, 0.25);
+    border-left: none;
+    backdrop-filter: blur(5px);
+}
+
+.drawer-item.active svg {
+    stroke: #3B82F6;
 }
 
 .drawer-divider {
     height: 1px;
-    background: var(--border);
-    margin: 8px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 12px 16px;
     border: none;
-    animation: scaleX 0.4s ease-out 0.2s both;
-    transform-origin: left;
 }
 
-@keyframes scaleX {
-    from {
-        transform: scaleX(0);
-    }
-    to {
-        transform: scaleX(1);
-    }
+body.dark-mode .drawer-divider {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .drawer-footer {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    animation: fadeInUp 0.4s ease-out 0.3s both;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    padding: 16px 12px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .drawer-logout {
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: var(--red);
-    font-size: 13px;
+    gap: 14px;
+    color: rgba(255, 100, 100, 0.85);
+    font-size: 14px;
     font-weight: 500;
     background: none;
     border: none;
     width: 100%;
-    padding: 10px 0;
+    padding: 12px 16px;
     font-family: inherit;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    border-radius: 12px;
+}
+
+.drawer-logout svg {
+    width: 20px;
+    height: 20px;
 }
 
 .drawer-logout:hover {
-    color: #991B1B;
+    background: rgba(220, 38, 38, 0.15);
+    color: #EF4444;
+    transform: translateX(4px);
+}
+
+body.dark-mode .drawer-logout {
+    color: rgba(239, 68, 68, 0.8);
 }
 
 body.dark-mode .drawer-logout:hover {
+    background: rgba(239, 68, 68, 0.15);
     color: #EF4444;
 }
 
-/* TOPBAR */
+/* Scrollbar for drawer */
+.drawer::-webkit-scrollbar {
+    width: 5px;
+}
+
+.drawer::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.drawer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.drawer::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+}
+
+/* TOPBAR - Enhanced */
 .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -341,7 +326,6 @@ body.dark-mode .drawer-logout:hover {
     z-index: 100;
     margin-left: var(--drawer-w);
     width: calc(100% - var(--drawer-w));
-    animation: slideDown 0.5s ease-out;
     transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -380,7 +364,6 @@ body.dark-mode .drawer-logout:hover {
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    animation: fadeInScale 0.4s ease-out;
 }
 
 .brand-name {
@@ -388,7 +371,16 @@ body.dark-mode .drawer-logout:hover {
     font-weight: 700;
     color: var(--text);
     transition: color 0.3s ease;
-    animation: fadeInRight 0.4s ease-out 0.05s both;
+}
+
+.brand-tagline {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 400;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid var(--border);
+    transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .student-pill {
@@ -402,18 +394,6 @@ body.dark-mode .drawer-logout:hover {
     align-items: center;
     gap: 6px;
     transition: background 0.3s ease, color 0.3s ease;
-    animation: fadeInLeft 0.4s ease-out 0.1s both;
-}
-
-@keyframes fadeInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }
 
 /* Dark Mode Toggle Button */
@@ -442,30 +422,19 @@ body.dark-mode .drawer-logout:hover {
     gap: 8px;
 }
 
-/* MAIN CONTENT */
+/* ============ MAIN CONTENT - WITH SMOOTH ANIMATIONS ============ */
 .dashboard-main {
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
     max-width: calc(1400px - var(--drawer-w));
-    animation: fadeInUp 0.5s ease-out;
     transition: background 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
 }
 
-/* Welcome Section */
+/* Welcome Section Animation */
 .welcome-section {
     margin-bottom: 32px;
-    animation: slideDownFade 0.5s ease-out;
-}
-
-@keyframes slideDownFade {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    animation: slideDownFade 0.4s ease-out;
 }
 
 .welcome-title {
@@ -474,17 +443,17 @@ body.dark-mode .drawer-logout:hover {
     color: var(--text);
     margin-bottom: 4px;
     transition: color 0.3s ease;
-    animation: fadeInRight 0.4s ease-out 0.1s both;
+    animation: fadeInRight 0.3s ease-out 0.05s both;
 }
 
 .welcome-date {
     font-size: 14px;
     color: var(--text-3);
     transition: color 0.3s ease;
-    animation: fadeInRight 0.4s ease-out 0.15s both;
+    animation: fadeInRight 0.3s ease-out 0.1s both;
 }
 
-/* Stats Grid */
+/* Stats Grid - Staggered Fade In */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -498,12 +467,12 @@ body.dark-mode .drawer-logout:hover {
     padding: 20px;
     border: 1px solid var(--border);
     transition: all 0.2s;
-    animation: fadeInUp 0.5s ease-out;
-    animation-fill-mode: both;
     display: flex;
     align-items: center;
     gap: 14px;
     min-width: 0;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.05s; }
@@ -527,7 +496,6 @@ body.dark-mode .drawer-logout:hover {
     margin-bottom: 12px;
     color: var(--blue);
     transition: background 0.3s ease, color 0.3s ease;
-    animation: fadeInScale 0.3s ease-out;
 }
 
 .stat-value {
@@ -535,18 +503,6 @@ body.dark-mode .drawer-logout:hover {
     font-weight: 700;
     color: var(--text);
     transition: color 0.3s ease;
-    animation: countUp 0.6s ease-out;
-}
-
-@keyframes countUp {
-    from {
-        opacity: 0;
-        transform: scale(1.2);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .stat-label {
@@ -556,7 +512,7 @@ body.dark-mode .drawer-logout:hover {
     transition: color 0.3s ease;
 }
 
-/* Action Cards */
+/* Action Cards - Staggered Fade In */
 .action-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -572,8 +528,8 @@ body.dark-mode .drawer-logout:hover {
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
-    animation: fadeInUp 0.5s ease-out;
-    animation-fill-mode: both;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
 }
 
 .action-card:nth-child(1) { animation-delay: 0.1s; }
@@ -621,14 +577,15 @@ body.dark-mode .drawer-logout:hover {
     margin-bottom: 32px;
 }
 
-/* Recent Activity */
+/* Recent Activity - Slide In */
 .activity-feed {
     background: var(--surface);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
     transition: background 0.3s ease, border-color 0.3s ease;
-    animation: fadeInUp 0.5s ease-out 0.15s both;
+    opacity: 0;
+    animation: fadeInRight 0.4s ease-out 0.15s forwards;
 }
 
 .card-header {
@@ -657,8 +614,8 @@ body.dark-mode .drawer-logout:hover {
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
     transition: border-color 0.3s ease;
-    animation: fadeInRight 0.3s ease-out;
-    animation-fill-mode: both;
+    opacity: 0;
+    animation: fadeInRight 0.3s ease-out forwards;
 }
 
 .activity-item:nth-child(1) { animation-delay: 0.2s; }
@@ -700,14 +657,15 @@ body.dark-mode .drawer-logout:hover {
     transition: color 0.3s ease;
 }
 
-/* Upcoming Deadlines */
+/* Upcoming Deadlines - Slide In */
 .deadlines-list {
     background: var(--surface);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
     transition: background 0.3s ease, border-color 0.3s ease;
-    animation: fadeInUp 0.5s ease-out 0.2s both;
+    opacity: 0;
+    animation: fadeInLeft 0.4s ease-out 0.2s forwards;
 }
 
 .deadline-item {
@@ -717,8 +675,8 @@ body.dark-mode .drawer-logout:hover {
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
     transition: border-color 0.3s ease;
-    animation: fadeInRight 0.3s ease-out;
-    animation-fill-mode: both;
+    opacity: 0;
+    animation: fadeInRight 0.3s ease-out forwards;
 }
 
 .deadline-item:nth-child(1) { animation-delay: 0.25s; }
@@ -727,20 +685,6 @@ body.dark-mode .drawer-logout:hover {
 
 .deadline-item:last-child {
     border-bottom: none;
-}
-
-.deadline-info h4 {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: var(--text);
-    transition: color 0.3s ease;
-}
-
-.deadline-info p {
-    font-size: 12px;
-    color: var(--text-3);
-    transition: color 0.3s ease;
 }
 
 .deadline-title {
@@ -770,94 +714,64 @@ body.dark-mode .drawer-logout:hover {
     background: var(--green-light);
 }
 
-/* Tabs Navigation */
-.tabs-nav {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-}
-
-.nav-link {
-    background: none;
-    border: none;
-    padding: 8px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-3);
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 8px;
-}
-
-.nav-link:hover {
-    color: var(--blue);
-    background: var(--blue-light);
-}
-
-.nav-link.active {
-    color: var(--blue);
-    background: var(--blue-light);
-}
-
-/* Tab Panes */
-.tab-pane {
-    display: none;
-    animation: fadeInUp 0.3s ease-out;
-}
-
-.tab-pane.active {
-    display: block;
-}
-
-/* Penalties Table */
+/* Penalties Table - Fade In */
 .penalties-table {
     background: var(--surface);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow: auto;
     transition: background 0.3s ease, border-color 0.3s ease;
-    animation: fadeInUp 0.5s ease-out 0.1s both;
+    width: 100%;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out 0.25s forwards;
 }
 
 .penalties-table table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px;
 }
 
 .penalties-table th {
     text-align: left;
-    padding: 14px 16px;
-    font-size: 11px;
+    padding: 14px 20px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-3);
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    white-space: nowrap;
 }
+
+.penalties-table th:nth-child(1) { min-width: 200px; }
+.penalties-table th:nth-child(2) { min-width: 180px; }
+.penalties-table th:nth-child(3) { min-width: 100px; }
+.penalties-table th:nth-child(4) { min-width: 140px; }
+.penalties-table th:nth-child(5) { min-width: 140px; }
 
 .penalties-table td {
-    padding: 12px 16px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-2);
     transition: border-color 0.3s ease, color 0.3s ease;
-    animation: fadeInRight 0.3s ease-out;
-    animation-fill-mode: both;
 }
 
-.penalties-table tr:nth-child(1) td { animation-delay: 0.15s; }
-.penalties-table tr:nth-child(2) td { animation-delay: 0.2s; }
-.penalties-table tr:nth-child(3) td { animation-delay: 0.25s; }
+.penalties-table tr:hover td {
+    background: var(--bg);
+}
 
+/* Status badges inside table */
 .status-badge {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
+    text-align: center;
+    min-width: 100px;
 }
 
 .status-pending {
@@ -865,7 +779,7 @@ body.dark-mode .drawer-logout:hover {
     color: var(--amber);
 }
 
-.status-progress {
+.status-progress, .status-in-progress {
     background: var(--blue-light);
     color: var(--blue-mid);
 }
@@ -875,29 +789,17 @@ body.dark-mode .drawer-logout:hover {
     color: var(--green);
 }
 
-.badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
+.penalties-table .empty-state {
+    text-align: center;
+    padding: 60px 20px;
 }
 
-.badge.penalty {
-    background: var(--red-light);
-    color: var(--red);
+.penalties-table .empty-state td {
+    text-align: center;
+    background: transparent;
 }
 
-.badge.resolved {
-    background: var(--green-light);
-    color: var(--green);
-}
-
-.badge.pending {
-    background: var(--amber-light);
-    color: var(--amber);
-}
-
+/* Empty State */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -907,7 +809,6 @@ body.dark-mode .drawer-logout:hover {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
-    animation: bounce 1s ease-out;
 }
 
 .empty-state div {
@@ -920,12 +821,48 @@ body.dark-mode .drawer-logout:hover {
     transition: color 0.3s ease;
 }
 
-@keyframes bounce {
-    0%, 100% {
+/* ============ ANIMATIONS ============ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
         transform: translateY(0);
     }
-    50% {
-        transform: translateY(-10px);
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -933,7 +870,6 @@ body.dark-mode .drawer-logout:hover {
 @media (max-width: 768px) {
     .drawer {
         transform: translateX(-100%);
-        animation: none;
     }
     .drawer.open {
         transform: translateX(0);
@@ -944,6 +880,7 @@ body.dark-mode .drawer-logout:hover {
     .topbar {
         margin-left: 0;
         width: 100%;
+        padding: 0 16px;
     }
     .dashboard-main {
         margin-left: 0;
@@ -951,6 +888,9 @@ body.dark-mode .drawer-logout:hover {
     }
     .hamburger {
         display: flex;
+    }
+    .brand-tagline {
+        display: none;
     }
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -962,8 +902,18 @@ body.dark-mode .drawer-logout:hover {
     .two-columns {
         grid-template-columns: 1fr;
     }
-    .tabs-nav {
-        flex-wrap: wrap;
+    
+    .penalties-table {
+        overflow-x: auto;
+    }
+    
+    .penalties-table table {
+        min-width: 650px;
+    }
+    
+    .penalties-table th,
+    .penalties-table td {
+        padding: 12px 16px;
     }
 }
 
@@ -1006,4 +956,23 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #3B82F6;
+}
+
+/* Notification Animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(20px); }
+    15% { opacity: 1; transform: translateX(0); }
+    85% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(20px); }
 }

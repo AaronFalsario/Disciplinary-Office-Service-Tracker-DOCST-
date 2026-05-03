@@ -1,7 +1,6 @@
+// ============ SUPABASE CONFIGURATION ============
 const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
-
-
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -11,8 +10,31 @@ let currentStudent = null
 let myReports = []
 let myPenalties = []
 
-// Checking of authentication
+// ============ GET STUDENT INITIALS ============
+function getStudentInitials(fullName) {
+    if (!fullName || fullName === 'Student') return 'ST';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
+function updateDrawerAvatar(studentName) {
+    const drawerAvatar = document.querySelector('.drawer-avatar');
+    if (drawerAvatar) {
+        const initials = getStudentInitials(studentName);
+        drawerAvatar.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = initials;
+        span.style.fontSize = '22px';
+        span.style.fontWeight = '700';
+        span.style.color = 'white';
+        drawerAvatar.appendChild(span);
+    }
+}
+
+// ============ AUTH CHECK ============
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
     if (!stored) {
@@ -38,8 +60,7 @@ async function checkAuth() {
     }
 }
 
-//  Load students report
-
+// ============ LOAD STUDENT'S REPORTS ============
 async function loadMyReports() {
     if (!currentStudent) return []
     
@@ -59,8 +80,7 @@ async function loadMyReports() {
     }
 }
 
-//Load the student penalties function
-
+// ============ LOAD STUDENT'S PENALTIES ============
 async function loadMyPenalties() {
     if (!currentStudent) return []
     
@@ -81,7 +101,6 @@ async function loadMyPenalties() {
 }
 
 // ============ DISPLAY STUDENT INFO ============
-
 function loadStudentInfo() {
     if (!currentStudent) return
 
@@ -92,6 +111,8 @@ function loadStudentInfo() {
 
     if (nameEl) nameEl.textContent = currentStudent.name
     if (idEl) idEl.textContent = `ID: ${currentStudent.studentId}`
+    
+    updateDrawerAvatar(currentStudent.name)
 
     const hour = new Date().getHours()
     let greeting = 'Hello'
@@ -112,7 +133,6 @@ function loadStudentInfo() {
 }
 
 // ============ UPDATE STATS ============
-
 function updateStats() {
     const pendingPenalties = myPenalties.filter(p => p.status !== 'completed').length
     const completedHours = myPenalties
@@ -141,7 +161,6 @@ function updateStats() {
 }
 
 // ============ RENDER REPORTS TABLE ============
-
 function renderReportsTable() {
     const tbody = document.getElementById('reportsTableBody')
     if (!tbody) return
@@ -152,7 +171,7 @@ function renderReportsTable() {
                 <td colspan="6" class="empty-state">
                     <div>📋 No reports found</div>
                     <small>Submit a report from the dashboard</small>
-                </td>
+                </span>
             </tr>
         `
         return
@@ -160,15 +179,15 @@ function renderReportsTable() {
 
     tbody.innerHTML = myReports.map(r => `
         <tr>
-            <td>${formatDate(r.created_at)}</td>
-            <td><strong>${escapeHtml(r.title)}</strong></td>
-            <td>${escapeHtml(r.category || 'General')}</td>
-            <td>${escapeHtml(r.location || 'N/A')}</td>
+            <td>${formatDate(r.created_at)}</span>
+            <td><strong>${escapeHtml(r.title)}</strong></span>
+            <td>${escapeHtml(r.category || 'General')}</span>
+            <td>${escapeHtml(r.location || 'N/A')}</span>
             <td>
                 <span class="status-badge status-${r.status}">
                     ${getStatusIcon(r.status)} ${r.status}
                 </span>
-            </td>
+            </span>
             <td>
                 ${r.status === 'penalty_issued' ? 
                     '<span class="badge penalty">⚠️ Penalty Issued</span>' : 
@@ -176,13 +195,12 @@ function renderReportsTable() {
                     '<span class="badge resolved">✅ Resolved</span>' : 
                     '<span class="badge pending">⏳ Pending</span>'
                 }
-            </td>
+            </span>
         </tr>
     `).join('')
 }
 
 // ============ RENDER PENALTIES TABLE ============
-
 function renderPenaltiesTable() {
     const tbody = document.getElementById('penaltiesTableBody')
     if (!tbody) return
@@ -193,7 +211,7 @@ function renderPenaltiesTable() {
                 <td colspan="5" class="empty-state">
                     <div>⚖️ No penalty records found</div>
                     <small>Complete your assigned community service</small>
-                </td>
+                </span>
             </tr>
         `
         return
@@ -201,28 +219,26 @@ function renderPenaltiesTable() {
 
     tbody.innerHTML = myPenalties.map(p => `
         <tr>
-            <td>${escapeHtml(p.violation)}</td>
-            <td>${escapeHtml(p.service_type || 'Community Service')}</td>
-            <td>${p.hours} hrs</td>
+            <td>${escapeHtml(p.violation)}</span>
+            <td>${escapeHtml(p.service_type || 'Community Service')}</span>
+            <td>${p.hours} hrs</span>
             <td>
                 <span class="status-badge status-${p.status}">
                     ${getStatusIcon(p.status)} ${p.status}
                 </span>
-            </td>
-            <td>${formatDate(p.deadline)}</td>
+            </span>
+            <td>${formatDate(p.deadline)}</span>
         </tr>
     `).join('')
 }
 
 // ============ RENDER ACTIVITY FEED ============
-
 function renderActivityFeed() {
     const container = document.getElementById('activityContainer')
     if (!container) return
 
     const activities = []
 
-    // Add report activities
     myReports.forEach(r => {
         activities.push({
             text: `📝 Report submitted: ${r.title}`,
@@ -239,7 +255,6 @@ function renderActivityFeed() {
         }
     })
 
-    // Add penalty activities
     myPenalties.forEach(p => {
         activities.push({
             text: `⚠️ Penalty issued: ${p.violation} (${p.hours} hours)`,
@@ -275,7 +290,6 @@ function renderActivityFeed() {
 }
 
 // ============ RENDER UPCOMING DEADLINES ============
-
 function renderDeadlines() {
     const container = document.getElementById('deadlinesContainer')
     if (!container) return
@@ -302,7 +316,6 @@ function renderDeadlines() {
 }
 
 // ============ HELPER FUNCTIONS ============
-
 function getStatusIcon(status) {
     switch(status) {
         case 'pending': return '⏳'
@@ -345,7 +358,6 @@ function escapeHtml(text) {
 }
 
 // ============ REFRESH ALL DATA ============
-
 async function refreshDashboard() {
     await loadMyReports()
     await loadMyPenalties()
@@ -357,7 +369,6 @@ async function refreshDashboard() {
 }
 
 // ============ DRAWER FUNCTIONS ============
-
 function openDrawer() {
     document.getElementById('overlay')?.classList.add('open')
     document.getElementById('drawer')?.classList.add('open')
@@ -369,7 +380,6 @@ function closeDrawer() {
 }
 
 // ============ TAB SWITCHING ============
-
 function switchTab(tabName) {
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.remove('active')
@@ -382,35 +392,7 @@ function switchTab(tabName) {
     document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active')
 }
 
-// ============ DARK MODE TOGGLE ============
-
-function initDarkMode() {
-    const savedMode = localStorage.getItem('docst_dark_mode');
-    if (savedMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-    }
-    
-    // Create dark mode toggle button in topbar
-    const topbarRight = document.querySelector('.topbar-right');
-    if (topbarRight && !document.getElementById('darkModeToggle')) {
-        const btn = document.createElement('button');
-        btn.id = 'darkModeToggle';
-        btn.className = 'icon-btn';
-        
-        const isDark = document.body.classList.contains('dark-mode');
-        updateDarkModeIcon(btn, isDark);
-        
-        btn.onclick = () => {
-            document.body.classList.toggle('dark-mode');
-            const nowDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
-            updateDarkModeIcon(btn, nowDark);
-        };
-        
-        topbarRight.insertBefore(btn, topbarRight.firstChild);
-    }
-}
-
+// ============ DARK MODE - WITH BUTTON, SYNC ACROSS PAGES ============
 function updateDarkModeIcon(btn, isDark) {
     if (isDark) {
         btn.innerHTML = `
@@ -435,15 +417,77 @@ function updateDarkModeIcon(btn, isDark) {
     }
 }
 
-// ============ INITIALIZE ============
+function initDarkMode() {
+    // Check saved preference from localStorage (shared across all pages)
+    const savedMode = localStorage.getItem('docst_dark_mode');
+    if (savedMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+    } else if (savedMode === 'disabled') {
+        document.body.classList.remove('dark-mode');
+    } else {
+        // Default to light mode if no preference
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('docst_dark_mode', 'disabled');
+    }
+    
+    // Create or get dark mode toggle button
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    if (darkModeBtn) {
+        const isDark = document.body.classList.contains('dark-mode');
+        updateDarkModeIcon(darkModeBtn, isDark);
+        
+        darkModeBtn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const nowDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+            updateDarkModeIcon(darkModeBtn, nowDark);
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
+            notification.style.cssText = `
+                position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
+                background: ${nowDark ? '#1E293B' : '#2563EB'}; color: white;
+                border-radius: 8px; font-size: 13px; z-index: 10000;
+                animation: fadeInOut 2s ease;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        };
+    }
+}
 
+// Add fadeInOut animation
+const darkModeStyle = document.createElement('style');
+darkModeStyle.textContent = `
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(20px); }
+        15% { opacity: 1; transform: translateX(0); }
+        85% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+`;
+document.head.appendChild(darkModeStyle);
+
+// ============ NOTIFICATION BUTTON ============
+function initNotification() {
+    const notifyBtn = document.getElementById('notifyBtn');
+    if (notifyBtn) {
+        notifyBtn.addEventListener('click', () => {
+            alert('🔔 No new notifications at this time.');
+        });
+    }
+}
+
+// ============ INITIALIZE ============
 document.addEventListener('DOMContentLoaded', async () => {
     const isAuth = await checkAuth()
     if (!isAuth) return
     
     loadStudentInfo()
     await refreshDashboard()
-    initDarkMode() // Initialize dark mode
+    initDarkMode()
+    initNotification()
     
     // Drawer event listeners
     document.getElementById('hamburger')?.addEventListener('click', openDrawer)
@@ -463,13 +507,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
         await supabase.auth.signOut()
         localStorage.removeItem('currentStudent')
-        window.location.href = '/index.html'
+        window.location.href = '/Assets/Landing/index.html'
     })
 })
 
 // ============ GLOBAL FUNCTIONS ============
-window.viewPenalties = () => switchTab('penalties')
-window.viewHistory = () => switchTab('reports')
-window.handleSubmitAppeal = () => {
+window.viewPenalties = () => alert('Click "My Penalties" in the sidebar to view all penalties')
+window.viewHistory = () => alert('Click on specific penalty records to view details')
+window.submitAppeal = () => {
     alert('Appeal feature coming soon. Please contact the Discipline Office.')
 }

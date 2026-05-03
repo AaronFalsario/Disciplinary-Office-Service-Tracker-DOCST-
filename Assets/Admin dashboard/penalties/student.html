@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="/Assets/Admin dashboard/penalties/stud.css">
-
 </head>
 <body>
     <!-- Navigation Drawer -->
@@ -237,7 +236,6 @@
                     </tr>
                 </thead>
                 <tbody id="penaltiesTableBody">
-                    <!-- Penalties will be loaded dynamically here -->
                 </tbody>
             </table>
         </div>
@@ -258,12 +256,24 @@
                 </div>
                 <div class="form-group">
                     <label>Violation</label>
-                    <input type="text" id="penaltyViolation" required placeholder="e.g., Uniform violation">
+                    <select id="penaltyViolation" required>
+                        <option value="" disabled selected>Select Violation</option>
+                        <option value="Uniform Violation">Uniform Violation</option>
+                        <option value="No ID Violation">No ID Violation</option>
+                        <option value="Dress Code Violation">Dress Code Violation</option>
+                        <option value="Littering">Littering</option>
+                        <option value="Vandalism">Vandalism</option>
+                        <option value="Disrespectful Behavior">Disrespectful Behavior</option>
+                        <option value="Public Disturbance">Public Disturbance</option>
+                        <option value="Tardiness">Tardiness</option>
+                        <option value="Bullying">Bullying</option>
+                        <option value="Smoking on Campus">Smoking on Campus</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Service Type</label>
                     <select id="penaltyServiceType" required>
-                        <option value="">Select Service Type</option>
+                        <option value="" disabled selected>Select Service Type</option>
                         <option value="Garden cleaning">Garden cleaning</option>
                         <option value="Campus cleanup">Campus cleanup</option>
                         <option value="Environmental cleanup">Environmental cleanup</option>

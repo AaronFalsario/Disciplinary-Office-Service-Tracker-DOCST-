@@ -1,4 +1,15 @@
-// funct.js - Connected to Supabase (NO SAMPLE DATA)
+const chartScript = document.createElement('script');
+chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+chartScript.onload = () => {
+    console.log('✅ Chart.js loaded successfully');
+    // Try to update chart after load
+    if (typeof updateChart === 'function') {
+        setTimeout(() => updateChart(), 100);
+    }
+};
+document.head.appendChild(chartScript);
+
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
@@ -557,7 +568,7 @@ async function init() {
     await refreshDashboard();
     
     // Refresh every 30 seconds
-    setInterval(refreshDashboard, 30000);
+    setInterval(refreshDashboard, 90000);
 }
 
 // ============ DARK MODE ============
