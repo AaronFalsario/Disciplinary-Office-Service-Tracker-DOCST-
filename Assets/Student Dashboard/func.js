@@ -1,14 +1,17 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
 const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
+
+
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 let currentStudent = null
 let myReports = []
 let myPenalties = []
 
-// ============ AUTH CHECK ============
+// Checking of authentication
 
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
@@ -35,7 +38,7 @@ async function checkAuth() {
     }
 }
 
-// ============ LOAD STUDENT'S REPORTS FROM DATABASE ============
+//  Load students report
 
 async function loadMyReports() {
     if (!currentStudent) return []
@@ -56,7 +59,7 @@ async function loadMyReports() {
     }
 }
 
-// ============ LOAD STUDENT'S PENALTIES ============
+//Load the student penalties function
 
 async function loadMyPenalties() {
     if (!currentStudent) return []
@@ -379,6 +382,59 @@ function switchTab(tabName) {
     document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active')
 }
 
+// ============ DARK MODE TOGGLE ============
+
+function initDarkMode() {
+    const savedMode = localStorage.getItem('docst_dark_mode');
+    if (savedMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Create dark mode toggle button in topbar
+    const topbarRight = document.querySelector('.topbar-right');
+    if (topbarRight && !document.getElementById('darkModeToggle')) {
+        const btn = document.createElement('button');
+        btn.id = 'darkModeToggle';
+        btn.className = 'icon-btn';
+        
+        const isDark = document.body.classList.contains('dark-mode');
+        updateDarkModeIcon(btn, isDark);
+        
+        btn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const nowDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+            updateDarkModeIcon(btn, nowDark);
+        };
+        
+        topbarRight.insertBefore(btn, topbarRight.firstChild);
+    }
+}
+
+function updateDarkModeIcon(btn, isDark) {
+    if (isDark) {
+        btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        `;
+    } else {
+        btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        `;
+    }
+}
+
 // ============ INITIALIZE ============
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -387,6 +443,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     loadStudentInfo()
     await refreshDashboard()
+    initDarkMode() // Initialize dark mode
     
     // Drawer event listeners
     document.getElementById('hamburger')?.addEventListener('click', openDrawer)
@@ -416,13 +473,3 @@ window.viewHistory = () => switchTab('reports')
 window.handleSubmitAppeal = () => {
     alert('Appeal feature coming soon. Please contact the Discipline Office.')
 }
-
-function initDarkMode() {
-    const savedMode = localStorage.getItem('docst_dark_mode');
-    if (savedMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-    }
-}
-
-// Add to your existing init function
-initDarkMode();

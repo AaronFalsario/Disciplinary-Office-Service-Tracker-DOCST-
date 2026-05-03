@@ -31,6 +31,24 @@
     --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 10px 20px -5px rgba(0,0,0,0.05);
 }
 
+/* Dark Mode Variables */
+body.dark-mode {
+    --bg: #0F172A;
+    --surface: #1E293B;
+    --border: #334155;
+    --border-2: #475569;
+    --text: #F1F5F9;
+    --text-2: #CBD5E1;
+    --text-3: #94A3B8;
+    --blue-light: #1E3A5F;
+    --blue-mid: #3B82F6;
+    --red-light: #7F1D1D;
+    --green-light: #064E3B;
+    --amber-light: #451A03;
+    --purple-light: #2E1065;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 10px 20px -5px rgba(0,0,0,0.3);
+}
+
 html, body {
     min-height: 100vh;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -38,6 +56,7 @@ html, body {
     color: var(--text);
     font-size: 14px;
     line-height: 1.5;
+    transition: background 0.3s ease, color 0.3s ease;
     animation: fadeInPage 0.5s ease-out;
 }
 
@@ -148,6 +167,12 @@ html, body {
     justify-content: center;
     margin-bottom: 8px;
     animation: fadeInScale 0.4s ease-out 0.1s both;
+}
+
+.drawer-avatar span {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
 }
 
 @keyframes fadeInScale {
@@ -298,6 +323,10 @@ html, body {
     color: #991B1B;
 }
 
+body.dark-mode .drawer-logout:hover {
+    color: #EF4444;
+}
+
 /* TOPBAR */
 .topbar {
     background: var(--surface);
@@ -313,6 +342,7 @@ html, body {
     margin-left: var(--drawer-w);
     width: calc(100% - var(--drawer-w));
     animation: slideDown 0.5s ease-out;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .topbar-left {
@@ -357,6 +387,7 @@ html, body {
     font-size: 16px;
     font-weight: 700;
     color: var(--text);
+    transition: color 0.3s ease;
     animation: fadeInRight 0.4s ease-out 0.05s both;
 }
 
@@ -370,6 +401,7 @@ html, body {
     display: flex;
     align-items: center;
     gap: 6px;
+    transition: background 0.3s ease, color 0.3s ease;
     animation: fadeInLeft 0.4s ease-out 0.1s both;
 }
 
@@ -384,12 +416,39 @@ html, body {
     }
 }
 
+/* Dark Mode Toggle Button */
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-2);
+    transition: all 0.2s;
+    margin: 0;
+}
+
+.icon-btn:hover {
+    background: var(--bg);
+    color: var(--blue);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* MAIN CONTENT */
 .dashboard-main {
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
     max-width: calc(1400px - var(--drawer-w));
     animation: fadeInUp 0.5s ease-out;
+    transition: background 0.3s ease;
 }
 
 /* Welcome Section */
@@ -414,12 +473,14 @@ html, body {
     font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
+    transition: color 0.3s ease;
     animation: fadeInRight 0.4s ease-out 0.1s both;
 }
 
 .welcome-date {
     font-size: 14px;
     color: var(--text-3);
+    transition: color 0.3s ease;
     animation: fadeInRight 0.4s ease-out 0.15s both;
 }
 
@@ -442,7 +503,7 @@ html, body {
     display: flex;
     align-items: center;
     gap: 14px;
-    min-width: 0; /
+    min-width: 0;
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.05s; }
@@ -465,6 +526,7 @@ html, body {
     justify-content: center;
     margin-bottom: 12px;
     color: var(--blue);
+    transition: background 0.3s ease, color 0.3s ease;
     animation: fadeInScale 0.3s ease-out;
 }
 
@@ -472,6 +534,7 @@ html, body {
     font-size: 28px;
     font-weight: 700;
     color: var(--text);
+    transition: color 0.3s ease;
     animation: countUp 0.6s ease-out;
 }
 
@@ -490,6 +553,7 @@ html, body {
     font-size: 13px;
     color: var(--text-3);
     margin-top: 4px;
+    transition: color 0.3s ease;
 }
 
 /* Action Cards */
@@ -532,17 +596,21 @@ html, body {
     justify-content: center;
     margin: 0 auto 16px;
     color: var(--blue);
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .action-card h3 {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 6px;
+    color: var(--text);
+    transition: color 0.3s ease;
 }
 
 .action-card p {
     font-size: 12px;
     color: var(--text-3);
+    transition: color 0.3s ease;
 }
 
 /* Two Column Layout */
@@ -559,6 +627,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
+    transition: background 0.3s ease, border-color 0.3s ease;
     animation: fadeInUp 0.5s ease-out 0.15s both;
 }
 
@@ -572,6 +641,14 @@ html, body {
 .card-title {
     font-size: 16px;
     font-weight: 600;
+    color: var(--text);
+    transition: color 0.3s ease;
+}
+
+.card-sub {
+    font-size: 12px;
+    color: var(--text-3);
+    transition: color 0.3s ease;
 }
 
 .activity-item {
@@ -579,6 +656,7 @@ html, body {
     gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
+    transition: border-color 0.3s ease;
     animation: fadeInRight 0.3s ease-out;
     animation-fill-mode: both;
 }
@@ -602,6 +680,7 @@ html, body {
     justify-content: center;
     color: var(--blue);
     flex-shrink: 0;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .activity-content {
@@ -612,11 +691,13 @@ html, body {
     font-size: 13px;
     color: var(--text);
     margin-bottom: 4px;
+    transition: color 0.3s ease;
 }
 
 .activity-time {
     font-size: 11px;
     color: var(--text-3);
+    transition: color 0.3s ease;
 }
 
 /* Upcoming Deadlines */
@@ -625,6 +706,7 @@ html, body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 20px;
+    transition: background 0.3s ease, border-color 0.3s ease;
     animation: fadeInUp 0.5s ease-out 0.2s both;
 }
 
@@ -634,6 +716,7 @@ html, body {
     align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
+    transition: border-color 0.3s ease;
     animation: fadeInRight 0.3s ease-out;
     animation-fill-mode: both;
 }
@@ -650,11 +733,21 @@ html, body {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 4px;
+    color: var(--text);
+    transition: color 0.3s ease;
 }
 
 .deadline-info p {
     font-size: 12px;
     color: var(--text-3);
+    transition: color 0.3s ease;
+}
+
+.deadline-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.3s ease;
 }
 
 .deadline-date {
@@ -664,6 +757,7 @@ html, body {
     background: var(--amber-light);
     padding: 4px 10px;
     border-radius: 20px;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .deadline-date.urgent {
@@ -676,12 +770,54 @@ html, body {
     background: var(--green-light);
 }
 
+/* Tabs Navigation */
+.tabs-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+}
+
+.nav-link {
+    background: none;
+    border: none;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 8px;
+}
+
+.nav-link:hover {
+    color: var(--blue);
+    background: var(--blue-light);
+}
+
+.nav-link.active {
+    color: var(--blue);
+    background: var(--blue-light);
+}
+
+/* Tab Panes */
+.tab-pane {
+    display: none;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
 /* Penalties Table */
 .penalties-table {
     background: var(--surface);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease;
     animation: fadeInUp 0.5s ease-out 0.1s both;
 }
 
@@ -699,12 +835,15 @@ html, body {
     color: var(--text-3);
     background: var(--bg);
     border-bottom: 1px solid var(--border);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .penalties-table td {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
+    color: var(--text-2);
+    transition: border-color 0.3s ease, color 0.3s ease;
     animation: fadeInRight 0.3s ease-out;
     animation-fill-mode: both;
 }
@@ -728,12 +867,35 @@ html, body {
 
 .status-progress {
     background: var(--blue-light);
-    color: var(--blue);
+    color: var(--blue-mid);
 }
 
 .status-completed {
     background: var(--green-light);
     color: var(--green);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge.penalty {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.badge.resolved {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.badge.pending {
+    background: var(--amber-light);
+    color: var(--amber);
 }
 
 .empty-state {
@@ -746,6 +908,16 @@ html, body {
     margin-bottom: 16px;
     opacity: 0.5;
     animation: bounce 1s ease-out;
+}
+
+.empty-state div {
+    color: var(--text-2);
+    transition: color 0.3s ease;
+}
+
+.empty-state small {
+    color: var(--text-3);
+    transition: color 0.3s ease;
 }
 
 @keyframes bounce {
@@ -790,6 +962,9 @@ html, body {
     .two-columns {
         grid-template-columns: 1fr;
     }
+    .tabs-nav {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 480px) {
@@ -799,4 +974,36 @@ html, body {
     .welcome-title {
         font-size: 22px;
     }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--blue);
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: #0F172A;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #3B82F6;
 }
