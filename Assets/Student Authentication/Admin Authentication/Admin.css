@@ -316,10 +316,173 @@ html, body {
     border-left: 3px solid var(--red);
 }
 
+/* ============ RESPONSIVE - HIDE BLUE PANEL ON MOBILE ============ */
 @media (max-width: 768px) {
-    .card { flex-direction: column; max-width: 100%; }
-    .left { width: 100%; padding: 32px 24px; }
-    .right { padding: 32px 24px; }
-    .otp-input { width: 45px; height: 45px; font-size: 18px; }
-    .otp-row { gap: 8px; }
+    body { 
+        padding: 16px; 
+        align-items: flex-start; 
+    }
+    
+    .card { 
+        flex-direction: column; 
+        border-radius: 24px; 
+        max-width: 100%; 
+        min-height: auto; 
+        overflow: visible;
+    }
+    
+    /* HIDE the blue panel on mobile */
+    .left {
+        display: none;
+    }
+    
+    /* RIGHT PANEL takes full width */
+    .right {
+        width: 100%;
+        padding: 32px 24px;
+        border-radius: 24px;
+        overflow-y: visible;
+    }
+    
+    .panel-title { 
+        font-size: 24px; 
+    }
+    
+    .admin-badge { 
+        font-size: 11px; 
+        padding: 5px 12px; 
+    }
+    
+    .panel-desc { 
+        font-size: 13px; 
+        margin-bottom: 20px; 
+    }
+    
+    .field { 
+        margin-bottom: 16px; 
+    }
+    
+    .field label { 
+        font-size: 12px; 
+    }
+    
+    .input-wrap { 
+        padding: 0 14px; 
+    }
+    
+    .input-wrap input { 
+        padding: 11px 8px; 
+        font-size: 14px; 
+    }
+    
+    .btn-submit { 
+        padding: 12px; 
+        font-size: 14px; 
+    }
+    
+    .otp-input { 
+        width: 45px; 
+        height: 45px; 
+        font-size: 18px; 
+    }
+    
+    .otp-row { 
+        gap: 8px; 
+    }
+    
+    .security-steps { 
+        gap: 6px; 
+    }
+    
+    .admin-info-banner { 
+        padding: 10px 12px; 
+        margin-bottom: 20px; 
+    }
+    
+    .admin-info-banner .ib-title { 
+        font-size: 12px; 
+    }
+    
+    .admin-info-banner .ib-sub { 
+        font-size: 11px; 
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    body { 
+        padding: 12px; 
+    }
+    
+    .right { 
+        padding: 24px 20px; 
+    }
+    
+    .panel-title { 
+        font-size: 22px; 
+        margin-bottom: 8px;
+    }
+    
+    .admin-badge { 
+        font-size: 10px; 
+        padding: 4px 10px; 
+        margin-bottom: 12px;
+    }
+    
+    .panel-desc { 
+        font-size: 12px; 
+        margin-bottom: 16px; 
+    }
+    
+    .field label { 
+        font-size: 11px; 
+        margin-bottom: 6px;
+    }
+    
+    .input-wrap { 
+        padding: 0 12px; 
+    }
+    
+    .input-wrap input { 
+        padding: 10px 6px; 
+        font-size: 13px; 
+    }
+    
+    .input-wrap i { 
+        font-size: 13px; 
+        width: 18px;
+    }
+    
+    .btn-submit { 
+        padding: 10px; 
+        font-size: 13px; 
+    }
+    
+    .row-check {
+        margin-bottom: 18px;
+        font-size: 12px;
+    }
+    
+    .check-label { 
+        font-size: 12px; 
+    }
+    
+    .forgot-link { 
+        font-size: 12px; 
+    }
+    
+    .otp-input { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 16px; 
+    }
+    
+    .otp-row { 
+        gap: 6px; 
+    }
+    
+    .step-label { 
+        font-size: 10px; 
+        margin-bottom: 16px;
+    }
 }

@@ -43,7 +43,8 @@ function clearError(inputElement) {
     if (old) old.remove()
 }
 
-function showToast(msg) {
+function showToast(msg, type = 'info') {
+    // You can replace this with a better toast later
     alert(msg)
 }
 
@@ -149,7 +150,49 @@ function startResendCooldown(seconds = 30) {
     }, 1000)
 }
 
-// step 1  ng otp verification
+// Helper function to ensure auth user exists
+async function ensureAuthUserExists(admin) {
+    try {
+        // Try to sign in to check if user exists
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: admin.email,
+            password: admin.password_hash
+        })
+        
+        // If user doesn't exist, create them
+        if (signInError && signInError.message.includes('Invalid login credentials')) {
+            console.log('Creating auth user for:', admin.email)
+            
+            const { error: signUpError } = await supabase.auth.signUp({
+                email: admin.email,
+                password: admin.password_hash,
+                options: {
+                    data: {
+                        full_name: admin.full_name,
+                        admin_id: admin.admin_id
+                    }
+                }
+            })
+            
+            if (signUpError) {
+                console.error('Signup error:', signUpError)
+                return false
+            }
+            
+            // Wait a moment for user to be created
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            console.log('Auth user created for:', admin.email)
+            return true
+        }
+        
+        return true
+    } catch (err) {
+        console.error('Error ensuring auth user:', err)
+        return false
+    }
+}
+
+// step 1 ng otp verification
 async function handleLogin() {
 
     const usernameInput = qs('admin-username')
@@ -182,7 +225,7 @@ async function handleLogin() {
             .or(`admin_id.ilike.${username},email.ilike.${username}`)
             .maybeSingle()
 
-        console.log(admin, error)
+        console.log('Admin found:', admin)
 
         if (error || !admin) {
             showError(usernameInput, 'Admin not found')
@@ -198,6 +241,17 @@ async function handleLogin() {
 
         currentAdmin = admin
 
+        // Ensure auth user exists before sending OTP
+        showToast('Setting up secure access...')
+        const authReady = await ensureAuthUserExists(admin)
+        
+        if (!authReady) {
+            showError(usernameInput, 'Failed to setup secure access. Please try again.')
+            enable(loginBtn, 'Continue')
+            return
+        }
+
+        // Send OTP
         const { error: otpError } = await supabase.auth.signInWithOtp({
             email: admin.email,
             options: {
@@ -206,13 +260,52 @@ async function handleLogin() {
         })
 
         if (otpError) {
-            showError(usernameInput, 'Failed to send OTP')
-            enable(loginBtn, 'Continue')
-            return
+            console.error('OTP Error:', otpError)
+            
+            // If still failing, try one more time with explicit user creation
+            if (otpError.message.includes('User not found') || otpError.message.includes('Invalid email')) {
+                showToast('Finalizing account setup...')
+                
+                const { error: signUpError } = await supabase.auth.signUp({
+                    email: admin.email,
+                    password: admin.password_hash,
+                    options: {
+                        data: {
+                            full_name: admin.full_name,
+                            admin_id: admin.admin_id
+                        }
+                    }
+                })
+                
+                if (signUpError) {
+                    showError(usernameInput, 'Failed to send OTP. Please contact support.')
+                    enable(loginBtn, 'Continue')
+                    return
+                }
+                
+                // Wait and try one more time
+                await new Promise(resolve => setTimeout(resolve, 3000))
+                
+                const { error: retryError } = await supabase.auth.signInWithOtp({
+                    email: admin.email,
+                    options: {
+                        shouldCreateUser: false
+                    }
+                })
+                
+                if (retryError) {
+                    showError(usernameInput, 'Failed to send OTP. Please try again.')
+                    enable(loginBtn, 'Continue')
+                    return
+                }
+            } else {
+                showError(usernameInput, `Failed to send OTP: ${otpError.message}`)
+                enable(loginBtn, 'Continue')
+                return
+            }
         }
 
         document.querySelectorAll('.otp-input').forEach(i => i.value = '')
-
         showToast(`OTP sent to ${admin.email}`)
 
         goToStep(2)
@@ -251,7 +344,6 @@ async function handleVerifyOTP() {
         })
 
         if (error) {
-
             attempts++
 
             if (attempts >= maxAttempts) {
@@ -260,13 +352,14 @@ async function handleVerifyOTP() {
                 return
             }
 
-            showError(inputs[0], `Invalid OTP (${attempts}/3)`)
+            showError(inputs[0], `Invalid OTP (${attempts}/${maxAttempts})`)
             enable(btn, 'Verify & Login')
             return
         }
 
         clearInterval(countdownInterval)
 
+        // Update last login timestamp
         await supabase
             .from('admins')
             .update({
@@ -274,6 +367,7 @@ async function handleVerifyOTP() {
             })
             .eq('id', currentAdmin.id)
 
+        // Store admin session
         localStorage.setItem('currentAdmin', JSON.stringify({
             id: currentAdmin.id,
             admin_id: currentAdmin.admin_id,
@@ -290,17 +384,20 @@ async function handleVerifyOTP() {
             localStorage.removeItem('rememberedAdmin')
         }
 
-   window.location.href = '../../Admin dashboard/Admin.html'
+        showToast('Login successful! Redirecting...')
+        
+        setTimeout(() => {
+            window.location.href = '../../Admin dashboard/Admin.html'
+        }, 1000)
 
     } catch (err) {
         console.error(err)
         showError(inputs[0], 'OTP verification failed')
+        enable(btn, 'Verify & Login')
     }
-
-    enable(btn, 'Verify & Login')
 }
 
-// re send ng otp kapag nag expire or something like that
+// resend otp
 async function resendOTP() {
 
     if (!currentAdmin) return
@@ -311,6 +408,9 @@ async function resendOTP() {
 
         btn.disabled = true
 
+        // Ensure auth user still exists
+        await ensureAuthUserExists(currentAdmin)
+
         const { error } = await supabase.auth.signInWithOtp({
             email: currentAdmin.email,
             options: {
@@ -319,20 +419,41 @@ async function resendOTP() {
         })
 
         if (error) {
-            showToast('Failed to resend OTP')
+            console.error('Resend error:', error)
+            showToast('Failed to resend OTP. Please try again.')
             btn.disabled = false
             return
         }
 
-        showToast('OTP resent')
-
+        showToast('OTP resent successfully!')
         startCountdown(300)
         startResendCooldown(30)
 
     } catch (err) {
         console.error(err)
         btn.disabled = false
+        showToast('Failed to resend OTP')
     }
+}
+
+// Auto-create auth users for all existing admins on page load (optional)
+async function syncExistingAdmins() {
+    console.log('Checking for admins that need auth accounts...')
+    
+    const { data: admins, error } = await supabase
+        .from('admins')
+        .select('*')
+    
+    if (error) {
+        console.error('Error fetching admins:', error)
+        return
+    }
+    
+    for (const admin of admins) {
+        await ensureAuthUserExists(admin)
+    }
+    
+    console.log('Auth sync complete')
 }
 
 // auth sa log in page
@@ -341,7 +462,7 @@ const saved = localStorage.getItem('currentAdmin')
 if (saved && location.pathname.includes('Admin.html')) {
     location.href = '../../Admin dashboard/Admin.html'
 }
-// remember me admin page
+// ito yung remember me function
 const remembered = localStorage.getItem('rememberedAdmin')
 
 if (remembered) {
@@ -372,3 +493,5 @@ setupOTPInputs()
 window.handleLogin = handleLogin
 window.handleVerifyOTP = handleVerifyOTP
 window.resendOTP = resendOTP
+
+console.log('Login page loaded - Auto-auth creation enabled')
