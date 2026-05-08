@@ -8,40 +8,32 @@ chartScript.onload = () => {
 };
 document.head.appendChild(chartScript);
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from '@supabase/supabase-js'
+import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin } from '/Assets/drawer-admin.js';
 
-const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// ============ AUTHENTICATION CHECK - PROTECT ADMIN ROUTE ============
-// This runs FIRST before anything else loads
+// ============ ADMIN AUTH CHECK ============
 async function checkAdminAuth() {
     try {
-        // Get current session from Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-            console.error('Session error:', sessionError);
-            redirectToUnauthorized();
-            return false;
-        }
-        
-        if (!session) {
+        if (sessionError || !session) {
             console.log('No session found - unauthorized access');
             redirectToUnauthorized();
             return false;
         }
         
-        // Check if the logged-in user is an admin
         const userEmail = session.user.email;
+        console.log('Checking admin access for:', userEmail);
         
-        // Query the admins table to verify this email belongs to an admin
         const { data: adminData, error: adminError } = await supabase
             .from('admins')
-            .select('email, full_name')
+            .select('id, admin_id, full_name, email, role, status')
             .eq('email', userEmail)
-            .single();
+            .maybeSingle();
         
         if (adminError || !adminData) {
             console.log('User is not an admin - access denied');
@@ -49,7 +41,30 @@ async function checkAdminAuth() {
             return false;
         }
         
-        console.log('✅ Admin authorized:', adminData.full_name || adminData.email);
+        if (adminData.status !== 'active') {
+            console.log('Admin account is inactive');
+            redirectToUnauthorized();
+            return false;
+        }
+        
+        console.log('✅ Admin authorized:', adminData.full_name);
+        
+        // Store admin info
+        localStorage.setItem('currentAdmin', JSON.stringify({
+            id: adminData.id,
+            admin_id: adminData.admin_id,
+            email: adminData.email,
+            name: adminData.full_name,
+            full_name: adminData.full_name,
+            role: adminData.role,
+            status: adminData.status
+        }));
+        
+        // Setup the admin drawer with the admin info
+        setupAdminDrawer(adminData.full_name, adminData.admin_id);
+        setupAdminLogout('logoutBtn');
+        setupAdminDrawerControls();
+        
         return true;
         
     } catch (error) {
@@ -60,20 +75,15 @@ async function checkAdminAuth() {
 }
 
 function redirectToUnauthorized() {
-    // Show notification before redirect
     showUnauthorizedNotification();
-    
-    // Clear any stored admin data
     localStorage.removeItem('currentAdmin');
     
-    // Redirect to landing page after 2 seconds
     setTimeout(() => {
         window.location.href = '/Assets/Landing/index.html';
     }, 2000);
 }
 
 function showUnauthorizedNotification() {
-    // Create notification element
     const notification = document.createElement('div');
     notification.innerHTML = `
         <div style="
@@ -97,69 +107,7 @@ function showUnauthorizedNotification() {
         </div>
     `;
     document.body.appendChild(notification);
-    
-    // Remove notification after 2 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 2000);
-}
-
-// ============ DRAWER FUNCTIONALITY ============
-const overlay = document.getElementById('overlay');
-const drawer = document.getElementById('drawer');
-const hamburger = document.getElementById('hamburger');
-const drawerClose = document.getElementById('drawerClose');
-const adminPill = document.getElementById('adminPill');
-
-function openDrawer() {
-    if (overlay) overlay.classList.add('open');
-    if (drawer) drawer.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeDrawer() {
-    if (overlay) overlay.classList.remove('open');
-    if (drawer) drawer.classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-if (window.innerWidth <= 768) {
-    if (hamburger) hamburger.addEventListener('click', openDrawer);
-    if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-    if (overlay) overlay.addEventListener('click', closeDrawer);
-    if (adminPill) adminPill.addEventListener('click', openDrawer);
-}
-
-window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) closeDrawer();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDrawer();
-});
-
-// ============ GET ADMIN INITIALS ============
-function getAdminInitials(fullName) {
-    if (!fullName || fullName === 'Administrator') return 'AD';
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) {
-        return parts[0].substring(0, 2).toUpperCase();
-    }
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function updateDrawerAvatar(adminName) {
-    const drawerAvatar = document.querySelector('.drawer-avatar');
-    if (drawerAvatar) {
-        const initials = getAdminInitials(adminName);
-        drawerAvatar.innerHTML = '';
-        const span = document.createElement('span');
-        span.textContent = initials;
-        span.style.fontSize = '18px';
-        span.style.fontWeight = '600';
-        span.style.color = 'white';
-        drawerAvatar.appendChild(span);
-    }
+    setTimeout(() => notification.remove(), 2000);
 }
 
 // ============ SET CURRENT DATE ============
@@ -178,12 +126,13 @@ function updateGreeting() {
     
     const welcomeTitle = document.getElementById('welcomeTitle');
     if (welcomeTitle) {
-        const adminName = document.getElementById('adminName')?.textContent || 'Administrator';
+        const admin = getCurrentAdmin();
+        const adminName = admin?.full_name || admin?.name || 'Administrator';
         welcomeTitle.textContent = `${greeting}, ${adminName} 👋`;
     }
 }
 
-// ============ LOAD ADMIN NAME FROM SUPABASE ============
+// ============ LOAD ADMIN NAME ============
 async function loadAdminName() {
     try {
         console.log('🔍 Loading admin name...');
@@ -194,99 +143,48 @@ async function loadAdminName() {
                 const admin = JSON.parse(storedAdmin);
                 const adminName = admin.full_name || admin.name;
                 if (adminName) {
-                    const adminNameEl = document.getElementById('adminName');
-                    if (adminNameEl) {
-                        adminNameEl.textContent = adminName;
-                        console.log('✅ Admin name loaded from localStorage:', adminName);
-                        updateDrawerAvatar(adminName);
-                        updateGreeting();
-                        return;
-                    }
+                    updateGreeting();
+                    console.log('✅ Admin name loaded from localStorage:', adminName);
+                    return;
                 }
             } catch(e) {}
         }
         
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        if (userError) {
-            console.error('❌ Auth error:', userError);
-            return;
-        }
-        
-        if (!user) {
-            console.log('⚠️ No user logged in');
+        if (userError || !user) {
+            console.log('No user logged in');
             return;
         }
         
         console.log('✅ User found:', user.email);
         
-        let adminData = null;
-        let adminError = null;
-        
-        const { data: data1, error: err1 } = await supabase
+        const { data: adminData, error: adminError } = await supabase
             .from('admins')
-            .select('*')
+            .select('full_name, email, role, status, admin_id')
             .eq('email', user.email)
-            .single();
-        
-        adminData = data1;
-        adminError = err1;
-        
-        if (adminError) {
-            const { data: data2, error: err2 } = await supabase
-                .from('admin')
-                .select('*')
-                .eq('email', user.email)
-                .single();
-            
-            if (!err2 && data2) {
-                adminData = data2;
-                adminError = null;
-            }
-        }
+            .maybeSingle();
         
         if (adminError || !adminData) {
-            const emailName = user.email.split('@')[0];
-            const adminNameEl = document.getElementById('adminName');
-            if (adminNameEl) {
-                adminNameEl.textContent = emailName;
-                updateDrawerAvatar(emailName);
-                updateGreeting();
-            }
+            console.log('No admin record found');
             return;
         }
         
-        const adminName = adminData.full_name || adminData.name || adminData.admin_name || user.email.split('@')[0];
-        
+        const adminName = adminData.full_name || user.email.split('@')[0];
         console.log('✅ Admin name found:', adminName);
         
-        const adminNameEl = document.getElementById('adminName');
-        if (adminNameEl) {
-            adminNameEl.textContent = adminName;
-            console.log('✅ Admin name element updated');
-        } else {
-            console.error('❌ adminName element not found in DOM');
-        }
+        localStorage.setItem('currentAdmin', JSON.stringify({ 
+            full_name: adminName, 
+            email: user.email,
+            role: adminData.role,
+            admin_id: adminData.admin_id,
+            status: adminData.status
+        }));
         
-        updateDrawerAvatar(adminName);
-        localStorage.setItem('currentAdmin', JSON.stringify({ full_name: adminName, email: user.email }));
         updateGreeting();
         
     } catch (error) {
         console.error('❌ Error loading admin name:', error);
-        const stored = localStorage.getItem('currentAdmin');
-        if (stored) {
-            try {
-                const admin = JSON.parse(stored);
-                const adminName = admin.full_name || admin.name;
-                const adminNameEl = document.getElementById('adminName');
-                if (adminNameEl && adminName) {
-                    adminNameEl.textContent = adminName;
-                    updateDrawerAvatar(adminName);
-                    updateGreeting();
-                }
-            } catch(e) {}
-        }
     }
 }
 
@@ -299,7 +197,7 @@ async function loadStudents() {
     try {
         const { data, error } = await supabase
             .from('students')
-            .select('id, name, email, created_at');
+            .select('*');
         
         if (error) throw error;
         students = data || [];
@@ -321,19 +219,8 @@ async function loadPenalties() {
             .order('created_at', { ascending: false });
         
         if (error) throw error;
-        
-        penalties = (data || []).map(p => ({
-            id: p.id,
-            studentId: p.student_id,
-            violation: p.violation,
-            serviceType: p.service_type || 'Community Service',
-            hours: p.hours,
-            status: p.status || 'pending',
-            deadline: p.deadline,
-            dateCreated: p.created_at
-        }));
-        
-        console.log('Penalties loaded from database:', penalties.length);
+        penalties = data || [];
+        console.log('Penalties loaded:', penalties.length);
         return penalties;
     } catch (error) {
         console.error('Error loading penalties:', error);
@@ -386,10 +273,10 @@ function updateRecentPenalties() {
     
     tbody.innerHTML = recentPenalties.map(p => `
         <tr>
-            <td><strong>${escapeHtml(p.studentId)}</strong></td>
+            <td><strong>${escapeHtml(p.student_id || 'N/A')}</strong></td>
             <td>${escapeHtml(p.violation)}</span></td>
-            <td>${p.hours} hrs</span></td>
-            <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status}</span></span></td>
+            <td>${p.hours || 0} hrs</span></td>
+            <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status || 'pending'}</span></span></td>
             <td>${formatDate(p.deadline)}</span></td>
         </tr>
     `).join('');
@@ -447,10 +334,10 @@ function updateActivityFeed() {
     });
     
     penalties.forEach(penalty => {
-        if (penalty.dateCreated) {
+        if (penalty.created_at) {
             activities.push({
-                text: `Penalty issued to ${penalty.studentId} for ${penalty.violation}`,
-                time: new Date(penalty.dateCreated),
+                text: `Penalty issued to ${penalty.student_id} for ${penalty.violation}`,
+                time: new Date(penalty.created_at),
                 icon: '⚠️'
             });
         }
@@ -496,8 +383,8 @@ function updateChart() {
     const monthlyCounts = last6Months.map(() => 0);
     
     penalties.forEach(penalty => {
-        if (penalty.dateCreated) {
-            const date = new Date(penalty.dateCreated);
+        if (penalty.created_at) {
+            const date = new Date(penalty.created_at);
             const monthYear = months[date.getMonth()] + ' ' + date.getFullYear();
             const index = last6Months.indexOf(monthYear);
             if (index !== -1) {
@@ -583,17 +470,74 @@ async function refreshDashboard() {
     console.log(`✅ Dashboard updated: ${students.length} students, ${penalties.length} penalties`);
 }
 
-// ============ LOGOUT ============
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-        if (confirm('Are you sure you want to logout?')) {
-            await supabase.auth.signOut();
-            localStorage.clear();
-            window.location.href = '/Assets/Landing/index.html';
-        }
-    });
+// ============ DARK MODE ============
+function initDarkMode() {
+    const savedMode = localStorage.getItem('docst_dark_mode');
+    if (savedMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
 }
+
+function setupDarkModeToggle() {
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    if (!darkModeBtn) return;
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    updateDarkModeIcon(darkModeBtn, isDark);
+    
+    darkModeBtn.onclick = () => {
+        document.body.classList.toggle('dark-mode');
+        const nowDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+        updateDarkModeIcon(darkModeBtn, nowDark);
+        
+        const notification = document.createElement('div');
+        notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
+        notification.style.cssText = `
+            position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
+            background: ${nowDark ? '#1E293B' : '#2563EB'}; color: white;
+            border-radius: 8px; font-size: 13px; z-index: 10000;
+            animation: fadeInOut 2s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2000);
+    };
+}
+
+function updateDarkModeIcon(btn, isDark) {
+    if (!btn) return;
+    if (isDark) {
+        btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+            </svg>
+        `;
+    } else {
+        btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        `;
+    }
+}
+
+// Add fadeInOut animation
+const darkModeStyle = document.createElement('style');
+darkModeStyle.textContent = `
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(20px); }
+        15% { opacity: 1; transform: translateX(0); }
+        85% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+`;
+document.head.appendChild(darkModeStyle);
 
 // ============ NOTIFICATION BUTTON ============
 const notifyBtn = document.getElementById('notifyBtn');
@@ -603,126 +547,24 @@ if (notifyBtn) {
     });
 }
 
-// ============ FORCE SET ADMIN NAME ============
-function forceSetAdminName() {
-    const adminNameEl = document.getElementById('adminName');
-    if (adminNameEl && (!adminNameEl.textContent || adminNameEl.textContent === 'Administrator')) {
-        const stored = localStorage.getItem('currentAdmin');
-        if (stored) {
-            try {
-                const admin = JSON.parse(stored);
-                const name = admin.full_name || admin.name;
-                if (name) {
-                    adminNameEl.textContent = name;
-                    updateDrawerAvatar(name);
-                    updateGreeting();
-                    return;
-                }
-            } catch(e) {}
-        }
-    }
-}
-
-// ============ DARK MODE ============
-const savedDarkMode = localStorage.getItem('docst_dark_mode');
-if (savedDarkMode === 'enabled') {
-    document.body.classList.add('dark-mode');
-}
-
-function addDarkModeToggle() {
-    const topbarRight = document.querySelector('.topbar-right');
-    if (topbarRight && !document.getElementById('darkModeToggle')) {
-        const btn = document.createElement('button');
-        btn.id = 'darkModeToggle';
-        btn.className = 'icon-btn';
-        
-        const isDark = document.body.classList.contains('dark-mode');
-        
-        btn.innerHTML = isDark ? `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-        ` : `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-        `;
-        
-        btn.style.cssText = `
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        `;
-        
-        btn.onclick = () => {
-            document.body.classList.toggle('dark-mode');
-            const nowDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
-            
-            if (nowDark) {
-                btn.innerHTML = `
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                `;
-            } else {
-                btn.innerHTML = `
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                `;
-            }
-        };
-        
-        topbarRight.insertBefore(btn, topbarRight.firstChild);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', addDarkModeToggle);
-
-// ============ INITIALIZE - WITH AUTH CHECK FIRST ============
+// ============ INITIALIZE ============
 async function init() {
     console.log('🔐 Checking admin authentication...');
     
-    // Check if user is authorized admin
     const isAuthorized = await checkAdminAuth();
     if (!isAuthorized) {
-        return; // Stop execution, redirect already happening
+        return;
     }
     
     console.log('Initializing Admin Dashboard...');
+    initDarkMode();
+    setupDarkModeToggle();
     await loadAdminName();
-    forceSetAdminName();
     await refreshDashboard();
     
-    // Refresh every 90 seconds
     setInterval(refreshDashboard, 90000);
 }
 
-// Start the application with auth check
 init();
 
-// ============ EXPORT SUPABASE ============
 export { supabase };

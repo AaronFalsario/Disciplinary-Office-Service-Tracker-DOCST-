@@ -2,279 +2,293 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOCST — System Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>DOCST — Admin Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin dashboard/settings/setting.css">
+    <base href="/">
 </head>
 <body>
-<div class="settings-container">
-    <div class="settings-sidebar">
-        <div class="settings-header">
-            <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo" class="settings-logo">
-            <h2>DOCST</h2>
-            <p>System configuration</p>
-        </div>
-        <div class="settings-nav">
-            <!-- Dashboard Button -->
-            <div class="nav-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                <span>Dashboard</span>
+
+<!-- Drawer - CORRECT IDs for drawer-admin.js -->
+<div class="drawer-overlay" id="overlay"></div>
+<nav class="drawer" id="drawer">
+    <div class="drawer-header">
+        <button class="drawer-close" id="drawerClose">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+        <div class="drawer-profile">
+            <div class="drawer-avatar" id="drawerAvatar">
+                <span id="avatarInitials">AD</span>
             </div>
-            <div class="nav-divider"></div>
-            <!-- Settings Navigation Items -->
-            <div class="nav-item active" data-tab="general">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-                <span>General</span>
+            <div class="drawer-info">
+                <div class="drawer-name" id="drawerAdminName">Administrator</div>
+                <div class="drawer-role">Disciplinary Officer</div>
             </div>
-            <div class="nav-item" data-tab="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>
-                <span>Admin Profile</span>
-            </div>
-            <div class="nav-item" data-tab="notifications">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-                <span>Notifications</span>
-            </div>
-            <div class="nav-item" data-tab="security">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                <span>Security</span>
-            </div>
-            <div class="nav-item" data-tab="backup">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>Backup</span>
-            </div>
-        </div>
-        
-        <!-- Dark Mode Toggle -->
-        <div class="dark-mode-toggle">
-            <button class="dark-mode-btn" id="darkModeToggle">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-                <span>Dark Mode</span>
-            </button>
+            <span class="drawer-badge" id="drawerAdminId">Admin</span>
         </div>
     </div>
+    <div class="drawer-nav">
+        <div class="drawer-nav-main" id="drawerNavMain">
+            <!-- Navigation will be populated by drawer-admin.js -->
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button class="drawer-logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</nav>
 
-    <!-- Main Content -->
-    <div class="settings-content">
-        <div class="settings-title">
-            <h1>System Settings</h1>
-            <div class="action-buttons">
-                <button class="btn-secondary" onclick="resetSettings()">Reset to Default</button>
-                <button class="btn-primary" onclick="saveAllSettings()">Save All Changes</button>
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="brand">
+            <div class="brand-logo">
+                <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
+            </div>
+            <div>
+                <span class="brand-name">DOCST</span>
+                <span class="brand-tagline">Disciplinary Management</span>
+            </div>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="icon-btn" id="darkModeToggle">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="admin-pill" id="adminPill">Admin</button>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="dashboard-main">
+    <div class="welcome-section">
+        <h1 class="welcome-title">Settings</h1>
+        <p class="welcome-date">Manage your account preferences</p>
+    </div>
+
+    <div id="alertMessage" class="alert"></div>
+
+    <div class="settings-container">
+        <!-- General Settings Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-sliders-h"></i> General Settings</h3>
+                <p>Basic system configuration</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>System Name</label>
+                    <input type="text" id="systemName" value="DOCST - Disciplinary Office Service Tracker">
+                </div>
+                <div class="form-group">
+                    <label>Timezone</label>
+                    <select id="timezone">
+                        <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                        <option value="America/New_York">America/New_York (GMT-5)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Format</label>
+                    <select id="dateFormat">
+                        <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="language">
+                        <option value="en" selected>English</option>
+                        <option value="fil">Filipino</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div id="alertMessage" class="alert"></div>
-
-        <!-- General Settings Panel -->
-        <div class="settings-panel active" id="panel-general">
-            <div class="section">
-                <div class="section-header">
-                    <h3>General Settings</h3>
-                    <p>Basic system configuration</p>
-                </div>
-                <div class="section-body">
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>System Name</label>
-                            <input type="text" id="systemName" value="DOCST - Disciplinary Office Service Tracker">
-                        </div>
-                        <div class="form-field">
-                            <label>System Timezone</label>
-                            <select id="timezone">
-                                <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
-                                <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
-                                <option value="America/New_York">America/New_York (GMT-5)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>Date Format</label>
-                            <select id="dateFormat">
-                                <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
-                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                            </select>
-                        </div>
-                        <div class="form-field">
-                            <label>Language</label>
-                            <select id="language">
-                                <option value="en" selected>English</option>
-                                <option value="fil">Filipino</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+        <!-- Admin Profile Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-shield"></i> Admin Profile</h3>
+                <p>Update your account information</p>
             </div>
-        </div>
-
-        <!-- Admin Profile Panel -->
-        <div class="settings-panel" id="panel-admin">
-            <div class="section">
-                <div class="section-header">
-                    <h3>Admin Profile</h3>
-                    <p>Update your account information</p>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="adminName" value="Administrator">
                 </div>
-                <div class="section-body">
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>Full Name</label>
-                            <input type="text" id="adminName" value="Administrator">
-                        </div>
-                        <div class="form-field">
-                            <label>Email Address</label>
-                            <input type="email" id="adminEmail" value="admin@docst.edu.ph">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>Username</label>
-                            <input type="text" id="adminUsername" value="admin">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>Current Password</label>
-                            <input type="password" id="currentPassword" placeholder="Enter current password">
-                        </div>
-                        <div class="form-field">
-                            <label>New Password</label>
-                            <input type="password" id="newPassword" placeholder="Enter new password">
-                        </div>
-                        <div class="form-field">
-                            <label>Confirm Password</label>
-                            <input type="password" id="confirmPassword" placeholder="Confirm new password">
-                        </div>
-                    </div>
-                    <div class="toggle-label">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="adminEmail" value="admin@docst.edu.ph">
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="adminUsername" value="admin">
+                </div>
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="currentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
                         <span>Two-Factor Authentication (2FA)</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="twoFactorAuth">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <p>Add an extra layer of security</p>
                     </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="twoFactorAuth">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </div>
         </div>
 
-        <!-- Notifications Panel -->
-        <div class="settings-panel" id="panel-notifications">
-            <div class="section">
-                <div class="section-header">
-                    <h3>Notification Settings</h3>
-                    <p>Configure email and in-app notifications</p>
-                </div>
-                <div class="section-body">
-                    <div class="toggle-label" style="margin-bottom: 16px;">
+        <!-- Notifications Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <p>Configure email and in-app notifications</p>
+            </div>
+            <div class="card-body">
+                <div class="toggle-item">
+                    <div class="toggle-info">
                         <span>Email Notifications</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="emailNotifications" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <p>Receive updates via email</p>
                     </div>
-                    <div class="toggle-label" style="margin-bottom: 16px;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="emailNotifications" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
                         <span>SMS Notifications</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="smsNotifications">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <p>Get alerts on your phone</p>
                     </div>
-                    <div class="form-field">
-                        <label>First Reminder (days before deadline)</label>
-                        <input type="number" id="firstReminder" value="7" min="1" max="30">
-                    </div>
-                    <div class="form-field">
-                        <label>Second Reminder (days before deadline)</label>
-                        <input type="number" id="secondReminder" value="3" min="1" max="30">
-                    </div>
-                    <div class="form-field">
-                        <label>Final Reminder (days before deadline)</label>
-                        <input type="number" id="finalReminder" value="1" min="1" max="30">
-                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="smsNotifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>First Reminder (days before deadline)</label>
+                    <input type="number" id="firstReminder" value="7" min="1" max="30">
+                </div>
+                <div class="form-group">
+                    <label>Second Reminder (days before deadline)</label>
+                    <input type="number" id="secondReminder" value="3" min="1" max="30">
+                </div>
+                <div class="form-group">
+                    <label>Final Reminder (days before deadline)</label>
+                    <input type="number" id="finalReminder" value="1" min="1" max="30">
                 </div>
             </div>
         </div>
 
-        <!-- Security Panel -->
-        <div class="settings-panel" id="panel-security">
-            <div class="section">
-                <div class="section-header">
-                    <h3>Security Settings</h3>
-                    <p>Configure system security parameters</p>
+        <!-- Security Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-lock"></i> Security</h3>
+                <p>Configure system security parameters</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Session Timeout (minutes)</label>
+                    <input type="number" id="sessionTimeout" value="30" min="5" max="120">
                 </div>
-                <div class="section-body">
-                    <div class="form-field">
-                        <label>Session Timeout (minutes)</label>
-                        <input type="number" id="sessionTimeout" value="30" min="5" max="120">
-                    </div>
-                    <div class="form-field">
-                        <label>Max Login Attempts</label>
-                        <input type="number" id="maxAttempts" value="5" min="3" max="10">
-                    </div>
-                    <div class="toggle-label" style="margin-bottom: 16px;">
+                <div class="form-group">
+                    <label>Max Login Attempts</label>
+                    <input type="number" id="maxAttempts" value="5" min="3" max="10">
+                </div>
+                <div class="toggle-item">
+                    <div class="toggle-info">
                         <span>Require Strong Password</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="strongPassword" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <p>Enforce password complexity rules</p>
                     </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="strongPassword" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </div>
         </div>
 
-        <!-- Backup Panel -->
-        <div class="settings-panel" id="panel-backup">
-            <div class="section">
-                <div class="section-header">
-                    <h3>Backup & Restore</h3>
-                    <p>Manage system backups</p>
-                </div>
-                <div class="section-body">
-                    <div class="form-field">
-                        <label>Backup Schedule</label>
-                        <select id="backupSchedule">
-                            <option value="daily">Daily at 2:00 AM</option>
-                            <option value="weekly" selected>Weekly on Sunday</option>
-                            <option value="monthly">Monthly on 1st day</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn-primary" onclick="backupNow()" style="width: 100%;">Backup Now</button>
-                    </div>
-                    <div class="form-group">
-                        <label>Restore from Backup</label>
-                        <input type="file" id="restoreFile" accept=".json,.zip">
-                        <button class="btn-secondary" onclick="restoreBackup()" style="margin-top: 10px; width: 100%;">Restore</button>
-                    </div>
-                </div>
+        <!-- Backup & Restore Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-database"></i> Backup & Restore</h3>
+                <p>Manage system backups</p>
             </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Backup Schedule</label>
+                    <select id="backupSchedule">
+                        <option value="daily">Daily at 2:00 AM</option>
+                        <option value="weekly" selected>Weekly on Sunday</option>
+                        <option value="monthly">Monthly on 1st day</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" onclick="backupNow()">
+                        <i class="fas fa-download"></i> Backup Now
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label>Restore from Backup</label>
+                    <input type="file" id="restoreFile" accept=".json,.zip">
+                </div>
+                <button class="btn-secondary" onclick="restoreBackup()" style="width: 100%;">
+                    <i class="fas fa-upload"></i> Restore Backup
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions" style="gap: 12px; margin-top: 20px;">
+            <button class="btn-secondary" onclick="resetSettings()" style="flex: 1;">Reset to Default</button>
+            <button class="btn-primary" onclick="saveAllSettings()" style="flex: 1;">Save Changes</button>
         </div>
     </div>
-</div>
+</main>
 
-<script src="/Assets/Admin dashboard/settings/setting.js"></script>
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
+        <i class="fas fa-chart-line"></i>
+        <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/students/record.html'">
+        <i class="fas fa-users"></i>
+        <span>Students</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/penalties/student.html'">
+        <i class="fas fa-gavel"></i>
+        <span>Penalties</span>
+    </button>
+    <button class="bottom-nav-item active">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+    </button>
+</nav>
+
+<script type="module" src="/Assets/Admin dashboard/settings/setting.js"></script>
 </body>
 </html>

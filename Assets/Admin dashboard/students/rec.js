@@ -1,84 +1,20 @@
-// rec.js - Students Management (Clean Version)
-import { supabase } from '../funct.js';
+import { createClient } from '@supabase/supabase-js'
+import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin } from '/Assets/drawer-admin.js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 let students = [];
 let editingStudentId = null;
 let currentAdmin = null;
 let searchTerm = '';
 
-// ============ DRAWER SETUP ============
-function setupDrawer() {
-    const overlay = document.getElementById('overlay');
-    const drawer = document.getElementById('drawer');
-    const hamburger = document.getElementById('hamburger');
-    const drawerClose = document.getElementById('drawerClose');
-    const adminPill = document.getElementById('adminPill');
-
-    window.openDrawer = function() {
-        overlay?.classList.add('open');
-        drawer?.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    };
-
-    window.closeDrawer = function() {
-        overlay?.classList.remove('open');
-        drawer?.classList.remove('open');
-        document.body.style.overflow = '';
-    };
-
-    if (window.innerWidth <= 768) {
-        if (hamburger) hamburger.addEventListener('click', window.openDrawer);
-        if (drawerClose) drawerClose.addEventListener('click', window.closeDrawer);
-        if (overlay) overlay.addEventListener('click', window.closeDrawer);
-        if (adminPill) adminPill.addEventListener('click', window.openDrawer);
-    }
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) window.closeDrawer();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') window.closeDrawer();
-    });
-}
-
-// ============ GET ADMIN INITIALS ============
-function getAdminInitials(fullName) {
-    if (!fullName || fullName === 'Administrator') return 'AD';
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) {
-        return parts[0].substring(0, 2).toUpperCase();
-    }
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function updateDrawerAvatar(adminName) {
-    const drawerAvatar = document.querySelector('.drawer-avatar');
-    if (drawerAvatar) {
-        const initials = getAdminInitials(adminName);
-        drawerAvatar.innerHTML = '';
-        const span = document.createElement('span');
-        span.textContent = initials;
-        drawerAvatar.appendChild(span);
-    }
-}
-
-// ============ DARK MODE TOGGLE ============
-const savedDarkMode = localStorage.getItem('docst_dark_mode');
-if (savedDarkMode === 'enabled') {
-    document.body.classList.add('dark-mode');
-}
-
-function addDarkModeToggle() {
-    const topbarRight = document.querySelector('.topbar-right');
-    if (topbarRight && !document.getElementById('darkModeToggle')) {
-        const btn = document.createElement('button');
-        btn.id = 'darkModeToggle';
-        btn.className = 'icon-btn';
-        
-        const isDark = document.body.classList.contains('dark-mode');
-        
-        btn.innerHTML = isDark ? `
+// ============ DARK MODE - USING YOUR FUNCTION ============
+function updateDarkModeIcon(btn, isDark) {
+    if (!btn) return;
+    if (isDark) {
+        btn.innerHTML = `
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="12" cy="12" r="5"/>
                 <line x1="12" y1="1" x2="12" y2="3"/>
@@ -87,108 +23,149 @@ function addDarkModeToggle() {
                 <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
                 <line x1="1" y1="12" x2="3" y2="12"/>
                 <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             </svg>
-        ` : `
+        `;
+    } else {
+        btn.innerHTML = `
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
         `;
-        
-        btn.style.cssText = `
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        `;
-        
-        btn.onclick = () => {
-            document.body.classList.toggle('dark-mode');
-            const nowDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
-            
-            if (nowDark) {
-                btn.innerHTML = `
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                `;
-            } else {
-                btn.innerHTML = `
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                `;
-            }
-        };
-        
-        topbarRight.insertBefore(btn, topbarRight.firstChild);
     }
+}
+
+function setupDarkModeToggle() {
+    const darkModeBtn = document.getElementById('darkModeToggle');
+    if (!darkModeBtn) return;
+    
+    // Apply saved dark mode on page load
+    const savedMode = localStorage.getItem('docst_dark_mode');
+    if (savedMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(darkModeBtn, true);
+    } else {
+        updateDarkModeIcon(darkModeBtn, false);
+    }
+    
+    darkModeBtn.onclick = () => {
+        document.body.classList.toggle('dark-mode');
+        const nowDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
+        updateDarkModeIcon(darkModeBtn, nowDark);
+        
+        const notification = document.createElement('div');
+        notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
+        notification.style.cssText = `
+            position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
+            background: ${nowDark ? '#1E293B' : '#2563EB'}; color: white;
+            border-radius: 8px; font-size: 13px; z-index: 10000;
+            animation: fadeInOut 2s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2000);
+    };
+}
+
+// Add fadeInOut animation
+const darkModeStyle = document.createElement('style');
+darkModeStyle.textContent = `
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(20px); }
+        15% { opacity: 1; transform: translateX(0); }
+        85% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(20px); }
+    }
+`;
+document.head.appendChild(darkModeStyle);
+
+// ============ UPDATE DRAWER WITH ADMIN NAME ============
+function updateDrawerWithAdminName(adminName, adminId) {
+    console.log('🔧 Updating drawer with:', adminName, adminId);
+    
+    const drawerNameEl = document.getElementById('drawerAdminName');
+    const drawerIdEl = document.getElementById('drawerAdminId');
+    const avatarInitials = document.getElementById('avatarInitials');
+    
+    if (drawerNameEl) {
+        drawerNameEl.textContent = adminName;
+    }
+    
+    if (drawerIdEl) {
+        drawerIdEl.textContent = adminId || 'Admin';
+    }
+    
+    if (avatarInitials && adminName) {
+        const initials = getInitialsFromName(adminName);
+        avatarInitials.textContent = initials;
+    }
+}
+
+function getInitialsFromName(fullName) {
+    if (!fullName) return 'AD';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 // ============ LOAD ADMIN PROFILE ============
 async function loadAdminProfile() {
     try {
-        const storedAdmin = localStorage.getItem('currentAdmin');
-        if (storedAdmin) {
-            currentAdmin = JSON.parse(storedAdmin);
-            const adminName = currentAdmin.full_name || currentAdmin.name || 'Administrator';
-            
-            const drawerName = document.querySelector('.drawer-name');
-            const drawerRole = document.querySelector('.drawer-role');
-            const adminPill = document.getElementById('adminPill');
-            const drawerAvatar = document.querySelector('.drawer-avatar');
-            
-            if (drawerName) drawerName.textContent = adminName;
-            if (drawerRole) drawerRole.textContent = 'Disciplinary Officer';
-            if (adminPill) adminPill.textContent = adminName.split(' ')[0] || 'Admin';
-            if (drawerAvatar) {
-                const initials = getAdminInitials(adminName);
-                drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
-            }
+        const admin = getCurrentAdmin();
+        if (admin && (admin.full_name || admin.name)) {
+            currentAdmin = admin;
+            const adminName = admin.full_name || admin.name;
+            updateDrawerWithAdminName(adminName, admin.admin_id || 'Admin');
             return;
         }
         
         const { data: { user } } = await supabase.auth.getUser();
         if (user && user.email) {
-            const { data: admin } = await supabase
-                .from('admins')
-                .select('full_name, email, role')
-                .eq('email', user.email)
-                .single();
+            let adminData = null;
             
-            if (admin) {
-                currentAdmin = admin;
-                localStorage.setItem('currentAdmin', JSON.stringify(admin));
+            const { data: data1, error: err1 } = await supabase
+                .from('admins')
+                .select('full_name, name, email, role, admin_id')
+                .eq('email', user.email)
+                .maybeSingle();
+            
+            if (!err1 && data1) {
+                adminData = data1;
+            } else {
+                const { data: data2, error: err2 } = await supabase
+                    .from('admin')
+                    .select('full_name, name, email, role, admin_id')
+                    .eq('email', user.email)
+                    .maybeSingle();
                 
-                const drawerName = document.querySelector('.drawer-name');
-                const adminPill = document.getElementById('adminPill');
-                const drawerAvatar = document.querySelector('.drawer-avatar');
-                
-                if (drawerName) drawerName.textContent = admin.full_name;
-                if (adminPill) adminPill.textContent = admin.full_name?.split(' ')[0] || 'Admin';
-                if (drawerAvatar) {
-                    const initials = getAdminInitials(admin.full_name);
-                    drawerAvatar.innerHTML = `<span style="font-size: 16px; font-weight: 600; color: white;">${initials || 'AD'}</span>`;
+                if (!err2 && data2) {
+                    adminData = data2;
                 }
+            }
+            
+            if (adminData) {
+                const adminName = adminData.full_name || adminData.name || user.email.split('@')[0];
+                currentAdmin = {
+                    full_name: adminName,
+                    name: adminName,
+                    email: adminData.email,
+                    role: adminData.role,
+                    admin_id: adminData.admin_id
+                };
+                localStorage.setItem('currentAdmin', JSON.stringify(currentAdmin));
+                updateDrawerWithAdminName(adminName, adminData.admin_id || 'Admin');
+            } else {
+                const emailName = user.email.split('@')[0];
+                updateDrawerWithAdminName(emailName, 'Admin');
             }
         }
     } catch (error) {
         console.error('Error loading admin profile:', error);
+        const admin = getCurrentAdmin();
+        if (admin && (admin.full_name || admin.name)) {
+            updateDrawerWithAdminName(admin.full_name || admin.name, admin.admin_id || 'Admin');
+        }
     }
 }
 
@@ -208,7 +185,7 @@ async function loadStudents() {
             students = data.map(s => ({
                 id: s.id,
                 name: s.name,
-                idNumber: s.id,
+                idNumber: s.id_number || s.id,
                 email: s.email,
                 course: s.course || 'Not Assigned',
                 year: s.year_level || 1,
@@ -217,10 +194,9 @@ async function loadStudents() {
                 last_login: s.last_login,
                 created_at: s.created_at
             }));
-            console.log('Processed students:', students);
+            console.log('Processed students:', students.length);
         } else {
             students = [];
-            console.log('No students found in database');
         }
         
         renderStudents();
@@ -235,16 +211,13 @@ async function loadStudents() {
     }
 }
 
-// ============ RENDER STUDENTS TABLE - FIXED ============
+// ============ RENDER STUDENTS TABLE ============
 function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
-    if (!tbody) {
-        console.error('studentsTableBody not found!');
-        return;
-    }
+    if (!tbody) return;
     
     if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div>TeD</td</tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div></td></tr>`;
         return;
     }
     
@@ -259,25 +232,14 @@ function renderStudents() {
     }
     
     tbody.innerHTML = filtered.map(student => {
-        // Format name - extract proper full name
         let fullName = student.name || 'Unknown';
-        // If name is in "Last, First" format, convert to "First Last"
-        if (fullName.includes(',')) {
-            const parts = fullName.split(',');
-            fullName = `${parts[1].trim()} ${parts[0].trim()}`;
-        }
-        // Get initials for avatar
         const initials = getInitials(fullName);
         
-        // Get year display with proper suffix
         const yearNum = parseInt(student.year) || 1;
         const yearSuffix = yearNum === 1 ? 'st' : yearNum === 2 ? 'nd' : yearNum === 3 ? 'rd' : 'th';
         const yearDisplay = `${yearNum}${yearSuffix} Year`;
         
-        // Format last login
         const lastLoginDisplay = formatDate(student.last_login);
-        
-        // Status display
         const statusDisplay = student.status === 'active' ? '🟢 Active' : '⚫ Inactive';
         const statusClass = student.status === 'active' ? 'status-active' : 'status-inactive';
         
@@ -291,46 +253,45 @@ function renderStudents() {
                         <div class="student-id-small">${escapeHtml(student.idNumber)}</div>
                     </div>
                 </div>
-            </span>
+              </td>
             <td class="id-col">
                 <span class="id-badge">${escapeHtml(student.idNumber)}</span>
-            </span>
+              </td>
             <td class="email-col">
                 <span class="email-badge">${escapeHtml(student.email)}</span>
-            </span>
+              </td>
             <td class="course-col">
                 <span class="course-badge">${escapeHtml(student.course)}</span>
-            </span>
+              </td>
             <td class="year-col">
                 ${yearDisplay}
-            </span>
+              </td>
             <td class="status-col">
                 <span class="status-badge ${statusClass}">${statusDisplay}</span>
-            </span>
+              </td>
             <td class="last-login-col">
                 ${lastLoginDisplay}
-            </span>
+              </td>
             <td class="actions-col">
                 <div class="action-btns">
                     <button class="action-icon edit-student" data-id="${student.id}" title="Edit">✏️</button>
                     <button class="action-icon toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
-                    <button class="action-icon delete delete-student" data-id="${student.id}" title="Delete">🗑️</button>
+                    <button class="action-icon delete-student" data-id="${student.id}" title="Delete">🗑️</button>
                 </div>
-            </span>
-        </td>
+              </td>
+        </tr>
     `}).join('');
     
-    // Attach event listeners
     document.querySelectorAll('.edit-student').forEach(btn => {
-        btn.onclick = (e) => { e.preventDefault(); editStudent(btn.dataset.id); };
+        btn.onclick = () => editStudent(btn.dataset.id);
     });
     
     document.querySelectorAll('.delete-student').forEach(btn => {
-        btn.onclick = (e) => { e.preventDefault(); deleteStudent(btn.dataset.id); };
+        btn.onclick = () => deleteStudent(btn.dataset.id);
     });
     
     document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.onclick = (e) => { e.preventDefault(); toggleStudentStatus(btn.dataset.id); };
+        btn.onclick = () => toggleStudentStatus(btn.dataset.id);
     });
 }
 
@@ -339,13 +300,6 @@ function getInitials(fullName) {
     const words = fullName.trim().split(/\s+/);
     if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-}
-
-function getYearDisplay(year) {
-    if (!year) return '1st Year';
-    const num = parseInt(year);
-    const suffixes = {1: 'st', 2: 'nd', 3: 'rd', 4: 'th'};
-    return `${num}${suffixes[num] || 'th'} Year`;
 }
 
 function formatDate(dateString) {
@@ -376,7 +330,7 @@ function showNotification(message, type = 'success') {
     const n = document.createElement('div');
     n.textContent = message;
     const bgColor = type === 'success' ? '#10B981' : (type === 'error' ? '#DC2626' : '#F59E0B');
-    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${bgColor};color:white;padding:10px 18px;border-radius:40px;z-index:2000;`;
+    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${bgColor};color:white;padding:10px 18px;border-radius:40px;z-index:2000;font-size:14px;`;
     document.body.appendChild(n);
     setTimeout(() => n.remove(), 3000);
 }
@@ -441,7 +395,7 @@ function editStudent(id) {
     
     editingStudentId = id;
     document.getElementById('studentId').value = student.id;
-    document.getElementById('studentFullName').value = student.name;
+    document.getElementById('studentName').value = student.name;
     document.getElementById('studentIdNumber').value = student.idNumber;
     document.getElementById('studentCourse').value = student.course;
     document.getElementById('studentYear').value = student.year;
@@ -451,7 +405,7 @@ function editStudent(id) {
     openModal();
 }
 
-// ============ ADD/UPDATE STUDENT ============
+// ============ SAVE STUDENT ============
 async function saveStudent(studentData, isEdit = false) {
     try {
         if (isEdit && editingStudentId) {
@@ -462,7 +416,8 @@ async function saveStudent(studentData, isEdit = false) {
                     email: studentData.email,
                     course: studentData.course,
                     year_level: parseInt(studentData.year),
-                    status: studentData.status
+                    status: studentData.status,
+                    updated_at: new Date().toISOString()
                 })
                 .eq('id', editingStudentId);
             
@@ -500,7 +455,7 @@ if (studentForm) {
         e.preventDefault();
         
         const studentData = {
-            name: document.getElementById('studentFullName')?.value.trim() || '',
+            name: document.getElementById('studentName')?.value.trim() || '',
             idNumber: document.getElementById('studentIdNumber')?.value.trim() || '',
             course: document.getElementById('studentCourse')?.value || 'Not Assigned',
             year: document.getElementById('studentYear')?.value || '1',
@@ -581,33 +536,22 @@ if (studentModal) {
     });
 }
 
-// ============ UPDATE DATABASE WITH PROPER DATA ============
-async function updateStudentData() {
-    // Update specific student data
-    const { error } = await supabase
-        .from('students')
-        .update({
-            course: 'BSCS',
-            year_level: 3
-        })
-        .eq('id', '202410312');
-    
-    if (error) {
-        console.error('Error updating student:', error);
-    } else {
-        console.log('Student data updated');
-    }
-}
-
 // ============ INITIALIZE ============
 async function init() {
     console.log('Initializing Student Management...');
-    setupDrawer();
-    addDarkModeToggle();
+    
     await loadAdminProfile();
+    
+    const admin = getCurrentAdmin();
+    const adminName = admin?.full_name || admin?.name || 'Administrator';
+    const adminId = admin?.admin_id || 'Admin';
+    
+    setupAdminDrawer(adminName, adminId);
+    setupAdminLogout('logoutBtn');
+    setupAdminDrawerControls();
+    
+    setupDarkModeToggle();  // Using your dark mode function
     await loadStudents();
-    // Uncomment to update student data
-    // await updateStudentData();
 }
 
 init();

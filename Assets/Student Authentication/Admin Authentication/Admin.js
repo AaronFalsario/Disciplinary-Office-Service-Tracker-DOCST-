@@ -1,7 +1,7 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 
@@ -44,7 +44,6 @@ function clearError(inputElement) {
 }
 
 function showToast(msg, type = 'info') {
-    // You can replace this with a better toast later
     alert(msg)
 }
 
@@ -148,6 +147,237 @@ function startResendCooldown(seconds = 30) {
 
         seconds--
     }, 1000)
+}
+
+// ============ FORGOT PASSWORD FUNCTION ============
+async function handleForgotPassword() {
+    const emailInput = qs('forgot-email');
+    if (!emailInput) return;
+    
+    const email = emailInput.value.trim();
+    const forgotBtn = qs('forgotPasswordBtn');
+    
+    // Clear any previous error
+    clearError(emailInput);
+    
+    if (!email) {
+        showError(emailInput, 'Please enter your email address');
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showError(emailInput, 'Please enter a valid email address');
+        return;
+    }
+    
+    // Check if admin exists with this email
+    disable(forgotBtn, 'Checking...');
+    
+    try {
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('email, full_name')
+            .eq('email', email)
+            .maybeSingle();
+        
+        if (adminError || !admin) {
+            showError(emailInput, 'No admin account found with this email');
+            enable(forgotBtn, 'Send Reset Link');
+            return;
+        }
+        
+        // Send password reset email via Supabase
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/Assets/Admin dashboard/password/reset-password.html`
+        });
+        
+        if (resetError) {
+            console.error('Reset error:', resetError);
+            showError(emailInput, 'Failed to send reset email. Please try again.');
+            enable(forgotBtn, 'Send Reset Link');
+            return;
+        }
+        
+        // Show success message
+        showToast(`Password reset link sent to ${email}. Check your inbox!`);
+        
+        // Clear the email input
+        emailInput.value = '';
+        
+        // Close the forgot password modal/popup
+        closeForgotPasswordModal();
+        
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        showError(emailInput, 'An error occurred. Please try again.');
+        enable(forgotBtn, 'Send Reset Link');
+    }
+}
+
+// ============ FORGOT PASSWORD MODAL FUNCTIONS ============
+function openForgotPasswordModal() {
+    // Check if modal exists, if not create it
+    let modal = qs('forgotPasswordModal');
+    
+    if (!modal) {
+        // Create modal dynamically
+        modal = document.createElement('div');
+        modal.id = 'forgotPasswordModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 30px;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                z-index: 10001;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; font-size: 20px;">Reset Password</h3>
+                    <button id="closeForgotModalBtn" style="
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: #666;
+                    ">&times;</button>
+                </div>
+                <p style="margin-bottom: 20px; color: #666;">Enter your email address and we'll send you a link to reset your password.</p>
+                <div class="field" style="margin-bottom: 20px;">
+                    <label>Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="forgot-email" placeholder="admin@gordoncollege.edu.ph">
+                    </div>
+                </div>
+                <button id="forgotPasswordBtn" class="btn-submit" style="width: 100%; margin-bottom: 10px;">Send Reset Link</button>
+                <button id="cancelForgotBtn" style="
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid #ddd;
+                    background: white;
+                    border-radius: 8px;
+                    cursor: pointer;
+                ">Cancel</button>
+            </div>
+            <div class="modal-overlay" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 10000;
+            "></div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        const closeBtn = qs('closeForgotModalBtn');
+        const cancelBtn = qs('cancelForgotBtn');
+        const overlay = modal.querySelector('.modal-overlay');
+        const forgotBtn = qs('forgotPasswordBtn');
+        
+        if (closeBtn) closeBtn.onclick = closeForgotPasswordModal;
+        if (cancelBtn) cancelBtn.onclick = closeForgotPasswordModal;
+        if (overlay) overlay.onclick = closeForgotPasswordModal;
+        if (forgotBtn) forgotBtn.onclick = handleForgotPassword;
+        
+        // Enter key press on email input
+        const emailInput = qs('forgot-email');
+        if (emailInput) {
+            emailInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleForgotPassword();
+                }
+            });
+        }
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeForgotPasswordModal() {
+    const modal = qs('forgotPasswordModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// ============ CHECK FOR EXISTING SESSION ============
+async function checkExistingSession() {
+    console.log('Checking for existing admin session...');
+    
+    // Check if there's a stored admin in localStorage
+    const storedAdmin = localStorage.getItem('currentAdmin');
+    if (!storedAdmin) {
+        console.log('No stored admin session found');
+        return false;
+    }
+    
+    try {
+        // Check session expiry (24 hours)
+        const sessionExpiry = localStorage.getItem('adminSessionExpiry');
+        if (sessionExpiry && new Date(sessionExpiry) < new Date()) {
+            console.log('Session expired');
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('adminSessionExpiry');
+            return false;
+        }
+        
+        // Verify the session with Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+            console.log('No valid Supabase session, clearing local storage');
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('adminSessionExpiry');
+            return false;
+        }
+        
+        // Verify the admin still exists in your database
+        const admin = JSON.parse(storedAdmin);
+        const { data: adminData, error: adminError } = await supabase
+            .from('admins')
+            .select('id, status, role, full_name')
+            .eq('id', admin.id)
+            .single();
+        
+        if (adminError || !adminData || adminData.status !== 'active') {
+            console.log('Admin account invalid or inactive');
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('adminSessionExpiry');
+            return false;
+        }
+        
+        console.log('✅ Valid session found for admin:', adminData.full_name || admin.email);
+        return true;
+        
+    } catch (error) {
+        console.error('Session check error:', error);
+        localStorage.removeItem('currentAdmin');
+        localStorage.removeItem('adminSessionExpiry');
+        return false;
+    }
+}
+
+// ============ REDIRECT TO DASHBOARD IF ALREADY LOGGED IN ============
+async function redirectIfAlreadyLoggedIn() {
+    const hasValidSession = await checkExistingSession();
+    if (hasValidSession) {
+        console.log('Already logged in - redirecting to dashboard...');
+        window.location.href = '/Assets/Admin dashboard/Admin.html';
+        return true;
+    }
+    return false;
 }
 
 // Helper function to ensure auth user exists
@@ -367,14 +597,21 @@ async function handleVerifyOTP() {
             })
             .eq('id', currentAdmin.id)
 
-        // Store admin session
+        // Store admin session with expiry (24 hours)
+        const sessionExpiry = new Date();
+        sessionExpiry.setHours(sessionExpiry.getHours() + 24);
+        
         localStorage.setItem('currentAdmin', JSON.stringify({
             id: currentAdmin.id,
             admin_id: currentAdmin.admin_id,
             full_name: currentAdmin.full_name,
             email: currentAdmin.email,
-            role: currentAdmin.role
+            role: currentAdmin.role,
+            status: currentAdmin.status,
+            login_time: new Date().toISOString()
         }))
+        
+        localStorage.setItem('adminSessionExpiry', sessionExpiry.toISOString());
 
         const remember = qs('rememberMe')
 
@@ -387,7 +624,7 @@ async function handleVerifyOTP() {
         showToast('Login successful! Redirecting...')
         
         setTimeout(() => {
-            window.location.href = '../../Admin dashboard/Admin.html'
+            window.location.href = '/Assets/Admin dashboard/Admin.html'
         }, 1000)
 
     } catch (err) {
@@ -456,24 +693,43 @@ async function syncExistingAdmins() {
     console.log('Auth sync complete')
 }
 
-// auth sa log in page
-const saved = localStorage.getItem('currentAdmin')
-
-if (saved && location.pathname.includes('Admin.html')) {
-    location.href = '../../Admin dashboard/Admin.html'
-}
-// ito yung remember me function
-const remembered = localStorage.getItem('rememberedAdmin')
-
-if (remembered) {
-    qs('admin-username').value = remembered
-    qs('rememberMe').checked = true
-}
+// ============ INITIALIZE LOGIN PAGE ============
+(async function initLoginPage() {
+    // Check if admin is already logged in
+    const isAlreadyLoggedIn = await redirectIfAlreadyLoggedIn();
+    if (isAlreadyLoggedIn) return; // Stop here, already redirecting
+    
+    // If not logged in, proceed with normal login page setup
+    
+    // Load remembered admin ID for "Remember Me"
+    const remembered = localStorage.getItem('rememberedAdmin');
+    if (remembered) {
+        const usernameInput = qs('admin-username');
+        if (usernameInput) {
+            usernameInput.value = remembered;
+        }
+        const rememberCheckbox = qs('rememberMe');
+        if (rememberCheckbox) {
+            rememberCheckbox.checked = true;
+        }
+    }
+    
+    console.log('Login page ready - waiting for credentials');
+})();
 
 // events 
 qs('loginBtn')?.addEventListener('click', handleLogin)
 qs('verifyBtn')?.addEventListener('click', handleVerifyOTP)
 qs('resendBtn')?.addEventListener('click', resendOTP)
+
+// Add forgot password event listener
+const forgotLink = qs('forgot-link');
+if (forgotLink) {
+    forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openForgotPasswordModal();
+    });
+}
 
 qs('admin-password')?.addEventListener('keypress', e => {
     if (e.key === 'Enter') handleLogin()
@@ -493,5 +749,7 @@ setupOTPInputs()
 window.handleLogin = handleLogin
 window.handleVerifyOTP = handleVerifyOTP
 window.resendOTP = resendOTP
+window.openForgotPasswordModal = openForgotPasswordModal
+window.handleForgotPassword = handleForgotPassword
 
 console.log('Login page loaded - Auto-auth creation enabled')

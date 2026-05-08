@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Student Settings - DOCST</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/Assets/Student_Dashboard/settings/setting.css">
+    <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
+</head>
+<body>
+    <div class="drawer-overlay" id="overlay"></div>
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <button class="drawer-close" id="drawerClose"><i class="fas fa-times"></i></button>
+            <div class="drawer-profile">
+                <div class="drawer-avatar" id="drawerAvatar">
+                    <span id="avatarInitials">ST</span>
+                </div>
+                <div class="drawer-info">
+                    <div class="drawer-name" id="drawerStudentName">Student</div>
+                    <div class="drawer-role">Student Portal</div>
+                </div>
+                <span class="drawer-badge" id="drawerStudentId">Student</span>
+            </div>
+        </div>
+        <div class="drawer-nav">
+            <div class="drawer-nav-main">
+                <!-- Navigation will be populated by drawer.js -->
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="drawer-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="dashboard-main">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Settings</h1>
+            <p class="welcome-date">Manage your account preferences</p>
+        </div>
+        
+        <div id="alertMessage" class="alert"></div>
+        
+        <!-- Profile Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+                <p>Update your personal details</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" id="studentId" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="student@example.com">
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" id="saveProfileBtn"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Groups -->
+        <div class="settings-container">
+            
+            <!-- Group 1: Appearance & Language -->
+            <div class="settings-group">
+                <div class="settings-item" onclick="openLanguageModal()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-globe"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Language</div>
+                            <div class="settings-item-sub" id="currentLanguageDisplay">English</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-left">
+                        <i class="fas fa-moon"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Dark Mode</div>
+                            <div class="settings-item-sub">Switch between light and dark theme</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkModeSetting">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 2: Security & Notifications -->
+            <div class="settings-group">
+                <div class="settings-item" onclick="openSecurityModal()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-shield-alt"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Security</div>
+                            <div class="settings-item-sub">Change password, manage security</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="settings-item" onclick="openNotificationSettings()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-bell"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Notification</div>
+                            <div class="settings-item-sub">Customize your alerts</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 3: About & Info -->
+            <div class="settings-group">
+                <div class="settings-item" onclick="openFAQ()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-question-circle"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">FAQ</div>
+                            <div class="settings-item-sub">Frequently asked questions</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="settings-item" onclick="openAboutUs()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">About Us</div>
+                            <div class="settings-item-sub">Learn more about DOCST</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 4: Feedback & Legal -->
+            <div class="settings-group">
+                <div class="settings-item" onclick="rateUs()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-star"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Rate Us</div>
+                            <div class="settings-item-sub">Rate DOCST on your app store</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="settings-item" onclick="openPrivacyPolicy()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-shield-alt"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Privacy Policy</div>
+                            <div class="settings-item-sub">Read our privacy policy</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 5: Account Actions (Danger Zone) -->
+            <div class="settings-group danger-zone">
+                <div class="settings-item" onclick="confirmLogout()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Logout</div>
+                            <div class="settings-item-sub">Sign out of your account</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="settings-item" onclick="confirmDeleteAccount()">
+                    <div class="settings-item-left">
+                        <i class="fas fa-trash-alt"></i>
+                        <div class="settings-item-info">
+                            <div class="settings-item-title">Delete Account</div>
+                            <div class="settings-item-sub">Permanently delete your account</div>
+                        </div>
+                    </div>
+                    <div class="settings-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Language Modal -->
+    <div id="languageModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Select Language</h3>
+                <button class="modal-close" onclick="closeLanguageModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="language-option" onclick="setLanguage('English')">English</button>
+                <button class="language-option" onclick="setLanguage('Filipino')">Filipino / Tagalog</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal (Change Password) -->
+    <div id="securityModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="modal-close" onclick="closeSecurityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="modalCurrentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="modalNewPassword" placeholder="Enter new password (min. 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="modalConfirmPassword" placeholder="Confirm new password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeSecurityModal()">Cancel</button>
+                <button class="btn-save" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div id="notificationModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Notification Settings</h3>
+                <button class="modal-close" onclick="closeNotificationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="toggle-item">
+                    <span>Email Notifications</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modalEmailNotif">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <span>Penalty Updates</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modalPenaltyNotif">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <span>Appeal Status</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modalAppealNotif">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <span>Deadline Reminders</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modalDeadlineNotif">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeNotificationModal()">Cancel</button>
+                <button class="btn-save" onclick="saveNotificationSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="confirmCancelBtn">Cancel</button>
+                <button class="btn-save" id="confirmOkBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+    import { initBottomNav, setupBottomNavResize } from '/Assets/bottom-nav.js';
+    initBottomNav();
+    setupBottomNavResize();
+    </script>
+    <script type="module" src="/Assets/Student_Dashboard/settings/setting.js"></script>
+</body>
+</html>

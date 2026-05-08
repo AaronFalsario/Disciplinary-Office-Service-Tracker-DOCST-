@@ -1,14 +1,16 @@
-// ============ SUPABASE CONFIGURATION ============
-const supabaseUrl = 'https://vzrolreickfylygagmlg.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6cm9scmVpY2tmeWx5Z2FnbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTMxOTAsImV4cCI6MjA5MjU4OTE5MH0.O63_YaRF0hRtSCMJRRRfhwtpNMgOE8eugnR0jRuEAv8'
+// ============ SUPABASE CONFIGURATION - USING VITE ============
+import { createClient } from '@supabase/supabase-js'
+import { setupDrawer, setupLogout } from '/Assets/drawer.js'
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 let currentStudent = null
 let myReports = []
 let myPenalties = []
+let notifications = []
+let unreadCount = 0
 
 // ============ GET STUDENT INITIALS ============
 function getStudentInitials(fullName) {
@@ -27,8 +29,8 @@ function updateDrawerAvatar(studentName) {
         drawerAvatar.innerHTML = '';
         const span = document.createElement('span');
         span.textContent = initials;
-        span.style.fontSize = '22px';
-        span.style.fontWeight = '700';
+        span.style.fontSize = '18px';
+        span.style.fontWeight = '600';
         span.style.color = 'white';
         drawerAvatar.appendChild(span);
     }
@@ -37,6 +39,8 @@ function updateDrawerAvatar(studentName) {
 // ============ AUTH CHECK ============
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
+    console.log('Stored student:', stored)
+    
     if (!stored) {
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
@@ -44,6 +48,31 @@ async function checkAuth() {
     
     try {
         currentStudent = JSON.parse(stored)
+        console.log('Parsed student:', currentStudent)
+        
+        const { data: studentData, error: studentError } = await supabase
+            .from('students')
+            .select('*')
+            .eq('email', currentStudent.email)
+            .maybeSingle()
+        
+        if (studentError) {
+            console.error('Error fetching student:', studentError)
+        }
+        
+        if (studentData) {
+            currentStudent = {
+                id: studentData.id,
+                email: studentData.email,
+                name: studentData.name,
+                studentId: studentData.id_number,
+                course: studentData.course,
+                yearLevel: studentData.year_level,
+                status: studentData.status
+            }
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent))
+            console.log('Updated student from DB:', currentStudent)
+        }
         
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
@@ -64,15 +93,22 @@ async function checkAuth() {
 async function loadMyReports() {
     if (!currentStudent) return []
     
+    console.log('Loading reports for student ID:', currentStudent.studentId)
+    
     try {
         const { data, error } = await supabase
-            .from('reports')
+            .from('incident')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id_number', currentStudent.studentId)
             .order('created_at', { ascending: false })
         
-        if (error) throw error
+        if (error) {
+            console.error('Reports error:', error)
+            return []
+        }
+        
         myReports = data || []
+        console.log('Reports found:', myReports.length)
         return myReports
     } catch (error) {
         console.error('Error loading reports:', error)
@@ -84,6 +120,8 @@ async function loadMyReports() {
 async function loadMyPenalties() {
     if (!currentStudent) return []
     
+    console.log('Loading penalties for student ID:', currentStudent.studentId)
+    
     try {
         const { data, error } = await supabase
             .from('penalties')
@@ -91,8 +129,13 @@ async function loadMyPenalties() {
             .eq('student_id', currentStudent.studentId)
             .order('created_at', { ascending: false })
         
-        if (error) throw error
+        if (error) {
+            console.error('Penalties error:', error)
+            return []
+        }
+        
         myPenalties = data || []
+        console.log('Penalties found:', myPenalties.length)
         return myPenalties
     } catch (error) {
         console.error('Error loading penalties:', error)
@@ -100,19 +143,198 @@ async function loadMyPenalties() {
     }
 }
 
+// ============ LOAD NOTIFICATIONS ============
+async function loadNotifications() {
+    if (!currentStudent) return []
+    
+    try {
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('student_id', currentStudent.studentId)
+            .order('created_at', { ascending: false })
+            .limit(10)
+        
+        if (error) throw error
+        
+        notifications = data || []
+        unreadCount = notifications.filter(n => !n.is_read).length
+        updateNotificationBadge()
+        return notifications
+    } catch (error) {
+        console.error('Error loading notifications:', error)
+        return []
+    }
+}
+
+// ============ NOTIFICATION UI FUNCTIONS ============
+function updateNotificationBadge() {
+    const notifyBtn = document.getElementById('notifyBtn')
+    if (!notifyBtn) return
+    
+    const existingBadge = notifyBtn.querySelector('.notification-badge')
+    if (existingBadge) existingBadge.remove()
+    
+    if (unreadCount > 0) {
+        const badge = document.createElement('span')
+        badge.className = 'notification-badge'
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount
+        notifyBtn.appendChild(badge)
+    }
+}
+
+async function markAsRead(notificationId) {
+    try {
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .eq('id', notificationId)
+        
+        if (error) throw error
+        
+        const notification = notifications.find(n => n.id === notificationId)
+        if (notification && !notification.is_read) {
+            notification.is_read = true
+            unreadCount--
+            updateNotificationBadge()
+            renderNotificationList()
+        }
+    } catch (error) {
+        console.error('Error marking as read:', error)
+    }
+}
+
+async function markAllAsRead() {
+    if (unreadCount === 0) return
+    
+    try {
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .eq('student_id', currentStudent.studentId)
+            .eq('is_read', false)
+        
+        if (error) throw error
+        
+        notifications.forEach(n => n.is_read = true)
+        unreadCount = 0
+        updateNotificationBadge()
+        renderNotificationList()
+    } catch (error) {
+        console.error('Error marking all as read:', error)
+    }
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'penalty': return 'fa-gavel'
+        case 'report': return 'fa-file-alt'
+        case 'deadline': return 'fa-hourglass-half'
+        default: return 'fa-bell'
+    }
+}
+
+function renderNotificationList() {
+    const container = document.getElementById('notificationList')
+    if (!container) return
+    
+    if (notifications.length === 0) {
+        container.innerHTML = `
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications</p>
+                <span>You're all caught up!</span>
+            </div>
+        `
+        return
+    }
+    
+    container.innerHTML = notifications.map(notification => `
+        <div class="notification-item ${!notification.is_read ? 'unread' : ''}" data-id="${notification.id}">
+            <div class="notification-icon ${notification.type || 'system'}">
+                <i class="fas ${getNotificationIcon(notification.type)}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">${escapeHtml(notification.title)}</div>
+                <div class="notification-message">${escapeHtml(notification.message)}</div>
+                <div class="notification-time">${formatRelativeTime(new Date(notification.created_at))}</div>
+            </div>
+            ${!notification.is_read ? '<div class="notification-unread-dot"></div>' : ''}
+        </div>
+    `).join('')
+    
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            const id = parseInt(item.dataset.id)
+            const notification = notifications.find(n => n.id === id)
+            if (notification && !notification.is_read) {
+                await markAsRead(id)
+            }
+            
+            const dropdown = document.getElementById('notificationDropdown')
+            const overlay = document.getElementById('notificationOverlay')
+            if (dropdown) dropdown.classList.remove('show')
+            if (overlay) overlay.classList.remove('active')
+        })
+    })
+}
+
+function setupNotificationClickOutside() {
+    const overlay = document.getElementById('notificationOverlay')
+    const dropdown = document.getElementById('notificationDropdown')
+    const notifyBtn = document.getElementById('notifyBtn')
+    
+    if (!overlay || !dropdown || !notifyBtn) return
+    
+    function closeDropdown() {
+        dropdown.classList.remove('show')
+        overlay.classList.remove('active')
+    }
+    
+    function openDropdown() {
+        dropdown.classList.add('show')
+        overlay.classList.add('active')
+    }
+    
+    notifyBtn.addEventListener('click', async (e) => {
+        e.stopPropagation()
+        await loadNotifications()
+        renderNotificationList()
+        
+        if (dropdown.classList.contains('show')) {
+            closeDropdown()
+        } else {
+            openDropdown()
+        }
+    })
+    
+    overlay.addEventListener('click', closeDropdown)
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dropdown.classList.contains('show')) {
+            closeDropdown()
+        }
+    })
+}
+
 // ============ DISPLAY STUDENT INFO ============
 function loadStudentInfo() {
-    if (!currentStudent) return
+    if (!currentStudent) {
+        console.error('No currentStudent in loadStudentInfo')
+        return
+    }
 
-    const nameEl = document.getElementById('studentName')
-    const idEl = document.getElementById('studentId')
+    console.log('Loading student info - Name:', currentStudent.name, 'ID:', currentStudent.studentId)
+
+    const drawerNameEl = document.getElementById('drawerStudentName')
+    const drawerIdEl = document.getElementById('drawerStudentId')
     const welcomeEl = document.getElementById('welcomeMessage')
     const dateEl = document.getElementById('currentDate')
 
-    if (nameEl) nameEl.textContent = currentStudent.name
-    if (idEl) idEl.textContent = `ID: ${currentStudent.studentId}`
+    if (drawerNameEl) drawerNameEl.textContent = currentStudent.name || 'Student'
+    if (drawerIdEl) drawerIdEl.textContent = currentStudent.studentId ? `ID: ${currentStudent.studentId}` : 'Student'
     
-    updateDrawerAvatar(currentStudent.name)
+    updateDrawerAvatar(currentStudent.name || 'Student')
 
     const hour = new Date().getHours()
     let greeting = 'Hello'
@@ -120,7 +342,7 @@ function loadStudentInfo() {
     else if (hour < 18) greeting = 'Good afternoon'
     else greeting = 'Good evening'
 
-    if (welcomeEl) welcomeEl.textContent = `${greeting}, ${currentStudent.name} 👋`
+    if (welcomeEl) welcomeEl.textContent = `${greeting}, ${currentStudent.name || 'Student'} 👋`
 
     if (dateEl) {
         dateEl.textContent = new Date().toLocaleDateString(undefined, {
@@ -158,6 +380,8 @@ function updateStats() {
     if (rateEl) rateEl.textContent = `${complianceRate}%`
     if (reportsEl) reportsEl.textContent = totalReports
     if (pendingReportsEl) pendingReportsEl.textContent = pendingReports
+    
+    console.log('Stats updated:', { pendingPenalties, completedHours, totalViolations, complianceRate })
 }
 
 // ============ RENDER REPORTS TABLE ============
@@ -359,8 +583,10 @@ function escapeHtml(text) {
 
 // ============ REFRESH ALL DATA ============
 async function refreshDashboard() {
+    console.log('Refreshing dashboard...')
     await loadMyReports()
     await loadMyPenalties()
+    await loadNotifications()
     updateStats()
     renderReportsTable()
     renderPenaltiesTable()
@@ -368,31 +594,7 @@ async function refreshDashboard() {
     renderDeadlines()
 }
 
-// ============ DRAWER FUNCTIONS ============
-function openDrawer() {
-    document.getElementById('overlay')?.classList.add('open')
-    document.getElementById('drawer')?.classList.add('open')
-}
-
-function closeDrawer() {
-    document.getElementById('overlay')?.classList.remove('open')
-    document.getElementById('drawer')?.classList.remove('open')
-}
-
-// ============ TAB SWITCHING ============
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-pane').forEach(pane => {
-        pane.classList.remove('active')
-    })
-    document.getElementById(`${tabName}-tab`)?.classList.add('active')
-    
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active')
-    })
-    document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active')
-}
-
-// ============ DARK MODE - WITH BUTTON, SYNC ACROSS PAGES ============
+// ============ DARK MODE ============
 function updateDarkModeIcon(btn, isDark) {
     if (isDark) {
         btn.innerHTML = `
@@ -404,7 +606,7 @@ function updateDarkModeIcon(btn, isDark) {
                 <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
                 <line x1="1" y1="12" x2="3" y2="12"/>
                 <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="4.22" y1="19.07" x2="5.64" y2="18.36"/>
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             </svg>
         `;
@@ -418,19 +620,16 @@ function updateDarkModeIcon(btn, isDark) {
 }
 
 function initDarkMode() {
-    // Check saved preference from localStorage (shared across all pages)
     const savedMode = localStorage.getItem('docst_dark_mode');
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode');
     } else if (savedMode === 'disabled') {
         document.body.classList.remove('dark-mode');
     } else {
-        // Default to light mode if no preference
         document.body.classList.remove('dark-mode');
         localStorage.setItem('docst_dark_mode', 'disabled');
     }
     
-    // Create or get dark mode toggle button
     const darkModeBtn = document.getElementById('darkModeToggle');
     if (darkModeBtn) {
         const isDark = document.body.classList.contains('dark-mode');
@@ -442,7 +641,6 @@ function initDarkMode() {
             localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
             updateDarkModeIcon(darkModeBtn, nowDark);
             
-            // Show notification
             const notification = document.createElement('div');
             notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
             notification.style.cssText = `
@@ -457,7 +655,7 @@ function initDarkMode() {
     }
 }
 
-// Add fadeInOut animation
+// Add dark mode styles
 const darkModeStyle = document.createElement('style');
 darkModeStyle.textContent = `
     @keyframes fadeInOut {
@@ -469,18 +667,35 @@ darkModeStyle.textContent = `
 `;
 document.head.appendChild(darkModeStyle);
 
-// ============ NOTIFICATION BUTTON ============
+// ============ NOTIFICATION BUTTON INIT ============
 function initNotification() {
-    const notifyBtn = document.getElementById('notifyBtn');
-    if (notifyBtn) {
-        notifyBtn.addEventListener('click', () => {
-            alert('🔔 No new notifications at this time.');
-        });
+    setupNotificationClickOutside()
+    
+    const markAllBtn = document.getElementById('markAllReadBtn')
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', async (e) => {
+            e.stopPropagation()
+            await markAllAsRead()
+        })
+    }
+    
+    const viewAllLink = document.getElementById('viewAllLink')
+    if (viewAllLink) {
+        viewAllLink.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const dropdown = document.getElementById('notificationDropdown')
+            const overlay = document.getElementById('notificationOverlay')
+            if (dropdown) dropdown.classList.remove('show')
+            if (overlay) overlay.classList.remove('active')
+        })
     }
 }
 
 // ============ INITIALIZE ============
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Dashboard initializing...')
+    
     const isAuth = await checkAuth()
     if (!isAuth) return
     
@@ -489,31 +704,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initDarkMode()
     initNotification()
     
-    // Drawer event listeners
-    document.getElementById('hamburger')?.addEventListener('click', openDrawer)
-    document.getElementById('drawerClose')?.addEventListener('click', closeDrawer)
-    document.getElementById('overlay')?.addEventListener('click', closeDrawer)
-    
-    // Tab switching
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault()
-            const tab = link.getAttribute('data-tab')
-            if (tab) switchTab(tab)
-        })
-    })
-    
-    // Logout
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        await supabase.auth.signOut()
-        localStorage.removeItem('currentStudent')
-        window.location.href = '/Assets/Landing/index.html'
-    })
+    // Setup centralized drawer
+    setupDrawer(currentStudent.name, currentStudent.studentId)
+    setupLogout('logoutBtn')
 })
-
-// ============ GLOBAL FUNCTIONS ============
-window.viewPenalties = () => alert('Click "My Penalties" in the sidebar to view all penalties')
-window.viewHistory = () => alert('Click on specific penalty records to view details')
-window.submitAppeal = () => {
-    alert('Appeal feature coming soon. Please contact the Discipline Office.')
-}
