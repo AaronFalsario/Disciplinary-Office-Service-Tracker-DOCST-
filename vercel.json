@@ -4,8 +4,12 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/Assets/(.*)",
+      "destination": "/Assets/$1"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/$1"
     }
   ],
   "headers": [
