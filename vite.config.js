@@ -8,25 +8,26 @@ export default defineConfig({
         // ============ ROOT ============
         main: resolve(__dirname, 'index.html'),
 
-        // ============ LANDING ============
-        landing: resolve(__dirname, 'Assets/Landing/index.html'),
+        // ============ ADMIN DASHBOARD ============
+        adminDashboard:  resolve(__dirname, 'Assets/Admin dashboard/Admin.html'),
+        adminPassword:   resolve(__dirname, 'Assets/Admin dashboard/password/password.html'),
+        adminPenalties:  resolve(__dirname, 'Assets/Admin dashboard/penalties/student.html'),
+        adminSettings:   resolve(__dirname, 'Assets/Admin dashboard/settings/setting.html'),
+        adminStudents:   resolve(__dirname, 'Assets/Admin dashboard/students/record.html'),
 
         // ============ STUDENT AUTH ============
-        student: resolve(__dirname, 'Assets/Student Authentication/Student.html'),
+        studentAuth:     resolve(__dirname, 'Assets/Student Authentication/Student.html'),
+
+        // ============ ADMIN AUTH (inside Student Authentication folder) ============
+        adminLogin:      resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/Admin.html'),
+        adminUpdatePass: resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/update-password.html'),
 
         // ============ STUDENT DASHBOARD ============
-        studentDashboard: resolve(__dirname, 'Assets/Student_Dashboard/student.html'),
-
-        // ============ ADMIN AUTH ============
-        adminLogin: resolve(__dirname, 'Assets/Admin Authentication/admin-login.html'),
-
-        // ============ ADMIN DASHBOARD ============
-        adminDashboard: resolve(__dirname, 'Assets/Admin dashboard/Admin.html'),
-        adminSettings:  resolve(__dirname, 'Assets/Admin dashboard/settings/setting.html'),
-        adminStudents:  resolve(__dirname, 'Assets/Admin dashboard/students/record.html'),
-        adminPenalties: resolve(__dirname, 'Assets/Admin dashboard/penalties/student.html'),
-        adminCommunityService: resolve(__dirname, 'Assets/Admin dashboard/penalties/community-service.html'),
-        adminReports:   resolve(__dirname, 'Assets/Admin dashboard/Reports/reports.html'),
+        studentDashboard: resolve(__dirname, 'Assets/Student_Dashboard/stud.html'),
+        studentAppeal:    resolve(__dirname, 'Assets/Student_Dashboard/appeal/appeal.html'),
+        studentHistory:   resolve(__dirname, 'Assets/Student_Dashboard/history/history.html'),
+        studentPenalties: resolve(__dirname, 'Assets/Student_Dashboard/penalties/penalties.html'),
+        studentSettings:  resolve(__dirname, 'Assets/Student_Dashboard/settings/setting.html'),
       }
     }
   }
