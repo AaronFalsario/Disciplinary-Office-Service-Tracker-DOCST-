@@ -778,6 +778,11 @@ body.dark-mode .bottom-nav {
     color: var(--blue);
 }
 
+html:not(.transitions-ready) .drawer,
+html:not(.transitions-ready) * {
+    transition: none !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .drawer {

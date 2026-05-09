@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>DOCST — Penalties Management</title>
+    <script>
+        if (localStorage.getItem('docst_dark_mode') === 'enabled') {
+            document.documentElement.classList.add('dark-mode');
+            document.body?.classList.add('dark-mode');
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,16 +18,10 @@
 </head>
 <body>
 
-<!-- Drawer - EXACT SAME STRUCTURE AS ADMIN DASHBOARD -->
+<!-- ============ DRAWER - EXACT SAME AS ADMIN DASHBOARD ============ -->
 <div class="drawer-overlay" id="overlay"></div>
 <nav class="drawer" id="drawer">
     <div class="drawer-header">
-        <button class="drawer-close" id="drawerClose">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        </button>
         <div class="drawer-profile">
             <div class="drawer-avatar" id="drawerAvatar">
                 <span id="avatarInitials">AD</span>
@@ -35,7 +35,7 @@
     </div>
     <div class="drawer-nav">
         <div class="drawer-nav-main" id="drawerNavMain">
-            <!-- Navigation will be populated by drawer-admin.js -->
+            <!-- Populated by drawer-admin.js -->
         </div>
     </div>
     <div class="drawer-footer">
@@ -49,9 +49,6 @@
 <!-- Topbar -->
 <header class="topbar">
     <div class="topbar-left">
-        <button class="hamburger" id="hamburger">
-            <span></span><span></span><span></span>
-        </button>
         <div class="brand">
             <div class="brand-logo">
                 <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
@@ -171,7 +168,7 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
-            Community Service Penalties
+            Community Service
         </button>
     </div>
 
@@ -209,6 +206,10 @@
     <button class="bottom-nav-item active">
         <i class="fas fa-gavel"></i>
         <span>Penalties</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/report/report.html'">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
     </button>
     <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/settings/setting.html'">
         <i class="fas fa-cog"></i>
@@ -278,5 +279,6 @@
 </div>
 
 <script type="module" src="/Assets/Admin dashboard/penalties/stud.js"></script>
+<script src="/Assets/admin-nav.js" type="module"></script>
 </body>
 </html>

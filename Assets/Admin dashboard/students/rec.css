@@ -45,7 +45,6 @@ html, body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ============ DRAWER - NO ANIMATIONS ============ */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -352,10 +351,11 @@ html, body {
 }
 
 .brand-tagline {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--text-3);
     margin-left: 8px;
     padding-left: 8px;
+    margin-top: -4px;
     border-left: 1px solid var(--border);
     transition: color 0.3s ease, border-color 0.3s ease;
 }

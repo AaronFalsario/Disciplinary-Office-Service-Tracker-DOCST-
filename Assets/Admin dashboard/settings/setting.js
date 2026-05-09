@@ -1,110 +1,349 @@
+import { initAdminDrawer } from '/Assets/drawer-admin.js';
 import { createClient } from '@supabase/supabase-js'
-import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin } from '/Assets/drawer-admin.js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ============ DRAWER SETUP ============
-function initDrawer() {
-    const admin = getCurrentAdmin();
-    const adminName = admin?.full_name || admin?.name || 'Administrator';
-    const adminId = admin?.admin_id || admin?.email || 'Admin';
+// ============ INITIALIZE DRAWER ============
+initAdminDrawer();
 
-    setupAdminDrawer(adminName, adminId);
-    setupAdminLogout('logoutBtn');
-    setupAdminDrawerControls();
+// ============ MODAL FUNCTIONS ============
+window.openModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
-// ============ DARK MODE ============
-function initDarkMode() {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const savedMode = localStorage.getItem('docst_dark_mode');
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
 
-    if (savedMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-        updateDarkModeButton(true);
-    } else {
-        updateDarkModeButton(false);
+// Close modal when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal-overlay')) {
+        event.target.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// ============ PROFILE MODAL ============
+window.openProfileModal = function() {
+    const nameInput = document.getElementById('adminName');
+    const emailInput = document.getElementById('adminEmail');
+    const usernameInput = document.getElementById('adminUsername');
+    const twoFactorInput = document.getElementById('twoFactorAuth');
+    
+    const modalName = document.getElementById('modalAdminName');
+    const modalEmail = document.getElementById('modalAdminEmail');
+    const modalUsername = document.getElementById('modalAdminUsername');
+    const modalTwoFactor = document.getElementById('modalTwoFactorAuth');
+    
+    if (modalName) modalName.value = nameInput?.value || '';
+    if (modalEmail) modalEmail.value = emailInput?.value || '';
+    if (modalUsername) modalUsername.value = usernameInput?.value || '';
+    if (modalTwoFactor) modalTwoFactor.checked = twoFactorInput?.checked || false;
+    
+    window.openModal('profileModal');
+}
+
+window.saveProfileFromModal = async function() {
+    const adminName = document.getElementById('modalAdminName')?.value.trim();
+    const adminEmail = document.getElementById('modalAdminEmail')?.value.trim();
+    const adminUsername = document.getElementById('modalAdminUsername')?.value.trim();
+    const twoFactorAuth = document.getElementById('modalTwoFactorAuth')?.checked || false;
+
+    if (!adminName) {
+        showAlert('Please enter admin name', 'error');
+        return;
     }
 
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
-            updateDarkModeButton(isDark);
-            showAlert(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase
+                .from('admins')
+                .update({
+                    full_name: adminName,
+                    email: adminEmail,
+                    username: adminUsername,
+                    two_factor_auth: twoFactorAuth,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('email', user.email);
+        }
+
+        const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+        localStorage.setItem('currentAdmin', JSON.stringify({
+            ...currentAdmin,
+            full_name: adminName,
+            email: adminEmail,
+            username: adminUsername
+        }));
+
+        const nameInput = document.getElementById('adminName');
+        const emailInput = document.getElementById('adminEmail');
+        const usernameInput = document.getElementById('adminUsername');
+        const twoFactorInput = document.getElementById('twoFactorAuth');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        
+        if (nameInput) nameInput.value = adminName;
+        if (emailInput) emailInput.value = adminEmail;
+        if (usernameInput) usernameInput.value = adminUsername;
+        if (twoFactorInput) twoFactorInput.checked = twoFactorAuth;
+        if (userEmailDisplay) userEmailDisplay.textContent = adminName;
+
+        window.closeModal('profileModal');
+        showAlert('Profile updated successfully!', 'success');
+
+    } catch (error) {
+        console.error('Error updating:', error);
+        showAlert('Failed to update profile', 'error');
+    }
+}
+
+// ============ PASSWORD MODAL ============
+window.openPasswordModal = function() {
+    const modalCurrent = document.getElementById('modalCurrentPassword');
+    const modalNew = document.getElementById('modalNewPassword');
+    const modalConfirm = document.getElementById('modalConfirmPassword');
+    
+    if (modalCurrent) modalCurrent.value = '';
+    if (modalNew) modalNew.value = '';
+    if (modalConfirm) modalConfirm.value = '';
+    
+    window.openModal('passwordModal');
+}
+
+window.savePasswordFromModal = async function() {
+    const currentPassword = document.getElementById('modalCurrentPassword')?.value;
+    const newPassword = document.getElementById('modalNewPassword')?.value;
+    const confirmPassword = document.getElementById('modalConfirmPassword')?.value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showAlert('Fill all password fields', 'error');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showAlert('Password must be at least 6 characters', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showAlert('Passwords do not match', 'error');
+        return;
+    }
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: currentPassword
         });
+
+        if (signInError) {
+            showAlert('Current password is incorrect', 'error');
+            return;
+        }
+
+        await supabase.auth.updateUser({ password: newPassword });
+
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+
+        window.closeModal('passwordModal');
+        showAlert('Password changed successfully!', 'success');
+
+    } catch (error) {
+        console.error('Error changing password:', error);
+        showAlert('Failed to change password', 'error');
     }
 }
 
-function updateDarkModeButton(isDark) {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if (darkModeToggle) {
-        darkModeToggle.innerHTML = isDark
-            ? '<i class="fas fa-sun"></i>'
-            : '<i class="fas fa-moon"></i>';
+// ============ NOTIFICATIONS MODAL ============
+window.openNotificationsModal = function() {
+    const emailSwitch = document.getElementById('emailNotificationsSwitch');
+    const smsSwitch = document.getElementById('smsNotificationsSwitch');
+    const firstReminder = document.getElementById('firstReminder');
+    const secondReminder = document.getElementById('secondReminder');
+    const finalReminder = document.getElementById('finalReminder');
+    
+    const modalEmail = document.getElementById('modalEmailNotifications');
+    const modalSms = document.getElementById('modalSmsNotifications');
+    const modalFirst = document.getElementById('modalFirstReminder');
+    const modalSecond = document.getElementById('modalSecondReminder');
+    const modalFinal = document.getElementById('modalFinalReminder');
+    
+    if (modalEmail) modalEmail.checked = emailSwitch?.checked || false;
+    if (modalSms) modalSms.checked = smsSwitch?.checked || false;
+    if (modalFirst) modalFirst.value = firstReminder?.value || 7;
+    if (modalSecond) modalSecond.value = secondReminder?.value || 3;
+    if (modalFinal) modalFinal.value = finalReminder?.value || 1;
+    
+    window.openModal('notificationsModal');
+}
+
+window.saveNotificationsFromModal = function() {
+    const emailNotifications = document.getElementById('modalEmailNotifications')?.checked || false;
+    const smsNotifications = document.getElementById('modalSmsNotifications')?.checked || false;
+    const firstReminder = parseInt(document.getElementById('modalFirstReminder')?.value) || 7;
+    const secondReminder = parseInt(document.getElementById('modalSecondReminder')?.value) || 3;
+    const finalReminder = parseInt(document.getElementById('modalFinalReminder')?.value) || 1;
+    
+    const emailSwitch = document.getElementById('emailNotificationsSwitch');
+    const smsSwitch = document.getElementById('smsNotificationsSwitch');
+    const firstInput = document.getElementById('firstReminder');
+    const secondInput = document.getElementById('secondReminder');
+    const finalInput = document.getElementById('finalReminder');
+    const desktopEmail = document.getElementById('emailNotifications');
+    const desktopSms = document.getElementById('smsNotifications');
+    
+    if (emailSwitch) emailSwitch.checked = emailNotifications;
+    if (smsSwitch) smsSwitch.checked = smsNotifications;
+    if (firstInput) firstInput.value = firstReminder;
+    if (secondInput) secondInput.value = secondReminder;
+    if (finalInput) finalInput.value = finalReminder;
+    if (desktopEmail) desktopEmail.checked = emailNotifications;
+    if (desktopSms) desktopSms.checked = smsNotifications;
+    
+    const settings = JSON.parse(localStorage.getItem('docst_settings') || '{}');
+    if (!settings.notifications) settings.notifications = {};
+    settings.notifications.emailNotifications = emailNotifications;
+    settings.notifications.smsNotifications = smsNotifications;
+    settings.notifications.firstReminder = firstReminder;
+    settings.notifications.secondReminder = secondReminder;
+    settings.notifications.finalReminder = finalReminder;
+    localStorage.setItem('docst_settings', JSON.stringify(settings));
+    
+    window.closeModal('notificationsModal');
+    showAlert('Notification settings saved!', 'success');
+}
+
+// ============ RATE US MODAL ============
+window.openRateUsModal = function() {
+    document.getElementById('selectedRating').value = '0';
+    document.getElementById('reviewText').value = '';
+    const stars = document.querySelectorAll('.rating-stars i');
+    stars.forEach(star => {
+        star.className = 'far fa-star';
+    });
+    window.openModal('rateUsModal');
+}
+
+window.setRating = function(rating) {
+    document.getElementById('selectedRating').value = rating;
+    const stars = document.querySelectorAll('.rating-stars i');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.className = 'fas fa-star';
+        } else {
+            star.className = 'far fa-star';
+        }
+    });
+}
+
+window.submitRating = function() {
+    const rating = document.getElementById('selectedRating')?.value;
+    const review = document.getElementById('reviewText')?.value;
+    
+    if (!rating || rating === '0') {
+        showAlert('Please select a rating', 'error');
+        return;
     }
+    
+    const ratings = JSON.parse(localStorage.getItem('app_ratings') || '[]');
+    ratings.push({
+        rating: parseInt(rating),
+        review: review || '',
+        date: new Date().toISOString()
+    });
+    localStorage.setItem('app_ratings', JSON.stringify(ratings));
+    
+    window.closeModal('rateUsModal');
+    showAlert('Thank you for your rating!', 'success');
+}
+
+// ============ FEEDBACK MODAL ============
+window.openFeedbackModal = function() {
+    document.getElementById('feedbackText').value = '';
+    window.openModal('feedbackModal');
+}
+
+window.submitFeedback = function() {
+    const feedback = document.getElementById('feedbackText')?.value;
+    
+    if (!feedback || feedback.trim() === '') {
+        showAlert('Please enter your feedback', 'error');
+        return;
+    }
+    
+    const feedbacks = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+    feedbacks.push({
+        feedback: feedback,
+        date: new Date().toISOString()
+    });
+    localStorage.setItem('user_feedback', JSON.stringify(feedbacks));
+    
+    window.closeModal('feedbackModal');
+    showAlert('Thank you for your feedback!', 'success');
 }
 
 // ============ LOAD ADMIN PROFILE ============
 async function loadAdminProfile() {
     try {
-        const admin = getCurrentAdmin();
-        if (admin && (admin.full_name || admin.name)) {
-            document.getElementById('adminName').value = admin.full_name || admin.name || 'Administrator';
-            document.getElementById('adminEmail').value = admin.email || '';
-            document.getElementById('adminUsername').value = admin.username || admin.full_name?.split(' ')[0]?.toLowerCase() || 'admin';
-            console.log('Admin profile loaded from localStorage:', admin.full_name || admin.name);
+        const stored = localStorage.getItem('currentAdmin');
+        if (stored) {
+            const admin = JSON.parse(stored);
+            const nameInput = document.getElementById('adminName');
+            const emailInput = document.getElementById('adminEmail');
+            const usernameInput = document.getElementById('adminUsername');
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            
+            if (nameInput) nameInput.value = admin.full_name || admin.name || '';
+            if (emailInput) emailInput.value = admin.email || '';
+            if (usernameInput) usernameInput.value = admin.username || '';
+            if (userEmailDisplay) userEmailDisplay.textContent = admin.full_name || admin.name || 'Administrator';
             return;
         }
 
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email) {
-            let adminData = null;
+        if (!user) return;
 
-            const { data: data1 } = await supabase
-                .from('admins')
-                .select('full_name, email, username, admin_id')
-                .eq('email', user.email)
-                .maybeSingle();
+        const { data: adminData } = await supabase
+            .from('admins')
+            .select('full_name, email, username, admin_id')
+            .eq('email', user.email)
+            .single();
 
-            if (data1) {
-                adminData = data1;
-            } else {
-                const { data: data2 } = await supabase
-                    .from('admin')
-                    .select('full_name, name, email, username, admin_id')
-                    .eq('email', user.email)
-                    .maybeSingle();
+        if (adminData) {
+            document.getElementById('adminName').value = adminData.full_name || '';
+            document.getElementById('adminEmail').value = adminData.email || '';
+            document.getElementById('adminUsername').value = adminData.username || '';
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            if (userEmailDisplay) userEmailDisplay.textContent = adminData.full_name || 'Administrator';
 
-                if (data2) adminData = data2;
-            }
-
-            if (adminData) {
-                const adminName = adminData.full_name || adminData.name || user.email.split('@')[0];
-                document.getElementById('adminName').value = adminName;
-                document.getElementById('adminEmail').value = adminData.email || '';
-                document.getElementById('adminUsername').value = adminData.username || adminName.split(' ')[0]?.toLowerCase() || 'admin';
-
-                localStorage.setItem('currentAdmin', JSON.stringify({
-                    full_name: adminName,
-                    email: adminData.email,
-                    username: adminData.username,
-                    admin_id: adminData.admin_id
-                }));
-
-                // Refresh drawer with loaded data
-                setupAdminDrawer(adminName, adminData.admin_id || adminData.email || 'Admin');
-                console.log('Admin loaded from DB:', adminName);
-            }
+            localStorage.setItem('currentAdmin', JSON.stringify({
+                full_name: adminData.full_name,
+                email: adminData.email,
+                username: adminData.username,
+                admin_id: adminData.admin_id
+            }));
         }
     } catch (error) {
-        console.error('Error loading admin profile:', error);
+        console.error('Error loading admin:', error);
     }
 }
 
-// ============ UPDATE ADMIN PROFILE ============
+// ============ UPDATE PROFILE (Desktop) ============
 async function updateAdminProfile() {
     const adminName = document.getElementById('adminName').value.trim();
     const adminEmail = document.getElementById('adminEmail').value.trim();
@@ -118,8 +357,8 @@ async function updateAdminProfile() {
 
     try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email) {
-            const { error } = await supabase
+        if (user) {
+            await supabase
                 .from('admins')
                 .update({
                     full_name: adminName,
@@ -129,60 +368,53 @@ async function updateAdminProfile() {
                     updated_at: new Date().toISOString()
                 })
                 .eq('email', user.email);
-
-            if (error) throw error;
         }
 
-        const currentAdmin = getCurrentAdmin() || {};
-        const updatedAdmin = {
+        const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+        localStorage.setItem('currentAdmin', JSON.stringify({
             ...currentAdmin,
             full_name: adminName,
             email: adminEmail,
             username: adminUsername
-        };
-        localStorage.setItem('currentAdmin', JSON.stringify(updatedAdmin));
+        }));
 
-        // Refresh drawer with updated name
-        setupAdminDrawer(adminName, currentAdmin?.admin_id || currentAdmin?.email || 'Admin');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        if (userEmailDisplay) userEmailDisplay.textContent = adminName;
 
         return true;
 
     } catch (error) {
-        console.error('Error updating admin:', error);
-        showAlert('Failed to update admin profile', 'error');
+        console.error('Error updating:', error);
+        showAlert('Failed to update profile', 'error');
         return false;
     }
 }
 
-// ============ CHANGE PASSWORD ============
+// ============ CHANGE PASSWORD (Desktop) ============
 async function changePassword() {
     const currentPassword = document.getElementById('currentPassword').value;
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
-    // Skip password change if all fields are empty — it's optional
-    if (!currentPassword && !newPassword && !confirmPassword) {
-        return null; // null = skipped (not an error)
-    }
+    if (!currentPassword && !newPassword && !confirmPassword) return true;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-        showAlert('Please fill in all password fields', 'error');
+        showAlert('Fill all password fields', 'error');
         return false;
     }
 
     if (newPassword.length < 6) {
-        showAlert('New password must be at least 6 characters', 'error');
+        showAlert('Password must be at least 6 characters', 'error');
         return false;
     }
 
     if (newPassword !== confirmPassword) {
-        showAlert('New passwords do not match', 'error');
+        showAlert('Passwords do not match', 'error');
         return false;
     }
 
     try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not found');
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email: user.email,
@@ -194,8 +426,7 @@ async function changePassword() {
             return false;
         }
 
-        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-        if (updateError) throw updateError;
+        await supabase.auth.updateUser({ password: newPassword });
 
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
@@ -210,211 +441,284 @@ async function changePassword() {
     }
 }
 
-// ============ SAVE ALL SETTINGS ============
-async function saveAllSettings() {
+// ============ SAVE ALL SETTINGS (Desktop) ============
+window.saveAllSettings = async function() {
     showAlert('Saving settings...', 'info');
 
-    const generalSettings = {
-        systemName: document.getElementById('systemName')?.value || '',
-        timezone: document.getElementById('timezone')?.value || '',
-        dateFormat: document.getElementById('dateFormat')?.value || '',
-        language: document.getElementById('language')?.value || ''
-    };
-
-    const notificationSettings = {
-        emailNotifications: document.getElementById('emailNotifications')?.checked || false,
-        smsNotifications: document.getElementById('smsNotifications')?.checked || false,
-        firstReminder: document.getElementById('firstReminder')?.value || 7,
-        secondReminder: document.getElementById('secondReminder')?.value || 3,
-        finalReminder: document.getElementById('finalReminder')?.value || 1
-    };
-
-    const securitySettings = {
-        sessionTimeout: document.getElementById('sessionTimeout')?.value || 30,
-        maxAttempts: document.getElementById('maxAttempts')?.value || 5,
-        strongPassword: document.getElementById('strongPassword')?.checked || false
-    };
-
-    const backupSettings = {
-        backupSchedule: document.getElementById('backupSchedule')?.value || 'weekly'
-    };
-
-    localStorage.setItem('docst_settings', JSON.stringify({
-        general: generalSettings,
-        notifications: notificationSettings,
-        security: securitySettings,
-        backup: backupSettings,
+    const settings = {
+        general: {
+            systemName: document.getElementById('systemName')?.value || '',
+            timezone: document.getElementById('timezone')?.value || '',
+            dateFormat: document.getElementById('dateFormat')?.value || ''
+        },
+        notifications: {
+            emailNotifications: document.getElementById('emailNotifications')?.checked || false,
+            smsNotifications: document.getElementById('smsNotifications')?.checked || false,
+            firstReminder: parseInt(document.getElementById('firstReminder')?.value) || 7,
+            secondReminder: parseInt(document.getElementById('secondReminder')?.value) || 3,
+            finalReminder: parseInt(document.getElementById('finalReminder')?.value) || 1
+        },
+        security: {
+            sessionTimeout: parseInt(document.getElementById('sessionTimeout')?.value) || 30,
+            maxAttempts: parseInt(document.getElementById('maxAttempts')?.value) || 5,
+            strongPassword: document.getElementById('strongPassword')?.checked || false
+        },
+        backup: {
+            backupSchedule: document.getElementById('backupSchedule')?.value || 'weekly'
+        },
         savedAt: new Date().toISOString()
-    }));
-
-    // Update profile first
-    const profileUpdated = await updateAdminProfile();
-    if (profileUpdated === false) return; // Abort on profile error
-
-    // Attempt password change (skipped automatically if fields are empty)
-    const passwordResult = await changePassword();
-    if (passwordResult === false) return; // Abort on password error
-
-    // Build a contextual success message
-    let message = 'Settings saved successfully!';
-    if (profileUpdated && passwordResult === true) {
-        message = 'Settings and password updated successfully!';
-    } else if (passwordResult === true) {
-        message = 'Password changed successfully!';
-    }
-
-    showAlert(message, 'success');
-}
-
-// ============ RESET TO DEFAULT ============
-function resetSettings() {
-    if (!confirm('Are you sure you want to reset all settings to default?')) return;
-
-    document.getElementById('systemName').value = 'DOCST - Disciplinary Office Service Tracker';
-    document.getElementById('timezone').value = 'Asia/Manila';
-    document.getElementById('dateFormat').value = 'MM/DD/YYYY';
-    document.getElementById('language').value = 'en';
-    document.getElementById('twoFactorAuth').checked = false;
-    document.getElementById('emailNotifications').checked = true;
-    document.getElementById('smsNotifications').checked = false;
-    document.getElementById('firstReminder').value = 7;
-    document.getElementById('secondReminder').value = 3;
-    document.getElementById('finalReminder').value = 1;
-    document.getElementById('sessionTimeout').value = 30;
-    document.getElementById('maxAttempts').value = 5;
-    document.getElementById('strongPassword').checked = true;
-    document.getElementById('backupSchedule').value = 'weekly';
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmPassword').value = '';
-
-    showAlert('Settings reset to default! Click Save to apply changes.', 'success');
-}
-
-// ============ LOAD SAVED SETTINGS ============
-function loadSettings() {
-    const savedSettings = localStorage.getItem('docst_settings');
-    if (!savedSettings) return;
-
-    try {
-        const settings = JSON.parse(savedSettings);
-
-        if (settings.general) {
-            if (document.getElementById('systemName')) document.getElementById('systemName').value = settings.general.systemName;
-            if (document.getElementById('timezone')) document.getElementById('timezone').value = settings.general.timezone;
-            if (document.getElementById('dateFormat')) document.getElementById('dateFormat').value = settings.general.dateFormat;
-            if (document.getElementById('language')) document.getElementById('language').value = settings.general.language;
-        }
-
-        if (settings.notifications) {
-            if (document.getElementById('emailNotifications')) document.getElementById('emailNotifications').checked = settings.notifications.emailNotifications;
-            if (document.getElementById('smsNotifications')) document.getElementById('smsNotifications').checked = settings.notifications.smsNotifications;
-            if (document.getElementById('firstReminder')) document.getElementById('firstReminder').value = settings.notifications.firstReminder;
-            if (document.getElementById('secondReminder')) document.getElementById('secondReminder').value = settings.notifications.secondReminder;
-            if (document.getElementById('finalReminder')) document.getElementById('finalReminder').value = settings.notifications.finalReminder;
-        }
-
-        if (settings.security) {
-            if (document.getElementById('sessionTimeout')) document.getElementById('sessionTimeout').value = settings.security.sessionTimeout;
-            if (document.getElementById('maxAttempts')) document.getElementById('maxAttempts').value = settings.security.maxAttempts;
-            if (document.getElementById('strongPassword')) document.getElementById('strongPassword').checked = settings.security.strongPassword;
-        }
-
-        if (settings.backup) {
-            if (document.getElementById('backupSchedule')) document.getElementById('backupSchedule').value = settings.backup.backupSchedule;
-        }
-
-        console.log('Settings loaded from localStorage');
-    } catch (e) {
-        console.error('Failed to parse saved settings:', e);
-    }
-}
-
-// ============ BACKUP FUNCTIONS ============
-function backupNow() {
-    const settings = localStorage.getItem('docst_settings');
-    const admin = getCurrentAdmin();
-
-    const backupData = {
-        settings: settings ? JSON.parse(settings) : null,
-        admin: admin ? { full_name: admin.full_name, email: admin.email } : null,
-        timestamp: new Date().toISOString(),
-        version: '1.0',
-        exportedBy: admin?.full_name || 'Administrator'
     };
 
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    localStorage.setItem('docst_settings', JSON.stringify(settings));
+
+    const profileUpdated = await updateAdminProfile();
+    if (!profileUpdated) return;
+
+    const passwordUpdated = await changePassword();
+    if (passwordUpdated === false) return;
+
+    showAlert('All settings saved successfully!', 'success');
+}
+
+// ============ RESET SETTINGS ============
+window.resetSettings = function() {
+    if (!confirm('Reset all settings to default?')) return;
+
+    const defaults = {
+        systemName: 'DOCST - Disciplinary Office Service Tracker',
+        timezone: 'Asia/Manila',
+        dateFormat: 'MM/DD/YYYY',
+        emailNotifications: true,
+        smsNotifications: false,
+        firstReminder: 7,
+        secondReminder: 3,
+        finalReminder: 1,
+        sessionTimeout: 30,
+        maxAttempts: 5,
+        strongPassword: true,
+        backupSchedule: 'weekly'
+    };
+
+    document.getElementById('systemName').value = defaults.systemName;
+    document.getElementById('timezone').value = defaults.timezone;
+    document.getElementById('dateFormat').value = defaults.dateFormat;
+    document.getElementById('emailNotifications').checked = defaults.emailNotifications;
+    document.getElementById('smsNotifications').checked = defaults.smsNotifications;
+    document.getElementById('firstReminder').value = defaults.firstReminder;
+    document.getElementById('secondReminder').value = defaults.secondReminder;
+    document.getElementById('finalReminder').value = defaults.finalReminder;
+    document.getElementById('sessionTimeout').value = defaults.sessionTimeout;
+    document.getElementById('maxAttempts').value = defaults.maxAttempts;
+    document.getElementById('strongPassword').checked = defaults.strongPassword;
+    document.getElementById('backupSchedule').value = defaults.backupSchedule;
+
+    const emailSwitch = document.getElementById('emailNotificationsSwitch');
+    const smsSwitch = document.getElementById('smsNotificationsSwitch');
+    if (emailSwitch) emailSwitch.checked = defaults.emailNotifications;
+    if (smsSwitch) smsSwitch.checked = defaults.smsNotifications;
+
+    showAlert('Settings reset to default! Click Save to apply.', 'success');
+}
+
+// ============ BACKUP ============
+window.backupNow = function() {
+    const admin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+    const settings = localStorage.getItem('docst_settings');
+
+    const backup = {
+        settings: settings ? JSON.parse(settings) : null,
+        admin: admin ? { name: admin.full_name, email: admin.email } : null,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `docst_backup_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-
-    showAlert('Backup created successfully!', 'success');
+    showAlert('Backup created!', 'success');
 }
 
-function restoreBackup() {
-    const fileInput = document.getElementById('restoreFile');
-    const file = fileInput.files[0];
-
+window.restoreBackup = function() {
+    const file = document.getElementById('restoreFile').files[0];
     if (!file) {
-        showAlert('Please select a backup file first!', 'error');
+        showAlert('Select a backup file first', 'error');
         return;
     }
 
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = (e) => {
         try {
             const backup = JSON.parse(e.target.result);
             if (backup.settings) {
                 localStorage.setItem('docst_settings', JSON.stringify(backup.settings));
-                loadSettings();
-                showAlert('Backup restored successfully! Page will reload.', 'success');
-                setTimeout(() => window.location.reload(), 1500);
+                location.reload();
             } else {
-                showAlert('Invalid backup file! No settings found.', 'error');
+                showAlert('Invalid backup file', 'error');
             }
-        } catch (error) {
-            console.error('Error reading backup:', error);
-            showAlert('Error reading backup file! Invalid format.', 'error');
+        } catch {
+            showAlert('Error reading backup', 'error');
         }
     };
     reader.readAsText(file);
 }
 
-// ============ SHOW ALERT ============
+// ============ LOAD SAVED SETTINGS ============
+function loadSettings() {
+    const saved = localStorage.getItem('docst_settings');
+    if (!saved) return;
+
+    try {
+        const s = JSON.parse(saved);
+        if (s.general) {
+            if (document.getElementById('systemName')) document.getElementById('systemName').value = s.general.systemName || '';
+            if (document.getElementById('timezone')) document.getElementById('timezone').value = s.general.timezone || 'Asia/Manila';
+            if (document.getElementById('dateFormat')) document.getElementById('dateFormat').value = s.general.dateFormat || 'MM/DD/YYYY';
+        }
+        if (s.notifications) {
+            if (document.getElementById('emailNotifications')) document.getElementById('emailNotifications').checked = s.notifications.emailNotifications ?? true;
+            if (document.getElementById('smsNotifications')) document.getElementById('smsNotifications').checked = s.notifications.smsNotifications ?? false;
+            if (document.getElementById('firstReminder')) document.getElementById('firstReminder').value = s.notifications.firstReminder || 7;
+            if (document.getElementById('secondReminder')) document.getElementById('secondReminder').value = s.notifications.secondReminder || 3;
+            if (document.getElementById('finalReminder')) document.getElementById('finalReminder').value = s.notifications.finalReminder || 1;
+            
+            const emailSwitch = document.getElementById('emailNotificationsSwitch');
+            const smsSwitch = document.getElementById('smsNotificationsSwitch');
+            if (emailSwitch) emailSwitch.checked = s.notifications.emailNotifications ?? true;
+            if (smsSwitch) smsSwitch.checked = s.notifications.smsNotifications ?? false;
+        }
+        if (s.security) {
+            if (document.getElementById('sessionTimeout')) document.getElementById('sessionTimeout').value = s.security.sessionTimeout || 30;
+            if (document.getElementById('maxAttempts')) document.getElementById('maxAttempts').value = s.security.maxAttempts || 5;
+            if (document.getElementById('strongPassword')) document.getElementById('strongPassword').checked = s.security.strongPassword ?? true;
+        }
+        if (s.backup) {
+            if (document.getElementById('backupSchedule')) document.getElementById('backupSchedule').value = s.backup.backupSchedule || 'weekly';
+        }
+    } catch (e) {
+        console.error('Error loading settings:', e);
+    }
+}
+
+// ============ DARK MODE ============
+function initDarkMode() {
+    const toggle = document.getElementById('darkModeToggle');
+    const saved = localStorage.getItem('docst_dark_mode');
+
+    if (saved === 'enabled') {
+        document.body.classList.add('dark-mode');
+        if (toggle) toggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    toggle?.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
+        toggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        showAlert(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'success');
+    });
+}
+
+// ============ ALERT ============
 function showAlert(message, type) {
     const alertDiv = document.getElementById('alertMessage');
     if (!alertDiv) return;
 
     alertDiv.textContent = message;
     alertDiv.className = `alert ${type}`;
-
-    alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    alertDiv.style.display = 'block';
 
     setTimeout(() => {
-        alertDiv.className = 'alert';
-    }, 4000);
+        alertDiv.style.display = 'none';
+    }, 3000);
 }
 
-// ============ INITIALIZE ============
+// ============ MOBILE LOGOUT ============
+const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+    });
+}
+
+// ============ DESKTOP LOGOUT ============
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+    });
+}
+
+// ============ MOBILE ROW CLICK HANDLERS ============
+document.addEventListener('DOMContentLoaded', function() {
+    const profileRow = document.getElementById('profileSettingsBtn');
+    if (profileRow) {
+        profileRow.addEventListener('click', () => window.openProfileModal());
+    }
+    
+    const passwordRow = document.getElementById('changePasswordBtn');
+    if (passwordRow) {
+        passwordRow.addEventListener('click', () => window.openPasswordModal());
+    }
+    
+    const notificationsRow = document.getElementById('emailNotificationsRow');
+    if (notificationsRow) {
+        notificationsRow.addEventListener('click', () => window.openNotificationsModal());
+    }
+    
+    const rateUsRow = document.getElementById('rateUsBtn');
+    if (rateUsRow) {
+        rateUsRow.addEventListener('click', () => window.openRateUsModal());
+    }
+    
+    const feedbackRow = document.getElementById('feedbackBtn');
+    if (feedbackRow) {
+        feedbackRow.addEventListener('click', () => window.openFeedbackModal());
+    }
+    
+    const logoutSettingsBtn = document.getElementById('logoutSettingsBtn');
+    if (logoutSettingsBtn) {
+        logoutSettingsBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                window.location.href = '/';
+            }
+        });
+    }
+    
+    const darkModeSwitch = document.getElementById('darkModeSwitch');
+    if (darkModeSwitch) {
+        const isDark = localStorage.getItem('docst_dark_mode') === 'enabled';
+        darkModeSwitch.checked = isDark;
+        darkModeSwitch.addEventListener('change', function() {
+            const isDark = this.checked;
+            document.body.classList.toggle('dark-mode', isDark);
+            localStorage.setItem('docst_dark_mode', isDark ? 'enabled' : 'disabled');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle) {
+                darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            }
+        });
+    }
+});
+
+// ============ INIT ============
 function init() {
-    console.log('🔧 Initializing Admin Settings Page...');
-
-    initDrawer();       // Sets up drawer using getCurrentAdmin() from localStorage
-    loadAdminProfile(); // Populates form fields; refreshes drawer if loaded from DB
-    loadSettings();     // Restores general/notification/security/backup settings
-    initDarkMode();     // Applies saved dark mode preference
-
-    console.log('✅ Admin Settings Page Initialized');
+    console.log('Initializing Settings Page...');
+    loadAdminProfile();
+    loadSettings();
+    initDarkMode();
+    console.log('Settings Page Ready');
 }
 
-// Expose functions globally for HTML onclick handlers
-window.saveAllSettings = saveAllSettings;
-window.resetSettings = resetSettings;
-window.backupNow = backupNow;
-window.restoreBackup = restoreBackup;
-window.changePassword = changePassword;
-
-document.addEventListener('DOMContentLoaded', init);
+init();

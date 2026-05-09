@@ -1,7 +1,11 @@
-// ============ CENTRALIZED DRAWER COMPONENT ============
-// This file handles the drawer functionality for all pages
+// ============ STUDENT DRAWER ============
 
-// Navigation items configuration
+// Apply dark mode INSTANTLY before anything renders (prevents flash)
+if (localStorage.getItem('docst_dark_mode') === 'enabled') {
+    document.documentElement.classList.add('dark-mode');
+    document.body?.classList.add('dark-mode');
+}
+
 const navItems = [
     { 
         name: 'Dashboard', 
@@ -33,199 +37,131 @@ const footerItems = [
     }
 ];
 
-// Flag to prevent multiple initialization
-let isDrawerInitialized = false;
-
-// Function to get current page name from URL
+// ============ ACTIVE PAGE DETECTION ============
 function getCurrentPage() {
     const path = window.location.pathname;
-    if (path.includes('stud.html')) return 'Dashboard';
-    if (path.includes('penalties')) return 'My Penalties';
-    if (path.includes('appeal')) return 'Appeal';
-    if (path.includes('history')) return 'History';
-    if (path.includes('setting')) return 'Settings';
+    if (path.includes('/stud.html'))            return 'Dashboard';
+    if (path.includes('/penalties/penalties'))  return 'My Penalties';
+    if (path.includes('/appeal/appeal'))        return 'Appeal';
+    if (path.includes('/history/history'))      return 'History';
+    if (path.includes('/settings/setting'))     return 'Settings';
     return '';
 }
 
-// Function to render drawer navigation (called only once)
+// ============ RENDER NAV ============
 function renderDrawerNavigation() {
     const drawerNav = document.querySelector('.drawer-nav-main');
     if (!drawerNav) return;
-    
+
     const currentPage = getCurrentPage();
-    
-    // Clear existing content
     drawerNav.innerHTML = '';
-    
-    // Add main navigation items
+
     navItems.forEach(item => {
-        const isActive = item.name === currentPage;
         const button = document.createElement('button');
-        button.className = `drawer-item ${isActive ? 'active' : ''}`;
-        button.innerHTML = `
-            ${item.icon}
-            <span>${item.name}</span>
-        `;
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
+        button.className = `drawer-item${item.name === currentPage ? ' active' : ''}`;
+        button.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        button.addEventListener('click', () => {
             window.location.href = item.path;
         });
         drawerNav.appendChild(button);
     });
-    
-    // Add divider
+
     const divider = document.createElement('hr');
     divider.className = 'drawer-divider';
     drawerNav.appendChild(divider);
-    
-    // Add footer items (Settings)
+
     footerItems.forEach(item => {
-        const isActive = item.name === currentPage;
         const button = document.createElement('button');
-        button.className = `drawer-item ${isActive ? 'active' : ''}`;
-        button.innerHTML = `
-            ${item.icon}
-            <span>${item.name}</span>
-        `;
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
+        button.className = `drawer-item${item.name === currentPage ? ' active' : ''}`;
+        button.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        button.addEventListener('click', () => {
             window.location.href = item.path;
         });
         drawerNav.appendChild(button);
     });
 }
 
-// Function to update drawer profile (called on each page load)
+// ============ UPDATE PROFILE ============
 function updateDrawerProfile(studentName, studentId) {
-    const drawerNameEl = document.getElementById('drawerStudentName');
-    const drawerIdEl = document.getElementById('drawerStudentId');
+    const drawerNameEl   = document.getElementById('drawerStudentName');
+    const drawerIdEl     = document.getElementById('drawerStudentId');
     const avatarInitials = document.getElementById('avatarInitials');
-    
-    if (drawerNameEl) {
-        drawerNameEl.textContent = studentName || 'Student';
-    }
-    
-    if (drawerIdEl) {
-        drawerIdEl.textContent = studentId ? `ID: ${studentId}` : 'Student';
-    }
-    
-    if (avatarInitials && studentName) {
-        const initials = getInitials(studentName);
-        avatarInitials.textContent = initials;
-    }
+
+    if (drawerNameEl)    drawerNameEl.textContent  = studentName || 'Student';
+    if (drawerIdEl)      drawerIdEl.textContent     = studentId ? `ID: ${studentId}` : 'Student';
+    if (avatarInitials)  avatarInitials.textContent = getInitials(studentName);
 }
 
-// Helper to get initials
 function getInitials(name) {
     if (!name || name === 'Student') return 'ST';
     const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) {
-        return parts[0].substring(0, 2).toUpperCase();
-    }
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// Drawer functionality - NO ANIMATIONS
+// ============ MOBILE DRAWER CONTROLS ============
 function initDrawer() {
-    // Only initialize once
-    if (isDrawerInitialized) return;
-    isDrawerInitialized = true;
-    
-    const overlay = document.getElementById('overlay');
-    const drawer = document.getElementById('drawer');
-    const hamburger = document.getElementById('hamburger');
+    const overlay    = document.getElementById('overlay');
+    const drawer     = document.getElementById('drawer');
+    const hamburger  = document.getElementById('hamburger');
     const drawerClose = document.getElementById('drawerClose');
-    
+
     function openDrawer() {
-        if (drawer && overlay) {
-            drawer.classList.add('open');
-            overlay.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
+        drawer?.classList.add('open');
+        overlay?.classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
-    
+
     function closeDrawer() {
-        if (drawer && overlay) {
-            drawer.classList.remove('open');
-            overlay.classList.remove('open');
-            document.body.style.overflow = '';
-        }
+        drawer?.classList.remove('open');
+        overlay?.classList.remove('open');
+        document.body.style.overflow = '';
     }
-    
-    // Only add mobile drawer functionality
-    if (window.innerWidth <= 768) {
-        if (overlay) {
-            overlay.addEventListener('click', closeDrawer);
-        }
-        
-        if (hamburger) {
-            hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openDrawer();
-            });
-        }
-        
-        if (drawerClose) {
-            drawerClose.addEventListener('click', closeDrawer);
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) {
-                closeDrawer();
-            }
-        });
-    }
-    
-    // On resize, close drawer if switching to desktop
+
+    hamburger?.addEventListener('click', e => { e.stopPropagation(); openDrawer(); });
+    drawerClose?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDrawer();
+    });
+
     window.addEventListener('resize', () => {
-        if (window.innerWidth > 768 && drawer && drawer.classList.contains('open')) {
-            closeDrawer();
-        }
+        if (window.innerWidth > 768) closeDrawer();
     });
 }
 
-// Initialize everything (called once per page load)
+// ============ MAIN EXPORT ============
 export function setupDrawer(studentName, studentId) {
-    // Update profile info (always update on each page)
     updateDrawerProfile(studentName, studentId);
-    
-    // Render navigation and initialize drawer only once
-    if (!isDrawerInitialized) {
-        renderDrawerNavigation();
-        initDrawer();
-    } else {
-        // Just update the active state on navigation items
-        const currentPage = getCurrentPage();
-        const allItems = document.querySelectorAll('.drawer-item');
-        allItems.forEach(item => {
-            const span = item.querySelector('span');
-            if (span && span.textContent === currentPage) {
-                item.classList.add('active');
-            } else if (span) {
-                item.classList.remove('active');
-            }
-        });
-    }
+    renderDrawerNavigation();
+    initDrawer();
 }
 
-// Logout function
+// ============ LOGOUT ============
 export function setupLogout(logoutBtnId = 'logoutBtn') {
     const logoutBtn = document.getElementById(logoutBtnId);
-    if (logoutBtn) {
-        // Remove existing listeners to prevent duplicates
-        const newLogoutBtn = logoutBtn.cloneNode(true);
-        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
-        
-        newLogoutBtn.addEventListener('click', async () => {
-            const { createClient } = await import('@supabase/supabase-js');
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-            const supabase = createClient(supabaseUrl, supabaseKey);
-            
-            await supabase.auth.signOut();
-            localStorage.removeItem('currentStudent');
-            localStorage.removeItem('currentAdmin');
-            window.location.href = '/Assets/Landing/index.html';
-        });
-    }
+    if (!logoutBtn) return;
+
+    const newBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
+
+    newBtn.addEventListener('click', async () => {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+            import.meta.env.VITE_SUPABASE_URL,
+            import.meta.env.VITE_SUPABASE_ANON_KEY
+        );
+
+        await supabase.auth.signOut();
+        localStorage.removeItem('currentStudent');
+        localStorage.removeItem('currentAdmin');
+        window.location.href = '/'; // ✅ correct Vercel root
+    });
 }
+
+requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+        document.documentElement.classList.add('transitions-ready');
+    });
+});

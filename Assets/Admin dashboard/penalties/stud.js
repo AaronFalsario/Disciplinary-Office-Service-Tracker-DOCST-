@@ -1,32 +1,14 @@
-console.log('🔍 Checking drawer elements...');
-console.log('drawerNavMain exists?', document.getElementById('drawerNavMain'));
-console.log('drawer exists?', document.getElementById('drawer'));
-
+import { initAdminDrawer } from '../../drawer-admin.js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin } from '/Assets/drawer-admin.js';
 
 const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
 const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ============ DRAWER SETUP - THIS WAS MISSING ============
-function initDrawer() {
-    console.log('🔧 Initializing drawer...');
-    
-    // Get admin from localStorage
-    const admin = getCurrentAdmin();
-    const adminName = admin?.full_name || admin?.name || 'Administrator';
-    const adminId = admin?.admin_id || admin?.email?.split('@')[0] || 'ADMIN001';
-    
-    // Setup the drawer with admin info
-    setupAdminDrawer(adminName, adminId);
-    setupAdminLogout('logoutBtn');
-    setupAdminDrawerControls();
-    
-    console.log('✅ Drawer initialized with:', adminName);
-}
+// ============ INITIALIZE DRAWER (SAME AS ADMIN DASHBOARD) ============
+initAdminDrawer();
 
-// ============ LOAD PENALTIES FROM SUPABASE ============
+// ============ LOAD PENALTIES ============
 async function loadPenalties() {
     try {
         const { data, error } = await supabase
@@ -50,68 +32,64 @@ function displayPenalties(penalties) {
     if (!tbody) return;
     
     if (penalties.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No penalties found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No penalties found</td></tr>';
         return;
     }
     
     tbody.innerHTML = penalties.map(penalty => `
         <tr data-id="${penalty.id}">
-            <td><input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}"></td>
-            <td>${escapeHtml(penalty.student_id || 'N/A')}</td>
+            <td style="text-align: center;"><input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}"></td>
+            <td><strong>${escapeHtml(penalty.student_id || 'N/A')}</strong></td>
             <td>${escapeHtml(penalty.violation || 'N/A')}</td>
             <td>${escapeHtml(penalty.service_type || 'N/A')}</td>
-            <td>${penalty.hours || 0}</td>
+            <td>${penalty.hours || 0} hrs</td>
             <td><span class="status-badge status-${penalty.status || 'pending'}">${penalty.status || 'pending'}</span></td>
             <td>${penalty.deadline ? new Date(penalty.deadline).toLocaleDateString() : 'N/A'}</td>
             <td>
-                <button class="edit-penalty-btn" data-id="${penalty.id}">
-                    <i class="fas fa-edit"></i>
+                <button class="edit-penalty-btn" data-id="${penalty.id}" style="background: none; border: none; cursor: pointer; margin-right: 8px;">
+                    <i class="fas fa-edit" style="color: var(--blue);"></i>
                 </button>
-                <button class="delete-penalty-btn" data-id="${penalty.id}">
-                    <i class="fas fa-trash"></i>
+                <button class="delete-penalty-btn" data-id="${penalty.id}" style="background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-trash" style="color: var(--red);"></i>
                 </button>
             </td>
         </tr>
     `).join('');
     
-    // Attach event listeners to edit/delete buttons
     document.querySelectorAll('.edit-penalty-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = btn.dataset.id;
-            editPenalty(id);
+            editPenalty(btn.dataset.id);
         });
     });
     
     document.querySelectorAll('.delete-penalty-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = btn.dataset.id;
-            deletePenalty(id);
+            deletePenalty(btn.dataset.id);
         });
     });
 }
 
 function updateStats(penalties) {
-    document.getElementById('totalStudents')?.setAttribute('data-count', penalties.length);
-    document.getElementById('totalPenalties')?.setAttribute('data-count', penalties.length);
+    const totalStudents = document.getElementById('totalStudents');
+    const totalPenalties = document.getElementById('totalPenalties');
+    const pendingCases = document.getElementById('pendingCases');
+    const completedHours = document.getElementById('completedHours');
+    
+    if (totalStudents) totalStudents.textContent = penalties.length;
+    if (totalPenalties) totalPenalties.textContent = penalties.length;
     
     const pending = penalties.filter(p => p.status === 'pending').length;
-    document.getElementById('pendingCases')?.setAttribute('data-count', pending);
+    if (pendingCases) pendingCases.textContent = pending;
     
-    const completedHours = penalties
+    const completed = penalties
         .filter(p => p.status === 'completed')
         .reduce((sum, p) => sum + (p.hours || 0), 0);
-    document.getElementById('completedHours')?.setAttribute('data-count', completedHours);
-    
-    // Update actual text content
-    document.getElementById('totalStudents').textContent = penalties.length;
-    document.getElementById('totalPenalties').textContent = penalties.length;
-    document.getElementById('pendingCases').textContent = pending;
-    document.getElementById('completedHours').textContent = completedHours;
+    if (completedHours) completedHours.textContent = completed;
 }
 
-// ============ ADD/EDIT PENALTY ============
+// ============ SAVE PENALTY ============
 async function savePenalty(event) {
     event.preventDefault();
     
@@ -140,21 +118,17 @@ async function savePenalty(event) {
     
     try {
         if (penaltyId) {
-            // Update existing
             const { error } = await supabase
                 .from('penalties')
                 .update(penaltyData)
                 .eq('id', penaltyId);
-            
             if (error) throw error;
             showAlert('Penalty updated successfully!', 'success');
         } else {
-            // Add new
             penaltyData.created_at = new Date().toISOString();
             const { error } = await supabase
                 .from('penalties')
                 .insert([penaltyData]);
-            
             if (error) throw error;
             showAlert('Penalty added successfully!', 'success');
         }
@@ -238,9 +212,7 @@ function initDarkMode() {
     
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode');
-        if (darkModeToggle) {
-            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
+        if (darkModeToggle) darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
     
     if (darkModeToggle) {
@@ -252,7 +224,7 @@ function initDarkMode() {
     }
 }
 
-// ============ SELECT ALL CHECKBOXES ============
+// ============ SELECT ALL ============
 function initSelectAll() {
     const selectAll = document.getElementById('selectAll');
     if (!selectAll) return;
@@ -264,57 +236,49 @@ function initSelectAll() {
     });
 }
 
-// ============ BULK ACTIONS ============
 function getSelectedPenaltyIds() {
-    const checkboxes = document.querySelectorAll('.penalty-checkbox:checked');
-    return Array.from(checkboxes).map(cb => cb.dataset.id);
+    return Array.from(document.querySelectorAll('.penalty-checkbox:checked'))
+        .map(cb => cb.dataset.id);
 }
 
-document.getElementById('editPenaltyBtn')?.addEventListener('click', () => {
-    const selected = getSelectedPenaltyIds();
-    if (selected.length !== 1) {
-        showAlert('Please select exactly one penalty to edit', 'error');
-        return;
-    }
-    editPenalty(selected[0]);
-});
-
-document.getElementById('deletePenaltyBtn')?.addEventListener('click', async () => {
-    const selected = getSelectedPenaltyIds();
-    if (selected.length === 0) {
-        showAlert('Please select at least one penalty to delete', 'error');
-        return;
-    }
-    
-    if (confirm(`Delete ${selected.length} penalty(ies)?`)) {
-        for (const id of selected) {
-            await deletePenalty(id);
-        }
-        loadPenalties();
-    }
-});
-
-document.getElementById('communityServiceBtn')?.addEventListener('click', () => {
-    window.location.href = '/Assets/Admin dashboard/penalties/community-service.html';
-});
-
-// ============ ALERT SYSTEM ============
+// ============ ALERT ============
 function showAlert(message, type) {
-    const alertDiv = document.getElementById('alertMessage');
-    if (!alertDiv) {
-        console.log(`${type}: ${message}`);
-        return;
-    }
-    
+    const alertDiv = document.createElement('div');
     alertDiv.textContent = message;
-    alertDiv.className = `alert ${type} show`;
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10000;
+        background: ${type === 'success' ? '#10B981' : '#EF4444'};
+        color: white;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    document.body.appendChild(alertDiv);
     
     setTimeout(() => {
-        alertDiv.classList.remove('show');
+        alertDiv.remove();
     }, 3000);
 }
 
-// ============ ESCAPE HTML ============
+// Add animation style
+if (!document.querySelector('#alert-styles')) {
+    const style = document.createElement('style');
+    style.id = 'alert-styles';
+    style.textContent = `
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -325,43 +289,79 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ============ INITIALIZE EVERYTHING ============
+// ============ INITIALIZE ============
 function init() {
-    console.log('🚀 Initializing Penalties Page...');
-    
-    // FIRST: Initialize drawer (this was missing!)
-    initDrawer();
-    
-    // THEN: Initialize everything else
+    console.log('Initializing Penalties Page...');
     initDarkMode();
     loadPenalties();
     initSelectAll();
+
+    const addPenaltyBtn = document.getElementById('addPenaltyBtn');
+    const editPenaltyBtn = document.getElementById('editPenaltyBtn');
+    const deletePenaltyBtn = document.getElementById('deletePenaltyBtn');
+    const communityServiceBtn = document.getElementById('communityServiceBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const penaltyModal = document.getElementById('penaltyModal');
+    const penaltyForm = document.getElementById('penaltyForm');
+
+    if (addPenaltyBtn) {
+        addPenaltyBtn.addEventListener('click', () => {
+            document.getElementById('modalTitle').textContent = 'Add New Penalty';
+            document.getElementById('penaltyId').value = '';
+            document.getElementById('penaltyForm').reset();
+            openModal();
+        });
+    }
+
+    if (editPenaltyBtn) {
+        editPenaltyBtn.addEventListener('click', () => {
+            const selected = getSelectedPenaltyIds();
+            if (selected.length !== 1) {
+                showAlert('Please select exactly one penalty to edit', 'error');
+                return;
+            }
+            editPenalty(selected[0]);
+        });
+    }
+
+    if (deletePenaltyBtn) {
+        deletePenaltyBtn.addEventListener('click', async () => {
+            const selected = getSelectedPenaltyIds();
+            if (selected.length === 0) {
+                showAlert('Please select at least one penalty to delete', 'error');
+                return;
+            }
+            if (confirm(`Delete ${selected.length} penalty(ies)?`)) {
+                for (const id of selected) {
+                    await deletePenalty(id);
+                }
+                loadPenalties();
+            }
+        });
+    }
+
+    if (communityServiceBtn) {
+        communityServiceBtn.addEventListener('click', () => {
+            window.location.href = 'community-service.html';
+        });
+    }
+
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     
-    // Modal controls
-    document.getElementById('addPenaltyBtn')?.addEventListener('click', () => {
-        document.getElementById('modalTitle').textContent = 'Add New Penalty';
-        document.getElementById('penaltyId').value = '';
-        document.getElementById('penaltyForm').reset();
-        openModal();
-    });
+    if (penaltyModal) {
+        penaltyModal.addEventListener('click', (e) => {
+            if (e.target === penaltyModal) closeModal();
+        });
+    }
     
-    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-    document.getElementById('penaltyModal')?.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('penaltyModal')) closeModal();
-    });
+    if (penaltyForm) penaltyForm.addEventListener('submit', savePenalty);
     
-    document.getElementById('penaltyForm')?.addEventListener('submit', savePenalty);
-    
-    // Admin pill click - open/close drawer on mobile
-    document.getElementById('adminPill')?.addEventListener('click', () => {
-        const drawer = document.getElementById('drawer');
-        const overlay = document.getElementById('overlay');
-        drawer?.classList.toggle('open');
-        overlay?.classList.toggle('open');
-    });
-    
-    console.log('✅ Penalties Page Initialized');
+    console.log('Penalties Page Initialized');
 }
 
 // Start everything when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

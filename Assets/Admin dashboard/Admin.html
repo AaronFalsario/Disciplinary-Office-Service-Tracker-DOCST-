@@ -4,11 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOCST — Admin Dashboard</title>
+    
+    <!-- ============ PREVENT DRAWER FLICKER ============ -->
+    <script>
+        (function() {
+            // Store drawer state before page unload
+            const drawerWasOpen = localStorage.getItem('drawer_state') === 'open';
+            const isMobile = window.innerWidth <= 768;
+            
+            // Immediately set drawer class if it was open on mobile
+            if (drawerWasOpen && isMobile) {
+                document.documentElement.classList.add('drawer-should-be-open');
+            }
+            
+            // Add preload class to prevent transition on load
+            document.documentElement.classList.add('preload');
+        })();
+        
+        // Dark mode check
+        if (localStorage.getItem('docst_dark_mode') === 'enabled') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin dashboard/style.css">
     <base href="/">
+    
+    <style>
+        /* Prevent drawer transition on page load */
+        .preload .drawer {
+            transition: none !important;
+        }
+        
+        /* Remove preload class after page loads to re-enable animations */
+        .preload {
+            transition: none !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Drawer - Always visible on desktop -->
@@ -48,9 +83,6 @@
     <!-- Topbar -->
     <header class="topbar">
         <div class="topbar-left">
-            <button class="hamburger" id="hamburger">
-                <span></span><span></span><span></span>
-            </button>
             <div class="brand">
                 <div class="brand-logo">
                     <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
@@ -236,5 +268,75 @@
     </main>
 
     <script type="module" src="/Assets/Admin dashboard/funct.js"></script>
+    
+    <script>
+        (function() {
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    document.documentElement.classList.remove('preload');
+                }, 10);
+            });
+            function restoreDrawerState() {
+                const drawer = document.getElementById('drawer');
+                const overlay = document.getElementById('overlay');
+                if (!drawer) return;
+                
+                const isMobile = window.innerWidth <= 768;
+                const savedState = localStorage.getItem('drawer_state');
+                const shouldBeOpen = savedState === 'open';
+                
+                // On desktop, drawer is always visible
+                if (!isMobile) {
+                    drawer.style.transform = 'translateX(0)';
+                    return;
+                }
+                
+                // On mobile, restore previous state without animation
+                if (shouldBeOpen) {
+                    drawer.classList.add('open');
+                    if (overlay) overlay.classList.add('open');
+                    document.body.classList.add('drawer-open');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            
+            // Save drawer state when it changes
+            function initDrawerStateTracking() {
+                const drawer = document.getElementById('drawer');
+                if (!drawer) return;
+                
+                // Save state when drawer opens/closes
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'class') {
+                            if (drawer.classList.contains('open')) {
+                                localStorage.setItem('drawer_state', 'open');
+                            } else {
+                                localStorage.setItem('drawer_state', 'closed');
+                            }
+                        }
+                    });
+                });
+                
+                observer.observe(drawer, { attributes: true });
+                
+                // Also save before page unload
+                window.addEventListener('beforeunload', function() {
+                    if (drawer.classList.contains('open')) {
+                        localStorage.setItem('drawer_state', 'open');
+                    } else {
+                        localStorage.setItem('drawer_state', 'closed');
+                    }
+                });
+            }
+            
+            // Wait for drawer to be initialized by funct.js
+            setTimeout(function() {
+                restoreDrawerState();
+                initDrawerStateTracking();
+            }, 200);
+        })();
+    </script>
+    <script src="/Assets/admin-nav.js" type="module"></script>
 </body>
 </html>

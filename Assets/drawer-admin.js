@@ -1,6 +1,10 @@
-// ============ ADMIN DRAWER ============
+// ============ DOCST ADMIN DRAWER - MASTER FILE ============
+// Apply dark mode INSTANTLY before anything renders (prevents flash)
+if (localStorage.getItem('docst_dark_mode') === 'enabled') {
+    document.documentElement.classList.add('dark-mode');
+    document.body?.classList.add('dark-mode');
+}
 
-// Admin navigation items
 const adminNavItems = [
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>', 
@@ -20,7 +24,7 @@ const adminNavItems = [
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>', 
         label: 'Reports', 
-        href: '/Assets/Admin dashboard/Reports/reports.html'
+        href: '/Assets/Admin dashboard/report/report.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>', 
@@ -29,133 +33,161 @@ const adminNavItems = [
     }
 ];
 
-// Initialize admin drawer
+// ============ ACTIVE PAGE DETECTION ============
+function getActiveAdminLabel() {
+    const path = window.location.pathname;
+    if (path.includes('Admin.html') || path.endsWith('/Admin dashboard/')) return 'Dashboard';
+    if (path.includes('record.html')) return 'Users';
+    if (path.includes('student.html') && path.includes('penalties')) return 'Penalties';
+    if (path.includes('report.html')) return 'Reports';
+    if (path.includes('setting.html')) return 'Settings';
+    return '';
+}
+
+// ============ HELPER: Format Admin ID ============
+function formatAdminId(adminId) {
+    if (!adminId) return 'ADMIN';
+    if (adminId.includes('-') || adminId.length > 20) {
+        const stored = localStorage.getItem('currentAdmin');
+        if (stored) {
+            try {
+                const admin = JSON.parse(stored);
+                if (admin.admin_id && admin.admin_id !== admin.id) {
+                    return admin.admin_id;
+                }
+                if (admin.email) {
+                    return admin.email.split('@')[0].toUpperCase();
+                }
+            } catch(e) {}
+        }
+        return adminId.substring(0, 8).toUpperCase();
+    }
+    return adminId;
+}
+
+// ============ SETUP ADMIN DRAWER ============
 function setupAdminDrawer(adminName, adminId) {
-    console.log('🎨 Setting up admin drawer...', adminName, adminId);
-    
     const drawerNav = document.getElementById('drawerNavMain');
     if (!drawerNav) {
-        console.error('drawerNavMain element not found!');
-        return;
+        console.error('drawerNavMain not found!');
+        return false;
     }
-    
-    // Clear existing nav
+
+    const activeLabel = getActiveAdminLabel();
     drawerNav.innerHTML = '';
-    
-    // Add navigation items
+
     adminNavItems.forEach((item, index) => {
-        const isActive = window.location.pathname === item.href;
+        const isActive = item.label === activeLabel;
         const button = document.createElement('button');
-        button.className = `drawer-item ${isActive ? 'active' : ''}`;
+        button.className = `drawer-item${isActive ? ' active' : ''}`;
         button.innerHTML = `${item.icon} <span>${item.label}</span>`;
-        button.onclick = () => {
+
+        button.addEventListener('click', () => {
             window.location.href = item.href;
-        };
+        });
+
         drawerNav.appendChild(button);
-        
-        // Add divider after Penalties
-        if (item.label === 'Penalties') {
+
+        if (item.label === 'Penalties' && index < adminNavItems.length - 1) {
             const divider = document.createElement('hr');
             divider.className = 'drawer-divider';
             drawerNav.appendChild(divider);
         }
     });
-    
-    // Update admin name and ID in drawer
+
     const drawerNameEl = document.getElementById('drawerAdminName');
     const drawerIdEl = document.getElementById('drawerAdminId');
     const avatarInitials = document.getElementById('avatarInitials');
-    
+
     if (drawerNameEl) drawerNameEl.textContent = adminName || 'Administrator';
-    if (drawerIdEl) drawerIdEl.textContent = adminId || 'Admin';
-    
-    // Update avatar initials
+    if (drawerIdEl) drawerIdEl.textContent = formatAdminId(adminId);
     if (avatarInitials && adminName) {
-        const initials = getAdminInitials(adminName);
-        avatarInitials.textContent = initials;
+        avatarInitials.textContent = getAdminInitials(adminName);
     }
     
-    console.log('✅ Admin drawer setup complete');
+    return true;
 }
 
-// Get admin initials
 function getAdminInitials(fullName) {
     if (!fullName || fullName === 'Administrator') return 'AD';
     const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) {
-        return parts[0].substring(0, 2).toUpperCase();
-    }
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// Get current admin from localStorage
 function getCurrentAdmin() {
-    const stored = localStorage.getItem('currentAdmin');
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            return null;
-        }
+    try {
+        const stored = localStorage.getItem('currentAdmin');
+        return stored ? JSON.parse(stored) : null;
+    } catch {
+        return null;
     }
-    return null;
 }
 
-// Setup admin logout
+// ============ LOGOUT ============
 function setupAdminLogout(logoutBtnId) {
     const logoutBtn = document.getElementById(logoutBtnId);
-    if (logoutBtn) {
-        // Remove existing listeners
-        const newLogoutBtn = logoutBtn.cloneNode(true);
-        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+    if (!logoutBtn) return;
+
+    const newBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
+
+    newBtn.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to logout?')) return;
         
-        newLogoutBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to logout?')) {
-                const { createClient } = await import('@supabase/supabase-js');
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-                const supabase = createClient(supabaseUrl, supabaseKey);
-                
-                await supabase.auth.signOut();
-                localStorage.removeItem('currentAdmin');
-                localStorage.removeItem('currentStudent');
-                window.location.href = '/Assets/Landing/index.html';
-            }
-        });
-    }
+        localStorage.removeItem('currentAdmin');
+        localStorage.removeItem('currentStudent');
+        window.location.href = '/';
+    });
 }
 
-// Setup drawer open/close for mobile
+// ============ MOBILE DRAWER CONTROLS ============
 function setupAdminDrawerControls() {
     const hamburger = document.getElementById('hamburger');
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
     const drawerClose = document.getElementById('drawerClose');
-    
-    if (hamburger) {
-        hamburger.addEventListener('click', () => {
-            drawer?.classList.add('open');
-            overlay?.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        });
+
+    function openDrawer() {
+        drawer?.classList.add('open');
+        overlay?.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.body.classList.add('drawer-open');
     }
-    
-    if (drawerClose) {
-        drawerClose.addEventListener('click', () => {
-            drawer?.classList.remove('open');
-            overlay?.classList.remove('open');
-            document.body.style.overflow = '';
-        });
+
+    function closeDrawer() {
+        drawer?.classList.remove('open');
+        overlay?.classList.remove('open');
+        document.body.style.overflow = '';
+        document.body.classList.remove('drawer-open');
     }
-    
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            drawer?.classList.remove('open');
-            overlay?.classList.remove('open');
-            document.body.style.overflow = '';
-        });
-    }
+
+    hamburger?.addEventListener('click', openDrawer);
+    drawerClose?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDrawer();
+    });
 }
 
-// Export functions
-export { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin };
+// ============ INITIALIZE ============
+function initAdminDrawer() {
+    const currentAdmin = getCurrentAdmin();
+    const adminName = currentAdmin?.name || currentAdmin?.full_name || currentAdmin?.fullName || 'Administrator';
+    const adminId = currentAdmin?.admin_id || currentAdmin?.id || currentAdmin?.email || 'ADMIN';
+    
+    setupAdminDrawer(adminName, adminId);
+    setupAdminLogout('logoutBtn');
+    setupAdminDrawerControls();
+}
+
+// Export for module usage
+export { 
+    setupAdminDrawer, 
+    setupAdminLogout, 
+    setupAdminDrawerControls, 
+    getCurrentAdmin,
+    initAdminDrawer,
+    formatAdminId
+};

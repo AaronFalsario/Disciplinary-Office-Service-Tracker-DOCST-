@@ -1036,6 +1036,11 @@ body.dark-mode .bottom-nav {
     transform: scale(1.05);
 }
 
+html:not(.transitions-ready) .drawer,
+html:not(.transitions-ready) * {
+    transition: none !important;
+}
+
 /* Hide drawer on mobile, show bottom nav */
 @media (max-width: 768px) {
     .drawer {

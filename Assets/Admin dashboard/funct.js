@@ -564,6 +564,53 @@ async function init() {
     
     setInterval(refreshDashboard, 90000);
 }
+// ============ DRAWER STATE TRACKING FOR MOBILE BOTTOM NAV ============
+(function() {
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+    const drawerClose = document.getElementById('drawerClose');
+    
+    function updateBodyState() {
+        if (drawer && drawer.classList.contains('open')) {
+            document.body.classList.add('drawer-open');
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.classList.remove('drawer-open');
+            document.body.style.overflow = '';
+        }
+    }
+    
+    if (drawer) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    updateBodyState();
+                }
+            });
+        });
+        observer.observe(drawer, { attributes: true });
+        updateBodyState();
+    }
+    
+    if (hamburger) {
+        hamburger.addEventListener('click', () => {
+            setTimeout(updateBodyState, 50);
+        });
+    }
+    
+    if (drawerClose) {
+        drawerClose.addEventListener('click', () => {
+            setTimeout(updateBodyState, 50);
+        });
+    }
+    
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            setTimeout(updateBodyState, 50);
+        });
+    }
+})();
 
 init();
 

@@ -182,25 +182,25 @@ html, body {
 
 .drawer-nav {
     flex: 1;
-    padding: 12px 0;
-    background: transparent;
+    padding: 16px 0;
 }
 
 .drawer-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 20px;
+    padding: 10px 20px;
     color: rgba(255, 255, 255, 0.65);
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 500;
     background: none;
     border: none;
     border-left: 3px solid transparent;
+    font-family: 'DM Sans', sans-serif;
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
 }
 
 .drawer-item:hover {
@@ -210,7 +210,7 @@ html, body {
 
 .drawer-item.active {
     color: #fff;
-    font-weight: 500;
+    font-weight: 600;
     border-left-color: var(--teal, #10B981);
     background: rgba(255, 255, 255, 0.08);
 }
@@ -223,7 +223,7 @@ html, body {
 .drawer-divider {
     height: 1px;
     background: rgba(255, 255, 255, 0.08);
-    margin: 6px 20px;
+    margin: 8px 20px;
     border: none;
 }
 
@@ -264,6 +264,83 @@ html, body {
 .drawer::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 4px;
+}
+
+/* ============ MOBILE BOTTOM NAVIGATION (ONLY FOR ≤768px) ============ */
+@media (max-width: 768px) {
+    .drawer {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        transform: translateY(100%);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        border-right: none;
+        border-radius: 20px 20px 0 0;
+        transition: transform 0.3s ease;
+        background: var(--navy);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+    }
+    
+    .drawer.open {
+        transform: translateY(0);
+    }
+    
+    .drawer-header {
+        display: none;
+    }
+    
+    .drawer-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--navy);
+    }
+    
+    .drawer-item {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 12px;
+        border-left: none;
+        border-radius: 12px;
+        justify-content: center;
+        text-align: center;
+        font-size: 10px;
+        flex: 1;
+    }
+    
+    .drawer-item svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .drawer-item span {
+        font-size: 10px;
+    }
+    
+    .drawer-item:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .drawer-item.active {
+        border-left: none;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+    
+    .drawer-divider {
+        display: none;
+    }
+    
+    .drawer-footer {
+        display: none;
+    }
 }
 
 /* ============ TOPBAR ============ */
@@ -349,10 +426,13 @@ html, body {
 }
 
 .brand-tagline {
-    font-size: 12px;
-    color: var(--text-2);
-    font-weight: 200;
-    transition: color 0.3s ease;
+    font-size: 14px;
+    color: var(--text-3);
+    margin-left: 8px;
+    padding-left: 8px;
+    margin-top: -4px;
+    border-left: 1px solid var(--border);
+    transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .topbar-right {
@@ -444,11 +524,8 @@ body.dark-mode .bottom-nav {
     max-width: 80px;
 }
 
-.bottom-nav-item svg {
-    width: 22px;
-    height: 22px;
-    stroke: currentColor;
-    stroke-width: 1.8;
+.bottom-nav-item i {
+    font-size: 20px;
 }
 
 .bottom-nav-item span {
@@ -467,11 +544,6 @@ body.dark-mode .bottom-nav {
 
 .bottom-nav-item.active {
     color: var(--blue);
-}
-
-.bottom-nav-item.active svg {
-    stroke: var(--blue);
-    transform: scale(1.05);
 }
 
 /* ============ MAIN CONTENT ============ */
@@ -597,6 +669,12 @@ body.dark-mode .bottom-nav {
     align-items: center;
     justify-content: center;
     transition: background 0.3s ease;
+}
+
+.stat-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--blue);
 }
 
 .stat-number {
@@ -1103,7 +1181,10 @@ body.dark-mode .stat-label {
 
 body.dark-mode .stat-icon {
     background: #1E3A5F;
-    color: #3B82F6;
+}
+
+body.dark-mode .stat-icon svg {
+    stroke: #3B82F6;
 }
 
 body.dark-mode .section-title {
@@ -1292,96 +1373,4 @@ body.dark-mode select option {
         grid-template-columns: 1fr;
         gap: 0;
     }
-}
-
-/* ============ ADDITIONAL DRAWER STYLES FOR drawer-nav-main ============ */
-
-/* Drawer Navigation Container */
-.drawer-nav-main {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px 12px;
-}
-
-/* Drawer Navigation Items (buttons created by drawer-admin.js) */
-.drawer-nav-main .drawer-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    width: 100%;
-    background: none;
-    border: none;
-    border-radius: 10px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-}
-
-.drawer-nav-main .drawer-item svg {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-}
-
-.drawer-nav-main .drawer-item span {
-    flex: 1;
-}
-
-.drawer-nav-main .drawer-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-}
-
-.drawer-nav-main .drawer-item.active {
-    background: rgba(255, 255, 255, 0.12);
-    color: white;
-    border-left: 3px solid var(--teal, #10B981);
-}
-
-/* Drawer Divider inside drawer-nav-main */
-.drawer-nav-main .drawer-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.1);
-    margin: 12px 16px;
-    border: none;
-}
-
-/* Fix drawer close button visibility */
-.drawer-close {
-    display: none;
-}
-
-@media (max-width: 768px) {
-    .drawer-close {
-        display: flex;
-    }
-}
-
-/* Ensure drawer footer logout button styles */
-.drawer-footer .drawer-logout {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 12px 20px;
-    background: none;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.drawer-footer .drawer-logout:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ef4444;
-}
-
-.drawer-footer .drawer-logout i {
-    font-size: 18px;
 }
