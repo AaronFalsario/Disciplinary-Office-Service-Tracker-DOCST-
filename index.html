@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOCST - Discipline Office Community Service Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- FIXED: Removed leading slash -->
     <link rel="icon" href="Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="Assets/Landing/style.css">
 </head>
@@ -19,7 +18,6 @@
         </div>
         <span>DOCST</span>
     </a>
-
     <div class="nav-actions">
         <a href="Assets/Student Authentication/Student.html" class="portal-link">
             <i class="fas fa-user-graduate"></i> Portal
@@ -32,7 +30,6 @@
     <div class="hero-inner">
         <h1>Discipline Office Community<br>Service Tracker</h1>
         <p>A centralized Digital System for managing and tracking Student Community Service Requirements with real-time Access and Record keeping</p>
-        <!-- FIXED: Removed leading slash -->
         <a href="Assets/Student Authentication/Student.html" class="btn-get-started">
             Get Started <i class="fas fa-arrow-right"></i>
         </a>
@@ -44,40 +41,29 @@
     <div class="features-title">Key Features</div>
     <div class="features-grid">
         <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-list-check"></i>
-            </div>
+            <div class="feature-icon"><i class="fas fa-list-check"></i></div>
             <div class="feature-title">Track Service Hours</div>
             <div class="feature-desc">View required Service hours, pending task, and completed work in an organized dashboard</div>
         </div>
-
         <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-clock-rotate-left"></i>
-            </div>
+            <div class="feature-icon"><i class="fas fa-clock-rotate-left"></i></div>
             <div class="feature-title">Real-time Access</div>
             <div class="feature-desc">Monitor Deadline and stay informed about your Disciplinary status with instant update</div>
         </div>
-
         <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-shield-halved"></i>
-            </div>
+            <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
             <div class="feature-title">Secure Access</div>
             <div class="feature-desc">Dedicated portal for student, and administrators with role-based access control</div>
         </div>
-
         <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-circle-check"></i>
-            </div>
+            <div class="feature-icon"><i class="fas fa-circle-check"></i></div>
             <div class="feature-title">Efficient Management</div>
             <div class="feature-desc">Streamlined recording, verification and updating of student community service requirements</div>
         </div>
     </div>
 </section>
 
-<!-- Footer with Secret Admin Button -->
+<!-- Footer -->
 <footer>
     <div class="footer-content">
         <div class="footer-section">
@@ -89,7 +75,6 @@
             <ul>
                 <li><a href="#">Home</a></li>
                 <li><a href="#categories">Features</a></li>
-                <!-- FIXED: Removed leading slash -->
                 <li><a href="Assets/Student Authentication/Student.html">Student Portal</a></li>
             </ul>
         </div>
@@ -105,14 +90,76 @@
     <div class="footer-bottom">
         <p>© 2026 DOCST - Discipline Office Community Service Tracker. All rights reserved.</p>
         <p style="margin-top: 8px;">
-            <span class="secret-admin" id="secretAdminBtn" title="Admin Access (Double Click)">
+            <span class="secret-admin" id="secretAdminBtn" title="Admin Access (Double Click)" style="cursor: pointer; padding: 4px 8px; border-radius: 20px; background: rgba(0,0,0,0.05);">
                 🔧 <span style="font-size: 10px;">v1.0.0</span>
             </span>
         </p>
     </div>
 </footer>
 
-<script src="Assets/Landing/function.js"></script>
+<script>
+    // ============ DIRECT SCRIPT - NO EXTERNAL FILE NEEDED ============
+    (function() {
+        console.log('🔧 Script loaded');
+        
+        // Find the secret admin button
+        const secretAdminBtn = document.getElementById('secretAdminBtn');
+        
+        if (secretAdminBtn) {
+            console.log('✅ Secret admin button found!');
+            
+            secretAdminBtn.addEventListener('dblclick', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔐 Double click detected! Redirecting...');
+                
+                // Create notification
+                const notification = document.createElement('div');
+                notification.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        bottom: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #2563EB, #1D4ED8);
+                        color: white;
+                        padding: 14px 24px;
+                        border-radius: 12px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        z-index: 10000;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        animation: slideIn 0.3s ease;
+                    ">
+                        🔐 Redirecting to Admin Portal...
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                // Redirect to admin login
+                setTimeout(function() {
+                    window.location.href = 'Assets/Student Authentication/Admin Authentication/Admin.html';
+                }, 800);
+                
+                // Remove notification
+                setTimeout(function() {
+                    if (notification.remove) notification.remove();
+                }, 1500);
+            });
+        } else {
+            console.error('❌ Secret admin button NOT found! Check the element with id "secretAdminBtn"');
+        }
+        
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    })();
+</script>
 
 </body>
 </html>
