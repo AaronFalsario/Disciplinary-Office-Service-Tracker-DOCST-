@@ -45,7 +45,8 @@ if (secretAdminBtn) {
         document.body.appendChild(notification);
         
         setTimeout(() => {
-            window.location.href = '/Assets/Student Authentication/Admin Authentication/Admin.html';
+            // FIXED: Remove leading slash - use relative path
+            window.location.href = 'Assets/Student Authentication/Admin Authentication/Admin.html';
         }, 1000);
         
         setTimeout(() => notification.remove(), 1500);
