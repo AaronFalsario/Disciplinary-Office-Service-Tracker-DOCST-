@@ -11,9 +11,6 @@ export default defineConfig({
         // ============ ROOT ============
         main: resolve(__dirname, 'index.html'),
 
-        // ============ LANDING PAGE ============
-        landing: resolve(__dirname, 'Assets/Landing/index.html'),
-
         // ============ ADMIN DASHBOARD ============
         adminDashboard:  resolve(__dirname, 'Assets/Admin dashboard/Admin.html'),
         adminPassword:   resolve(__dirname, 'Assets/Admin dashboard/password/password.html'),
@@ -35,17 +32,6 @@ export default defineConfig({
         studentHistory:   resolve(__dirname, 'Assets/Student_Dashboard/history/history.html'),
         studentPenalties: resolve(__dirname, 'Assets/Student_Dashboard/penalties/penalties.html'),
         studentSettings:  resolve(__dirname, 'Assets/Student_Dashboard/settings/setting.html'),
-
-        // ============ JS MODULES ============
-        drawerAdmin:     resolve(__dirname, 'Assets/drawer-admin.js'),
-        adminNav:        resolve(__dirname, 'Assets/admin-nav.js'),
-
-        // ============ CSS FILES ============
-        styleMain:       resolve(__dirname, 'Assets/Admin dashboard/style.css'),
-        styleDrawer:     resolve(__dirname, 'Assets/css/styles-drawer.css'),
-        styleSettings:   resolve(__dirname, 'Assets/Admin dashboard/settings/setting.css'),
-        stylePenalties:  resolve(__dirname, 'Assets/Admin dashboard/penalties/stud.css'),
-        styleReports:    resolve(__dirname, 'Assets/Admin dashboard/report/report.css'),
       }
     }
   },
