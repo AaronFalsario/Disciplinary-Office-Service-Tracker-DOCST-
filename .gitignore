@@ -40,6 +40,14 @@ tmp/
 *.bak
 *.old
 
+# ============ BACKUP & CREDENTIAL FILES ============
+**/*.backup.js
+**/*.credentials.js
+**/*-secret.js
+**/secret-*.js
+**/config.local.*
+**/credentials.local.*
+
 # ============ OS GENERATED FILES ============
 .DS_Store
 .DS_Store?
