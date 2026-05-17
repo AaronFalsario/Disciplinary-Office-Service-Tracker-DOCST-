@@ -21,18 +21,18 @@ export default defineConfig({
         adminAppeals:    resolve(__dirname, 'Assets/Admin-dashboard/appeal/appeal.html'),
 
         // ============ STUDENT AUTH ============
-        studentAuth:     resolve(__dirname, 'Assets/Student Authentication/Student.html'),
+        studentAuth:     resolve(__dirname, 'Assets/Student-Authentication/Student.html'),
 
         // ============ ADMIN AUTH ============
-        adminLogin:      resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/Admin.html'),
-        adminUpdatePass: resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/update-password.html'),
+        adminLogin:      resolve(__dirname, 'Assets/Student-Authentication/Admin-Authentication/Admin.html'),
+        adminUpdatePass: resolve(__dirname, 'Assets/Student-Authentication/Admin-Authentication/update-password.html'),
 
         // ============ STUDENT DASHBOARD ============
-        studentDashboard: resolve(__dirname, 'Assets/Student_Dashboard/stud.html'),
-        studentAppeal:    resolve(__dirname, 'Assets/Student_Dashboard/appeal/appeal.html'),
-        studentHistory:   resolve(__dirname, 'Assets/Student_Dashboard/history/history.html'),
-        studentPenalties: resolve(__dirname, 'Assets/Student_Dashboard/penalties/penalties.html'),
-        studentSettings:  resolve(__dirname, 'Assets/Student_Dashboard/settings/setting.html'),
+        studentDashboard: resolve(__dirname, 'Assets/Student-Dashboard/stud.html'),
+        studentAppeal:    resolve(__dirname, 'Assets/Student-Dashboard/appeal/appeal.html'),
+        studentHistory:   resolve(__dirname, 'Assets/Student-Dashboard/history/history.html'),
+        studentPenalties: resolve(__dirname, 'Assets/Student-Dashboard/penalties/penalties.html'),
+        studentSettings:  resolve(__dirname, 'Assets/Student-Dashboard/settings/setting.html'),
       }
     }
   },
