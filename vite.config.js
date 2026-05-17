@@ -12,18 +12,18 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
 
         // ============ ADMIN DASHBOARD ============
-        adminDashboard:  resolve(__dirname, 'Assets/Admin dashboard/Admin.html'),
-        adminPassword:   resolve(__dirname, 'Assets/Admin dashboard/password/password.html'),
-        adminPenalties:  resolve(__dirname, 'Assets/Admin dashboard/penalties/student.html'),
-        adminReports:    resolve(__dirname, 'Assets/Admin dashboard/report/report.html'),
-        adminSettings:   resolve(__dirname, 'Assets/Admin dashboard/settings/setting.html'),
-        adminStudents:   resolve(__dirname, 'Assets/Admin dashboard/students/record.html'),
-        adminStudents:   resolve(__dirname, 'Assets/Admin dashboard/appeal/appeal.html'),
+        adminDashboard:  resolve(__dirname, 'Assets/Admin-dashboard/Admin.html'),
+        adminPassword:   resolve(__dirname, 'Assets/Admin-dashboard/password/password.html'),
+        adminPenalties:  resolve(__dirname, 'Assets/Admin-dashboard/penalties/student.html'),
+        adminReports:    resolve(__dirname, 'Assets/Admin-dashboard/report/report.html'),
+        adminSettings:   resolve(__dirname, 'Assets/Admin-dashboard/settings/setting.html'),
+        adminStudents:   resolve(__dirname, 'Assets/Admin-dashboard/students/record.html'),
+        adminAppeals:    resolve(__dirname, 'Assets/Admin-dashboard/appeal/appeal.html'),
 
         // ============ STUDENT AUTH ============
         studentAuth:     resolve(__dirname, 'Assets/Student Authentication/Student.html'),
 
-        // ============ ADMIN AUTH (inside Student Authentication folder) ============
+        // ============ ADMIN AUTH ============
         adminLogin:      resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/Admin.html'),
         adminUpdatePass: resolve(__dirname, 'Assets/Student Authentication/Admin Authentication/update-password.html'),
 
