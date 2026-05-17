@@ -15,6 +15,77 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin dashboard/penalties/stud.css">
     <base href="/">
+    <style>
+        /* Additional styles for student selector */
+        .student-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+        
+        .student-select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .selected-student-name {
+            font-size: 12px;
+            color: #10b981;
+            padding: 6px 10px;
+            background: #d1fae5;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        body.dark-mode .selected-student-name {
+            background: #064e3b;
+            color: #34d399;
+        }
+        
+        .toggle-manual-btn, .quick-add-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 6px 0;
+            transition: opacity 0.2s;
+        }
+        
+        .toggle-manual-btn:hover, .quick-add-btn:hover {
+            opacity: 0.7;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+        
+        .small-hint {
+            font-size: 11px;
+            color: #f59e0b;
+            margin-top: 4px;
+            display: block;
+        }
+        
+        body.dark-mode .small-hint {
+            color: #fbbf24;
+        }
+    </style>
 </head>
 <body>
 
@@ -163,13 +234,6 @@
             </svg>
             Delete
         </button>
-        <button class="action-btn service-btn" id="communityServiceBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            Community Service
-        </button>
     </div>
 
     <!-- Penalties Table -->
@@ -217,7 +281,7 @@
     </button>
 </nav>
 
-<!-- Add/Edit Penalty Modal -->
+<!-- Add/Edit Penalty Modal - ENHANCED with Student Selector -->
 <div class="modal-overlay" id="penaltyModal">
     <div class="modal">
         <div class="modal-header">
@@ -226,10 +290,31 @@
         </div>
         <form id="penaltyForm">
             <input type="hidden" id="penaltyId">
+            
+            <!-- Student Selection Section -->
             <div class="form-group">
-                <label>Student ID</label>
-                <input type="text" id="penaltyStudentId" required placeholder="e.g., 2024-00123">
+                <label>Select Student</label>
+                <select id="penaltyStudentSelect" class="student-select">
+                    <option value="">-- Select a student --</option>
+                </select>
+                <div id="selectedStudentName" class="selected-student-name" style="display: none;"></div>
+                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                    <button type="button" id="toggleManualEntry" class="toggle-manual-btn" style="color: var(--blue);">
+                        📝 Enter Manually
+                    </button>
+                    <button type="button" id="quickAddStudent" class="quick-add-btn" style="color: var(--green);">
+                        ➕ Student not registered? Quick Add
+                    </button>
+                </div>
             </div>
+            
+            <!-- Manual Entry Section (hidden by default) -->
+            <div id="manualEntryGroup" class="form-group" style="display: none;">
+                <label>Student ID (Manual Entry)</label>
+                <input type="text" id="penaltyStudentId" placeholder="e.g., 2024-00123">
+                <small class="small-hint">⚠️ Only use this if the student is not in the dropdown list above</small>
+            </div>
+            
             <div class="form-group">
                 <label>Violation</label>
                 <select id="penaltyViolation" required>
@@ -244,8 +329,11 @@
                     <option value="Tardiness">Tardiness</option>
                     <option value="Bullying">Bullying</option>
                     <option value="Smoking on Campus">Smoking on Campus</option>
+                    <option value="Vaping">Vaping</option>
+                    <option value="Theft">Theft</option>
                 </select>
             </div>
+            
             <div class="form-group">
                 <label>Service Type</label>
                 <select id="penaltyServiceType" required>
@@ -257,23 +345,28 @@
                     <option value="Office assistance">Office assistance</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Hours Required</label>
-                <input type="number" id="penaltyHours" required placeholder="e.g., 3" min="1">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Hours Required</label>
+                    <input type="number" id="penaltyHours" required placeholder="e.g., 5" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="penaltyStatus">
+                        <option value="pending">⏳ Pending</option>
+                        <option value="in-progress">🔄 In Progress</option>
+                        <option value="completed">✅ Completed</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Status</label>
-                <select id="penaltyStatus">
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                </select>
-            </div>
+            
             <div class="form-group">
                 <label>Deadline</label>
                 <input type="date" id="penaltyDeadline" required>
             </div>
-            <button type="submit" class="modal-submit">Save Penalty</button>
+            
+            <button type="submit" class="modal-submit">💾 Save Penalty</button>
         </form>
     </div>
 </div>

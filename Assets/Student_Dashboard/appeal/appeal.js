@@ -198,8 +198,11 @@ async function markAllAsRead() {
 function getNotificationIcon(type) {
     switch(type) {
         case 'penalty': return 'fa-gavel'
+        case 'appeal': return 'fa-gavel'
         case 'report': return 'fa-file-alt'
         case 'deadline': return 'fa-hourglass-half'
+        case 'success': return 'fa-check-circle'
+        case 'warning': return 'fa-exclamation-triangle'
         default: return 'fa-bell'
     }
 }
@@ -311,6 +314,43 @@ function initNotification() {
     }
 }
 
+// ============ CREATE ADMIN NOTIFICATION WHEN STUDENT SUBMITS APPEAL ============
+async function createAdminNotifications(appealData) {
+    try {
+        // Get all admins
+        const { data: admins, error: adminsError } = await supabase
+            .from('admins')
+            .select('admin_id')
+        
+        if (adminsError) throw adminsError
+        
+        if (!admins || admins.length === 0) {
+            console.log('No admins found to notify')
+            return
+        }
+        
+        // Create notification for each admin
+        for (const admin of admins) {
+            const { error } = await supabase
+                .from('notifications')
+                .insert([{
+                    admin_id: admin.admin_id,
+                    title: 'New Appeal Submitted',
+                    message: `${appealData.student_name} (${appealData.student_id}) has submitted an appeal for ${appealData.violation}`,
+                    type: 'appeal',
+                    is_read: false,
+                    created_at: new Date().toISOString()
+                }])
+            
+            if (error) console.error('Error creating admin notification:', error)
+        }
+        
+        console.log(`Admin notifications created for new appeal from ${appealData.student_name}`)
+    } catch (error) {
+        console.error('Error creating admin notifications:', error)
+    }
+}
+
 // Populate penalty dropdown
 function populatePenaltyDropdown() {
     const select = document.getElementById('penaltySelect')
@@ -355,7 +395,7 @@ function setupPenaltySelectListener() {
     })
 }
 
-// Submit appeal
+// Submit appeal with admin notification
 async function submitAppeal() {
     const penaltySelect = document.getElementById('penaltySelect')
     const appealReason = document.getElementById('appealReason')
@@ -378,23 +418,54 @@ async function submitAppeal() {
         return
     }
     
+    // Show loading state
+    const submitBtn = document.getElementById('submitAppealBtn')
+    const originalText = submitBtn?.innerHTML
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'
+        submitBtn.disabled = true
+    }
+    
     try {
+        // Insert appeal into database
         const { data, error } = await supabase
             .from('appeals')
             .insert([{
                 student_id: currentStudent.studentId,
                 student_name: currentStudent.name,
+                student_email: currentStudent.email || '',
                 penalty_id: selectedPenalty.id,
                 penalty_violation: selectedPenalty.violation,
                 penalty_hours: selectedPenalty.hours,
+                penalty_deadline: selectedPenalty.deadline,
                 appeal_reason: appealReason.value.trim(),
                 supporting_statement: supportingStatement.value.trim() || null,
                 status: 'pending',
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
+                submitted_at: new Date().toISOString()
             }])
             .select()
         
         if (error) throw error
+        
+        // Create notification for admins
+        await createAdminNotifications({
+            student_name: currentStudent.name,
+            student_id: currentStudent.studentId,
+            violation: selectedPenalty.violation
+        })
+        
+        // Create confirmation notification for student
+        await supabase
+            .from('notifications')
+            .insert([{
+                student_id: currentStudent.studentId,
+                title: 'Appeal Submitted',
+                message: `Your appeal for ${selectedPenalty.violation} has been submitted and is pending review.`,
+                type: 'appeal',
+                is_read: false,
+                created_at: new Date().toISOString()
+            }])
         
         showToast('Appeal submitted successfully!', 'success')
         
@@ -406,13 +477,23 @@ async function submitAppeal() {
         document.getElementById('violationHours').textContent = '—'
         document.getElementById('violationDeadline').textContent = '—'
         
-        // Refresh appeals list
+        // Refresh data
+        await loadPenalties()
         await loadAppeals()
+        await loadNotifications()
+        
+        populatePenaltyDropdown()
         renderAppealsTable()
         
     } catch (error) {
         console.error('Error submitting appeal:', error)
         showToast('Failed to submit appeal. Please try again.', 'error')
+    } finally {
+        // Reset button state
+        if (submitBtn) {
+            submitBtn.innerHTML = originalText
+            submitBtn.disabled = false
+        }
     }
 }
 
@@ -439,17 +520,17 @@ function renderAppealsTable() {
         
         if (appeal.status === 'approved') {
             statusClass = 'status-approved'
-            statusText = 'Approved'
+            statusText = 'Approved ✓'
         } else if (appeal.status === 'rejected') {
             statusClass = 'status-rejected'
-            statusText = 'Rejected'
+            statusText = 'Rejected ✗'
         }
         
         return `
             <tr>
                 <td>${formatDate(appeal.created_at)}</span>
                 <td><strong>${escapeHtml(appeal.penalty_violation)}</strong></td>
-                <td>${escapeHtml(appeal.appeal_reason.substring(0, 60))}${appeal.appeal_reason.length > 60 ? '...' : ''}</span>
+                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}</span>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'}</span>
             </tr>

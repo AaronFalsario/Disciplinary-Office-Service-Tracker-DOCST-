@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>DOCST — Appeal History</title>
+    <script>
+        if (localStorage.getItem('docst_dark_mode') === 'enabled') {
+            document.documentElement.classList.add('dark-mode');
+            document.body?.classList.add('dark-mode');
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/Assets/Admin dashboard/appeal/appeal.css">
+    <base href="/">
+</head>
+<body>
+
+<!-- ============ DRAWER - USING drawer-admin.js ============ -->
+<div class="drawer-overlay" id="overlay"></div>
+<nav class="drawer" id="drawer">
+    <div class="drawer-header">
+        <button class="drawer-close" id="drawerClose">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+        <div class="drawer-profile">
+            <div class="drawer-avatar" id="drawerAvatar">
+                <span id="avatarInitials">AD</span>
+            </div>
+            <div class="drawer-info">
+                <div class="drawer-name" id="drawerAdminName">Administrator</div>
+                <div class="drawer-role">Disciplinary Officer</div>
+            </div>
+            <span class="drawer-badge" id="drawerAdminId">Admin</span>
+        </div>
+    </div>
+    <div class="drawer-nav">
+        <div class="drawer-nav-main" id="drawerNavMain">
+            <!-- Populated by drawer-admin.js -->
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button class="drawer-logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</nav>
+
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="brand">
+            <div class="brand-logo">
+                <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
+            </div>
+            <div>
+                <span class="brand-name">DOCST</span>
+                <span class="brand-tagline">Appeal Management</span>
+            </div>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="icon-btn" id="darkModeToggle">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="icon-btn" id="notifyBtn">
+            <i class="fas fa-bell"></i>
+        </button>
+        <button class="admin-pill" id="adminPill">Admin</button>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="appeals-main">
+    <div class="page-header">
+        <h1 class="page-title">Appeal History</h1>
+        <p class="page-sub">Review and manage student appeals for penalties and violations</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-inbox"></i></div>
+            <div class="stat-info">
+                <div class="stat-number" id="totalAppeals">0</div>
+                <div class="stat-label">Total Appeals</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <div class="stat-number" id="pendingAppeals">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-number" id="approvedAppeals">0</div>
+                <div class="stat-label">Approved</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-number" id="rejectedAppeals">0</div>
+                <div class="stat-label">Rejected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="appeals-tabs">
+        <button class="tab-btn active" data-status="all">All Appeals</button>
+        <button class="tab-btn" data-status="pending">Pending</button>
+        <button class="tab-btn" data-status="in-review">In Review</button>
+        <button class="tab-btn" data-status="approved">Approved</button>
+        <button class="tab-btn" data-status="rejected">Rejected</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchAppeals" placeholder="Search by student ID, name, or violation...">
+        </div>
+        <select id="filterPenalty" class="filter-select">
+            <option value="">All Penalties</option>
+        </select>
+    </div>
+
+    <!-- Appeals Table -->
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Violation</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="appealsTableBody">
+                <tr><td colspan="7" class="empty-state"><div class="empty-icon">📭</div><div>No appeals found</div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- Bottom Navigation (Mobile) -->
+<nav class="bottom-nav">
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
+        <i class="fas fa-chart-line"></i>
+        <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/students/record.html'">
+        <i class="fas fa-users"></i>
+        <span>Students</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/penalties/student.html'">
+        <i class="fas fa-gavel"></i>
+        <span>Penalties</span>
+    </button>
+    <button class="bottom-nav-item active">
+        <i class="fas fa-gavel"></i>
+        <span>Appeals</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/report/report.html'">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
+    </button>
+    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/settings/setting.html'">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+    </button>
+</nav>
+
+<script type="module" src="/Assets/Admin dashboard/appeal/apeeal.js"></script>
+</body>
+</html>

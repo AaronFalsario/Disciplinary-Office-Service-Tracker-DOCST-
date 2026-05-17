@@ -22,6 +22,11 @@ const adminNavItems = [
         href: '/Assets/Admin dashboard/penalties/student.html'
     },
     { 
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>', 
+        label: 'Appeals', 
+        href: '/Assets/Admin dashboard/appeal/appeal.html'
+    },
+    { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>', 
         label: 'Reports', 
         href: '/Assets/Admin dashboard/report/report.html'
@@ -36,11 +41,17 @@ const adminNavItems = [
 // ============ ACTIVE PAGE DETECTION ============
 function getActiveAdminLabel() {
     const path = window.location.pathname;
+    console.log('Current path:', path); // Debug log
+    
     if (path.includes('Admin.html') || path.endsWith('/Admin dashboard/')) return 'Dashboard';
     if (path.includes('record.html')) return 'Users';
+    if (path.includes('penalties') && path.includes('student.html')) return 'Penalties';
     if (path.includes('student.html') && path.includes('penalties')) return 'Penalties';
+    // Fix: Detect Appeals page - check for appeal in the path
+    if (path.includes('appeal') || path.includes('appeal.html') || path.includes('/appeal/')) return 'Appeals';
     if (path.includes('report.html')) return 'Reports';
     if (path.includes('setting.html')) return 'Settings';
+    
     return '';
 }
 
@@ -74,6 +85,7 @@ function setupAdminDrawer(adminName, adminId) {
     }
 
     const activeLabel = getActiveAdminLabel();
+    console.log('Active label:', activeLabel); // Debug log
     drawerNav.innerHTML = '';
 
     adminNavItems.forEach((item, index) => {
@@ -88,7 +100,8 @@ function setupAdminDrawer(adminName, adminId) {
 
         drawerNav.appendChild(button);
 
-        if (item.label === 'Penalties' && index < adminNavItems.length - 1) {
+        // Add divider after Penalties
+        if (item.label === 'Penalties') {
             const divider = document.createElement('hr');
             divider.className = 'drawer-divider';
             drawerNav.appendChild(divider);
@@ -124,7 +137,192 @@ function getCurrentAdmin() {
     }
 }
 
-// ============ LOGOUT ============
+// ============ LOGOUT TOAST FUNCTIONS ============
+let logoutToastContainer = null;
+
+function getLogoutToastContainer() {
+    if (!logoutToastContainer) {
+        logoutToastContainer = document.querySelector('.logout-toast-container');
+        if (!logoutToastContainer) {
+            logoutToastContainer = document.createElement('div');
+            logoutToastContainer.className = 'logout-toast-container';
+            document.body.appendChild(logoutToastContainer);
+        }
+    }
+    return logoutToastContainer;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showLogoutToast(message, type = 'info', title = null) {
+    const container = getLogoutToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `logout-toast logout-toast-${type}`;
+    
+    let iconHtml = '';
+    let defaultTitle = '';
+    
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            defaultTitle = 'Logged Out';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-sign-out-alt"></i>';
+            defaultTitle = 'Goodbye';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            defaultTitle = 'Error';
+            break;
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            defaultTitle = 'Information';
+    }
+    
+    const finalTitle = title || defaultTitle;
+    
+    toast.innerHTML = `
+        <div class="logout-toast-icon">${iconHtml}</div>
+        <div class="logout-toast-content">
+            <div class="logout-toast-title">${escapeHtml(finalTitle)}</div>
+            <div class="logout-toast-message">${escapeHtml(message)}</div>
+        </div>
+        <div class="logout-toast-progress"></div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('logout-toast-show');
+    }, 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('logout-toast-show');
+        toast.classList.add('logout-toast-hide');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 300);
+    }, 3000);
+    
+    return toast;
+}
+
+// ============ LOGOUT CONFIRMATION MODAL ============
+function showLogoutConfirmation() {
+    // Remove any existing modal
+    const existingModal = document.querySelector('.logout-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.innerHTML = `
+        <div class="logout-modal-content">
+            <div class="logout-modal-header">
+                <i class="fas fa-sign-out-alt"></i>
+                <h3>Confirm Logout</h3>
+            </div>
+            <div class="logout-modal-body">
+                <p>Are you sure you want to logout?</p>
+                <p class="logout-modal-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    You will need to login again to access the dashboard.
+                </p>
+            </div>
+            <div class="logout-modal-footer">
+                <button class="logout-modal-cancel">Cancel</button>
+                <button class="logout-modal-confirm">Yes, Logout</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle close
+    const cancelBtn = modal.querySelector('.logout-modal-cancel');
+    const confirmBtn = modal.querySelector('.logout-modal-confirm');
+    
+    cancelBtn.onclick = () => {
+        modal.classList.add('fade-out');
+        setTimeout(() => modal.remove(), 300);
+    };
+    
+    confirmBtn.onclick = async () => {
+        modal.classList.add('fade-out');
+        setTimeout(() => modal.remove(), 300);
+        await performLogout();
+    };
+    
+    // Close on outside click
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.classList.add('fade-out');
+            setTimeout(() => modal.remove(), 300);
+        }
+    };
+}
+
+// ============ PERFORM LOGOUT ============
+async function performLogout() {
+    try {
+        const admin = getCurrentAdmin();
+        const adminName = admin?.full_name || admin?.name || admin?.fullName || 'User';
+        
+        // Show loading state on logout button if it exists
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+            logoutBtn.disabled = true;
+        }
+        
+        // Clear all stored data
+        localStorage.removeItem('currentAdmin');
+        localStorage.removeItem('currentStudent');
+        localStorage.removeItem('hasSeenWelcomeNotification');
+        sessionStorage.removeItem('lastSessionId');
+        sessionStorage.removeItem('supabase.auth.token');
+        
+        // Show beautiful logout toast
+        showLogoutToast(
+            `See you next time, ${adminName}! 👋`,
+            'warning',
+            'Logged Out Successfully'
+        );
+        
+        // Redirect after toast is visible
+        setTimeout(() => {
+            window.location.href = '/Assets/Landing/index.html';
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        showLogoutToast(
+            'Failed to logout. Please try again.',
+            'error',
+            'Logout Failed'
+        );
+        
+        // Reset button state
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+            logoutBtn.disabled = false;
+        }
+    }
+}
+
+// ============ LOGOUT SETUP ============
 function setupAdminLogout(logoutBtnId) {
     const logoutBtn = document.getElementById(logoutBtnId);
     if (!logoutBtn) return;
@@ -132,12 +330,9 @@ function setupAdminLogout(logoutBtnId) {
     const newBtn = logoutBtn.cloneNode(true);
     logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
 
-    newBtn.addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to logout?')) return;
-        
-        localStorage.removeItem('currentAdmin');
-        localStorage.removeItem('currentStudent');
-        window.location.href = '/';
+    newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLogoutConfirmation();
     });
 }
 
@@ -162,9 +357,9 @@ function setupAdminDrawerControls() {
         document.body.classList.remove('drawer-open');
     }
 
-    hamburger?.addEventListener('click', openDrawer);
-    drawerClose?.addEventListener('click', closeDrawer);
-    overlay?.addEventListener('click', closeDrawer);
+    if (hamburger) hamburger.addEventListener('click', openDrawer);
+    if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
 
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeDrawer();
@@ -189,5 +384,8 @@ export {
     setupAdminDrawerControls, 
     getCurrentAdmin,
     initAdminDrawer,
-    formatAdminId
+    formatAdminId,
+    showLogoutConfirmation,
+    performLogout,
+    showLogoutToast
 };

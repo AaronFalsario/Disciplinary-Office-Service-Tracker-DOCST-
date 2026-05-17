@@ -18,6 +18,7 @@ export default defineConfig({
         adminReports:    resolve(__dirname, 'Assets/Admin dashboard/report/report.html'),
         adminSettings:   resolve(__dirname, 'Assets/Admin dashboard/settings/setting.html'),
         adminStudents:   resolve(__dirname, 'Assets/Admin dashboard/students/record.html'),
+        adminStudents:   resolve(__dirname, 'Assets/Admin dashboard/appeal/appeal.html'),
 
         // ============ STUDENT AUTH ============
         studentAuth:     resolve(__dirname, 'Assets/Student Authentication/Student.html'),

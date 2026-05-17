@@ -15,6 +15,721 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+// ============ ADD LOGOUT TOAST STYLES ============
+const logoutToastStyles = document.createElement('style');
+logoutToastStyles.textContent = `
+    /* Logout Toast Container */
+    .logout-toast-container {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        pointer-events: none;
+    }
+    
+    /* Logout Toast */
+    .logout-toast {
+        min-width: 320px;
+        max-width: 400px;
+        background: white;
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        transform: translateY(30px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        pointer-events: auto;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .logout-toast-show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .logout-toast-hide {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    
+    /* Dark mode support */
+    .dark-mode .logout-toast {
+        background: #1e1e2e;
+        color: #e0e0e0;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Toast types */
+    .logout-toast-warning {
+        border-left: 4px solid #f59e0b;
+    }
+    
+    .logout-toast-success {
+        border-left: 4px solid #10b981;
+    }
+    
+    .logout-toast-error {
+        border-left: 4px solid #ef4444;
+    }
+    
+    /* Toast icon */
+    .logout-toast-icon {
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+    
+    .logout-toast-warning .logout-toast-icon {
+        color: #f59e0b;
+    }
+    
+    .logout-toast-success .logout-toast-icon {
+        color: #10b981;
+    }
+    
+    .logout-toast-error .logout-toast-icon {
+        color: #ef4444;
+    }
+    
+    /* Toast content */
+    .logout-toast-content {
+        flex: 1;
+    }
+    
+    .logout-toast-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+    
+    .logout-toast-message {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    /* Progress bar */
+    .logout-toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        animation: progressShrink 3s linear forwards;
+    }
+    
+    .logout-toast-success .logout-toast-progress {
+        background: linear-gradient(90deg, #10b981, #34d399);
+    }
+    
+    .logout-toast-error .logout-toast-progress {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+    
+    @keyframes progressShrink {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+    
+    /* Logout Modal */
+    .logout-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .logout-modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .dark-mode .logout-modal-content {
+        background: #1e1e2e;
+        color: #e0e0e0;
+    }
+    
+    .logout-modal-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+        text-align: center;
+    }
+    
+    .logout-modal-header i {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+    
+    .logout-modal-header h3 {
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .logout-modal-body {
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .logout-modal-body p {
+        margin: 10px 0;
+        font-size: 16px;
+    }
+    
+    .logout-modal-warning {
+        color: #dc2626;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    
+    .dark-mode .logout-modal-warning {
+        color: #f87171;
+    }
+    
+    .logout-modal-footer {
+        padding: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .logout-modal-footer button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .logout-modal-cancel {
+        background: #e5e7eb;
+        color: #374151;
+    }
+    
+    .logout-modal-cancel:hover {
+        background: #d1d5db;
+        transform: translateY(-1px);
+    }
+    
+    .logout-modal-confirm {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+    }
+    
+    .logout-modal-confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+    }
+    
+    .dark-mode .logout-modal-cancel {
+        background: #374151;
+        color: #e5e7eb;
+    }
+    
+    .dark-mode .logout-modal-cancel:hover {
+        background: #4b5563;
+    }
+    
+    /* Button loading state */
+    #logoutBtn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    #logoutBtn .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+`;
+document.head.appendChild(logoutToastStyles);
+
+// ============ TOAST NOTIFICATION SYSTEM ============
+let toastContainer = null;
+
+function getToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+    }
+    return toastContainer;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function removeToast(toast) {
+    toast.classList.add('toast-removing');
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 250);
+}
+
+function showToast(message, type = 'info', title = null, duration = 4000) {
+    const container = getToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let iconHtml = '';
+    let defaultTitle = '';
+    
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            defaultTitle = 'Success';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            defaultTitle = 'Error';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            defaultTitle = 'Warning';
+            break;
+        case 'info':
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            defaultTitle = 'Information';
+            break;
+    }
+    
+    const finalTitle = title || defaultTitle;
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${iconHtml}</div>
+        <div class="toast-content">
+            <div class="toast-title">${escapeHtml(finalTitle)}</div>
+            <div class="toast-message">${escapeHtml(message)}</div>
+        </div>
+        <button class="toast-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    container.appendChild(toast);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeToast(toast);
+    });
+    
+    toast.addEventListener('click', (e) => {
+        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+            removeToast(toast);
+        }
+    });
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            if (toast.parentElement) {
+                removeToast(toast);
+            }
+        }, duration);
+    }
+    
+    return toast;
+}
+
+function showSuccessToast(message, title = 'Success', duration = 4000) {
+    return showToast(message, 'success', title, duration);
+}
+
+function showErrorToast(message, title = 'Error', duration = 5000) {
+    return showToast(message, 'error', title, duration);
+}
+
+function showWarningToast(message, title = 'Warning', duration = 4000) {
+    return showToast(message, 'warning', title, duration);
+}
+
+function showInfoToast(message, title = 'Information', duration = 3000) {
+    return showToast(message, 'info', title, duration);
+}
+
+// ============ LOGOUT TOAST FUNCTIONS ============
+let logoutToastContainer = null;
+
+function getLogoutToastContainer() {
+    if (!logoutToastContainer) {
+        logoutToastContainer = document.querySelector('.logout-toast-container');
+        if (!logoutToastContainer) {
+            logoutToastContainer = document.createElement('div');
+            logoutToastContainer.className = 'logout-toast-container';
+            document.body.appendChild(logoutToastContainer);
+        }
+    }
+    return logoutToastContainer;
+}
+
+function showLogoutToast(message, type = 'info', title = null) {
+    const container = getLogoutToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `logout-toast logout-toast-${type}`;
+    
+    let iconHtml = '';
+    let defaultTitle = '';
+    
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            defaultTitle = 'Logged Out';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-sign-out-alt"></i>';
+            defaultTitle = 'Goodbye';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            defaultTitle = 'Error';
+            break;
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            defaultTitle = 'Information';
+    }
+    
+    const finalTitle = title || defaultTitle;
+    
+    toast.innerHTML = `
+        <div class="logout-toast-icon">${iconHtml}</div>
+        <div class="logout-toast-content">
+            <div class="logout-toast-title">${escapeHtml(finalTitle)}</div>
+            <div class="logout-toast-message">${escapeHtml(message)}</div>
+        </div>
+        <div class="logout-toast-progress"></div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.add('logout-toast-show');
+    }, 10);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('logout-toast-show');
+        toast.classList.add('logout-toast-hide');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 300);
+    }, 3000);
+    
+    return toast;
+}
+
+// ============ NOTIFICATION SYSTEM ============
+let unreadNotifications = [];
+let notificationInterval = null;
+
+async function fetchNotifications() {
+    try {
+        const admin = getCurrentAdmin();
+        if (!admin) return [];
+        
+        // Fetch notifications from Supabase
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(10);
+        
+        if (error) throw error;
+        
+        unreadNotifications = data || [];
+        updateNotificationBadge();
+        return unreadNotifications;
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+}
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notificationBadge');
+    const count = unreadNotifications.length;
+    
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function showNotificationToast(notification) {
+    const type = notification.type || 'info';
+    const title = notification.title || 'New Notification';
+    const message = notification.message || '';
+    
+    showToast(message, type, title, 5000);
+}
+
+async function checkNewNotifications() {
+    const previousCount = unreadNotifications.length;
+    await fetchNotifications();
+    
+    // If there are new notifications, show toast for each
+    if (unreadNotifications.length > previousCount) {
+        const newNotifications = unreadNotifications.slice(0, unreadNotifications.length - previousCount);
+        newNotifications.forEach(notif => {
+            showNotificationToast(notif);
+        });
+    }
+}
+
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval);
+    
+    // Fetch immediately
+    fetchNotifications();
+    
+    // Poll every 30 seconds
+    notificationInterval = setInterval(() => {
+        checkNewNotifications();
+    }, 30000);
+}
+
+function stopNotificationPolling() {
+    if (notificationInterval) {
+        clearInterval(notificationInterval);
+        notificationInterval = null;
+    }
+}
+
+async function markNotificationAsRead(notificationId) {
+    try {
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .eq('id', notificationId);
+        
+        if (error) throw error;
+        
+        unreadNotifications = unreadNotifications.filter(n => n.id !== notificationId);
+        updateNotificationBadge();
+        
+        showSuccessToast('Notification marked as read', 'Updated');
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+    }
+}
+
+async function markAllNotificationsAsRead() {
+    if (unreadNotifications.length === 0) return;
+    
+    try {
+        const admin = getCurrentAdmin();
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('is_read', false);
+        
+        if (error) throw error;
+        
+        unreadNotifications = [];
+        updateNotificationBadge();
+        showSuccessToast('All notifications marked as read', 'Cleared');
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+        showErrorToast('Failed to clear notifications', 'Error');
+    }
+}
+
+function showNotificationPanel() {
+    // Check if panel exists, create if not
+    let panel = document.getElementById('notificationPanel');
+    
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'notificationPanel';
+        panel.className = 'notification-panel';
+        panel.innerHTML = `
+            <div class="notification-header">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <button id="clearAllNotifications" class="clear-all-btn">Clear All</button>
+                <button id="closeNotificationPanel" class="close-panel-btn">&times;</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+                <div class="loading-notifications">Loading...</div>
+            </div>
+        `;
+        document.body.appendChild(panel);
+        
+        // Add event listeners
+        document.getElementById('closeNotificationPanel')?.addEventListener('click', () => {
+            panel.classList.remove('show');
+        });
+        
+        document.getElementById('clearAllNotifications')?.addEventListener('click', () => {
+            markAllNotificationsAsRead();
+            renderNotificationList();
+        });
+        
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (panel.classList.contains('show') && 
+                !panel.contains(e.target) && 
+                !e.target.closest('#notifyBtn')) {
+                panel.classList.remove('show');
+            }
+        });
+    }
+    
+    renderNotificationList();
+    panel.classList.add('show');
+}
+
+async function renderNotificationList() {
+    const listContainer = document.getElementById('notificationList');
+    if (!listContainer) return;
+    
+    await fetchNotifications();
+    
+    if (unreadNotifications.length === 0) {
+        listContainer.innerHTML = `
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications</p>
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = unreadNotifications.map(notif => `
+        <div class="notification-item ${notif.type}" data-id="${notif.id}">
+            <div class="notification-icon">
+                <i class="fas ${getNotificationIcon(notif.type)}"></i>
+            </div>
+            <div class="notification-details">
+                <div class="notification-title">${escapeHtml(notif.title || 'Notification')}</div>
+                <div class="notification-message">${escapeHtml(notif.message)}</div>
+                <div class="notification-time">${formatRelativeTime(new Date(notif.created_at))}</div>
+            </div>
+            <button class="mark-read-btn" data-id="${notif.id}">
+                <i class="fas fa-check"></i>
+            </button>
+        </div>
+    `).join('');
+    
+    // Add event listeners to mark as read buttons
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            await markNotificationAsRead(id);
+            renderNotificationList();
+        });
+    });
+    
+    // Add click to mark as read on item click
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+            if (!e.target.closest('.mark-read-btn')) {
+                const id = item.dataset.id;
+                await markNotificationAsRead(id);
+                renderNotificationList();
+            }
+        });
+    });
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
+
+// Create a sample notification (for testing)
+async function createSampleNotification() {
+    const admin = getCurrentAdmin();
+    if (!admin) return;
+    
+    const { error } = await supabase
+        .from('notifications')
+        .insert({
+            admin_id: admin.admin_id,
+            title: 'Welcome to Dashboard',
+            message: 'Your admin dashboard is ready. Start managing student records!',
+            type: 'success',
+            is_read: false,
+            created_at: new Date().toISOString()
+        });
+    
+    if (error) {
+        console.error('Error creating sample notification:', error);
+    } else {
+        showSuccessToast('Welcome to your admin dashboard!', 'Welcome', 5000);
+        fetchNotifications();
+    }
+}
+
 // ============ ADMIN AUTH CHECK ============
 async function checkAdminAuth() {
     try {
@@ -22,6 +737,7 @@ async function checkAdminAuth() {
         
         if (sessionError || !session) {
             console.log('No session found - unauthorized access');
+            showErrorToast('No active session. Please login again.', 'Unauthorized');
             redirectToUnauthorized();
             return false;
         }
@@ -37,17 +753,30 @@ async function checkAdminAuth() {
         
         if (adminError || !adminData) {
             console.log('User is not an admin - access denied');
+            showErrorToast('Access denied. Admin privileges required.', 'Access Denied');
             redirectToUnauthorized();
             return false;
         }
         
         if (adminData.status !== 'active') {
             console.log('Admin account is inactive');
+            showErrorToast('Your account is inactive. Please contact support.', 'Account Inactive');
             redirectToUnauthorized();
             return false;
         }
         
         console.log('✅ Admin authorized:', adminData.full_name);
+        
+        // Check if this is a new session (just logged in)
+        const currentSessionId = session.access_token;
+        const lastSessionId = sessionStorage.getItem('lastSessionId');
+        const isNewSession = (lastSessionId !== currentSessionId);
+        
+        if (isNewSession) {
+            // Only show welcome toast on first load of a new session
+            showSuccessToast(`Welcome back, ${adminData.full_name}!`, 'Login Successful', 3000);
+            sessionStorage.setItem('lastSessionId', currentSessionId);
+        }
         
         // Store admin info
         localStorage.setItem('currentAdmin', JSON.stringify({
@@ -69,6 +798,7 @@ async function checkAdminAuth() {
         
     } catch (error) {
         console.error('Auth check error:', error);
+        showErrorToast('Authentication error. Please try again.', 'Error');
         redirectToUnauthorized();
         return false;
     }
@@ -77,6 +807,7 @@ async function checkAdminAuth() {
 function redirectToUnauthorized() {
     showUnauthorizedNotification();
     localStorage.removeItem('currentAdmin');
+    sessionStorage.removeItem('lastSessionId');
     
     setTimeout(() => {
         window.location.href = '/Assets/Landing/index.html';
@@ -264,8 +995,7 @@ function updateRecentPenalties() {
                 <td colspan="5" class="empty-state">
                     <div class="empty-icon">⚠️</div>
                     <div>No penalty records found</div>
-                </div>
-                </span>
+                </td>
             </tr>
         `;
         return;
@@ -274,10 +1004,10 @@ function updateRecentPenalties() {
     tbody.innerHTML = recentPenalties.map(p => `
         <tr>
             <td><strong>${escapeHtml(p.student_id || 'N/A')}</strong></td>
-            <td>${escapeHtml(p.violation)}</span></td>
-            <td>${p.hours || 0} hrs</span></td>
-            <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status || 'pending'}</span></span></td>
-            <td>${formatDate(p.deadline)}</span></td>
+            <td>${escapeHtml(p.violation)}</td>
+            <td>${p.hours || 0} hrs</td>
+            <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status || 'pending'}</span></td>
+            <td>${formatDate(p.deadline)}</td>
         </tr>
     `).join('');
 }
@@ -450,13 +1180,6 @@ function formatRelativeTime(date) {
     return date.toLocaleDateString();
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 // ============ REFRESH ALL DASHBOARD DATA ============
 async function refreshDashboard() {
     console.log('🔄 Refreshing dashboard data from Supabase...');
@@ -490,17 +1213,7 @@ function setupDarkModeToggle() {
         const nowDark = document.body.classList.contains('dark-mode');
         localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
         updateDarkModeIcon(darkModeBtn, nowDark);
-        
-        const notification = document.createElement('div');
-        notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
-        notification.style.cssText = `
-            position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
-            background: ${nowDark ? '#1E293B' : '#2563EB'}; color: white;
-            border-radius: 8px; font-size: 13px; z-index: 10000;
-            animation: fadeInOut 2s ease;
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 2000);
+        showInfoToast(nowDark ? 'Dark mode enabled' : 'Light mode enabled', 'Display Mode', 2000);
     };
 }
 
@@ -543,7 +1256,7 @@ document.head.appendChild(darkModeStyle);
 const notifyBtn = document.getElementById('notifyBtn');
 if (notifyBtn) {
     notifyBtn.addEventListener('click', () => {
-        alert('🔔 No new notifications at this time.');
+        showNotificationPanel();
     });
 }
 
@@ -562,8 +1275,21 @@ async function init() {
     await loadAdminName();
     await refreshDashboard();
     
+    // Start notification system
+    startNotificationPolling();
+    
+    // Create welcome notification (only once)
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeNotification');
+    if (!hasSeenWelcome) {
+        setTimeout(() => {
+            createSampleNotification();
+            localStorage.setItem('hasSeenWelcomeNotification', 'true');
+        }, 1500);
+    }
+    
     setInterval(refreshDashboard, 90000);
 }
+
 // ============ DRAWER STATE TRACKING FOR MOBILE BOTTOM NAV ============
 (function() {
     const drawer = document.getElementById('drawer');
@@ -614,4 +1340,4 @@ async function init() {
 
 init();
 
-export { supabase };
+export { supabase, showLogoutToast };

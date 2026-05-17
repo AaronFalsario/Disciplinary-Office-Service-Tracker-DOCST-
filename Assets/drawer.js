@@ -100,7 +100,7 @@ function getInitials(name) {
 }
 
 // ============ MOBILE DRAWER CONTROLS ============
-function initDrawer() {
+function initDrawerControls() {
     const overlay    = document.getElementById('overlay');
     const drawer     = document.getElementById('drawer');
     const hamburger  = document.getElementById('hamburger');
@@ -110,17 +110,19 @@ function initDrawer() {
         drawer?.classList.add('open');
         overlay?.classList.add('open');
         document.body.style.overflow = 'hidden';
+        document.body.classList.add('drawer-open');
     }
 
     function closeDrawer() {
         drawer?.classList.remove('open');
         overlay?.classList.remove('open');
         document.body.style.overflow = '';
+        document.body.classList.remove('drawer-open');
     }
 
-    hamburger?.addEventListener('click', e => { e.stopPropagation(); openDrawer(); });
-    drawerClose?.addEventListener('click', closeDrawer);
-    overlay?.addEventListener('click', closeDrawer);
+    if (hamburger) hamburger.addEventListener('click', (e) => { e.stopPropagation(); openDrawer(); });
+    if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
 
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeDrawer();
@@ -131,11 +133,24 @@ function initDrawer() {
     });
 }
 
+// ============ GET CURRENT STUDENT FROM STORAGE ============
+function getCurrentStudent() {
+    try {
+        const stored = localStorage.getItem('currentStudent');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 // ============ MAIN EXPORT ============
 export function setupDrawer(studentName, studentId) {
     updateDrawerProfile(studentName, studentId);
     renderDrawerNavigation();
-    initDrawer();
+    initDrawerControls();
 }
 
 // ============ LOGOUT ============
@@ -147,17 +162,52 @@ export function setupLogout(logoutBtnId = 'logoutBtn') {
     logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
 
     newBtn.addEventListener('click', async () => {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-            import.meta.env.VITE_SUPABASE_URL,
-            import.meta.env.VITE_SUPABASE_ANON_KEY
-        );
+        // Show confirmation
+        if (!confirm('Are you sure you want to logout?')) return;
+        
+        try {
+            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.0');
+            const supabase = createClient(
+                import.meta.env.VITE_SUPABASE_URL,
+                import.meta.env.VITE_SUPABASE_ANON_KEY
+            );
 
-        await supabase.auth.signOut();
-        localStorage.removeItem('currentStudent');
-        localStorage.removeItem('currentAdmin');
-        window.location.href = '/'; // ✅ correct Vercel root
+            await supabase.auth.signOut();
+            localStorage.removeItem('currentStudent');
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('hasSeenWelcomeNotification');
+            sessionStorage.clear();
+            
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('Failed to logout. Please try again.');
+            
+            // Reset button state
+            const btn = document.getElementById(logoutBtnId);
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                btn.disabled = false;
+            }
+        }
     });
+}
+
+// Auto-initialize drawer when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const student = getCurrentStudent();
+        const studentName = student?.name || student?.full_name || 'Student';
+        const studentId = student?.studentId || student?.id;
+        setupDrawer(studentName, studentId);
+        setupLogout('logoutBtn');
+    });
+} else {
+    const student = getCurrentStudent();
+    const studentName = student?.name || student?.full_name || 'Student';
+    const studentId = student?.studentId || student?.id;
+    setupDrawer(studentName, studentId);
+    setupLogout('logoutBtn');
 }
 
 requestAnimationFrame(() => {

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin } from '/Assets/drawer-admin.js';
+import { setupAdminDrawer, setupAdminLogout, setupAdminDrawerControls, getCurrentAdmin, showLogoutConfirmation } from '/Assets/drawer-admin.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -10,7 +10,503 @@ let editingStudentId = null;
 let currentAdmin = null;
 let searchTerm = '';
 
-// ============ DARK MODE - USING YOUR FUNCTION ============
+// ============ TOAST NOTIFICATION SYSTEM ============
+let toastContainer = null;
+
+function getToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+    }
+    return toastContainer;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function removeToast(toast) {
+    toast.classList.add('toast-removing');
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 250);
+}
+
+function showToast(message, type = 'info', title = null, duration = 4000) {
+    const container = getToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let iconHtml = '';
+    let defaultTitle = '';
+    
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            defaultTitle = 'Success';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            defaultTitle = 'Error';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            defaultTitle = 'Warning';
+            break;
+        case 'info':
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            defaultTitle = 'Information';
+            break;
+    }
+    
+    const finalTitle = title || defaultTitle;
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${iconHtml}</div>
+        <div class="toast-content">
+            <div class="toast-title">${escapeHtml(finalTitle)}</div>
+            <div class="toast-message">${escapeHtml(message)}</div>
+        </div>
+        <button class="toast-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    container.appendChild(toast);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeToast(toast);
+    });
+    
+    toast.addEventListener('click', (e) => {
+        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+            removeToast(toast);
+        }
+    });
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            if (toast.parentElement) {
+                removeToast(toast);
+            }
+        }, duration);
+    }
+    
+    return toast;
+}
+
+function showSuccessToast(message, title = 'Success', duration = 4000) {
+    return showToast(message, 'success', title, duration);
+}
+
+function showErrorToast(message, title = 'Error', duration = 5000) {
+    return showToast(message, 'error', title, duration);
+}
+
+function showWarningToast(message, title = 'Warning', duration = 4000) {
+    return showToast(message, 'warning', title, duration);
+}
+
+function showInfoToast(message, title = 'Information', duration = 3000) {
+    return showToast(message, 'info', title, duration);
+}
+
+// ============ SYNCHRONIZED NOTIFICATION SYSTEM ============
+let unreadNotifications = [];
+let notificationInterval = null;
+let notificationBadge = null;
+
+async function fetchNotifications() {
+    try {
+        const admin = getCurrentAdmin();
+        if (!admin) return [];
+        
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(20);
+        
+        if (error) throw error;
+        
+        unreadNotifications = data || [];
+        updateNotificationBadge();
+        return unreadNotifications;
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+}
+
+function updateNotificationBadge() {
+    if (!notificationBadge) {
+        const notifyBtn = document.getElementById('notifyBtn');
+        if (notifyBtn) {
+            notificationBadge = document.createElement('span');
+            notificationBadge.id = 'notificationBadge';
+            notificationBadge.className = 'notification-badge';
+            notificationBadge.style.cssText = `
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                background: #ef4444;
+                color: white;
+                font-size: 10px;
+                font-weight: 600;
+                padding: 2px 6px;
+                border-radius: 20px;
+                min-width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: monospace;
+            `;
+            notifyBtn.style.position = 'relative';
+            notifyBtn.appendChild(notificationBadge);
+        }
+    }
+    
+    const count = unreadNotifications.length;
+    if (notificationBadge) {
+        if (count > 0) {
+            notificationBadge.textContent = count > 99 ? '99+' : count;
+            notificationBadge.style.display = 'flex';
+        } else {
+            notificationBadge.style.display = 'none';
+        }
+    }
+}
+
+function showNotificationToast(notification) {
+    const type = notification.type || 'info';
+    const title = notification.title || 'New Notification';
+    const message = notification.message || '';
+    showToast(message, type, title, 5000);
+}
+
+async function checkNewNotifications() {
+    const previousCount = unreadNotifications.length;
+    await fetchNotifications();
+    
+    if (unreadNotifications.length > previousCount) {
+        const newNotifications = unreadNotifications.slice(0, unreadNotifications.length - previousCount);
+        newNotifications.forEach(notif => {
+            showNotificationToast(notif);
+        });
+    }
+}
+
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval);
+    fetchNotifications();
+    notificationInterval = setInterval(() => {
+        checkNewNotifications();
+    }, 30000);
+}
+
+async function markNotificationAsRead(notificationId) {
+    try {
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .eq('id', notificationId);
+        
+        if (error) throw error;
+        
+        unreadNotifications = unreadNotifications.filter(n => n.id !== notificationId);
+        updateNotificationBadge();
+        showSuccessToast('Notification marked as read', 'Updated');
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+    }
+}
+
+async function markAllNotificationsAsRead() {
+    if (unreadNotifications.length === 0) return;
+    
+    try {
+        const admin = getCurrentAdmin();
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true, read_at: new Date().toISOString() })
+            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('is_read', false);
+        
+        if (error) throw error;
+        
+        unreadNotifications = [];
+        updateNotificationBadge();
+        showSuccessToast('All notifications marked as read', 'Cleared');
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+        showErrorToast('Failed to clear notifications', 'Error');
+    }
+}
+
+function showNotificationPanel() {
+    let panel = document.getElementById('notificationPanel');
+    
+    if (!document.getElementById('notificationPanelStyles')) {
+        const style = document.createElement('style');
+        style.id = 'notificationPanelStyles';
+        style.textContent = `
+            .notification-panel {
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                width: 380px;
+                max-width: calc(100vw - 40px);
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+                z-index: 10001;
+                transform: translateX(120%);
+                transition: transform 0.3s ease;
+                overflow: hidden;
+            }
+            .notification-panel.show { transform: translateX(0); }
+            .notification-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                background: linear-gradient(135deg, #2563EB, #1D4ED8);
+                color: white;
+            }
+            .notification-header h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+            .clear-all-btn {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 12px;
+            }
+            .clear-all-btn:hover { background: rgba(255,255,255,0.3); }
+            .close-panel-btn {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+            }
+            .close-panel-btn:hover { background: rgba(255,255,255,0.2); }
+            .notification-list { max-height: 400px; overflow-y: auto; }
+            .notification-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px;
+                border-bottom: 1px solid #e5e7eb;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .notification-item:hover { background: #f9fafb; }
+            .notification-item.success { border-left: 3px solid #10b981; }
+            .notification-item.error { border-left: 3px solid #ef4444; }
+            .notification-item.warning { border-left: 3px solid #f59e0b; }
+            .notification-item.info { border-left: 3px solid #3b82f6; }
+            .notification-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .notification-item.success .notification-icon { background: #d1fae5; color: #10b981; }
+            .notification-item.error .notification-icon { background: #fee2e2; color: #ef4444; }
+            .notification-item.warning .notification-icon { background: #fed7aa; color: #f59e0b; }
+            .notification-item.info .notification-icon { background: #dbeafe; color: #3b82f6; }
+            .notification-details { flex: 1; }
+            .notification-title { font-weight: 600; font-size: 14px; color: #1f2937; margin-bottom: 4px; }
+            .notification-message { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+            .notification-time { font-size: 11px; color: #9ca3af; }
+            .mark-read-btn {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                cursor: pointer;
+                padding: 6px;
+                border-radius: 8px;
+            }
+            .mark-read-btn:hover { background: #e5e7eb; color: #10b981; }
+            .empty-notifications { text-align: center; padding: 40px 20px; color: #9ca3af; }
+            .empty-notifications i { font-size: 48px; margin-bottom: 12px; }
+            .loading-notifications { text-align: center; padding: 40px; color: #9ca3af; }
+            body.dark-mode .notification-panel { background: #1f2937; }
+            body.dark-mode .notification-item { border-bottom-color: #374151; }
+            body.dark-mode .notification-item:hover { background: #374151; }
+            body.dark-mode .notification-title { color: #f3f4f6; }
+            body.dark-mode .notification-message { color: #9ca3af; }
+            @media (max-width: 480px) {
+                .notification-panel { top: 60px; right: 10px; left: 10px; width: auto; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'notificationPanel';
+        panel.className = 'notification-panel';
+        panel.innerHTML = `
+            <div class="notification-header">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <button id="clearAllNotifications" class="clear-all-btn">Clear All</button>
+                <button id="closeNotificationPanel" class="close-panel-btn">&times;</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+                <div class="loading-notifications">Loading...</div>
+            </div>
+        `;
+        document.body.appendChild(panel);
+        
+        document.getElementById('closeNotificationPanel')?.addEventListener('click', () => {
+            panel.classList.remove('show');
+        });
+        
+        document.getElementById('clearAllNotifications')?.addEventListener('click', () => {
+            markAllNotificationsAsRead();
+            renderNotificationList();
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (panel.classList.contains('show') && 
+                !panel.contains(e.target) && 
+                !e.target.closest('#notifyBtn')) {
+                panel.classList.remove('show');
+            }
+        });
+    }
+    
+    renderNotificationList();
+    panel.classList.add('show');
+}
+
+async function renderNotificationList() {
+    const listContainer = document.getElementById('notificationList');
+    if (!listContainer) return;
+    
+    await fetchNotifications();
+    
+    if (unreadNotifications.length === 0) {
+        listContainer.innerHTML = `
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications</p>
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = unreadNotifications.map(notif => `
+        <div class="notification-item ${notif.type}" data-id="${notif.id}">
+            <div class="notification-icon">
+                <i class="fas ${getNotificationIcon(notif.type)}"></i>
+            </div>
+            <div class="notification-details">
+                <div class="notification-title">${escapeHtml(notif.title || 'Notification')}</div>
+                <div class="notification-message">${escapeHtml(notif.message)}</div>
+                <div class="notification-time">${formatRelativeTime(new Date(notif.created_at))}</div>
+            </div>
+            <button class="mark-read-btn" data-id="${notif.id}">
+                <i class="fas fa-check"></i>
+            </button>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            await markNotificationAsRead(id);
+            renderNotificationList();
+        });
+    });
+    
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+            if (!e.target.closest('.mark-read-btn')) {
+                const id = item.dataset.id;
+                await markNotificationAsRead(id);
+                renderNotificationList();
+            }
+        });
+    });
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
+
+function formatRelativeTime(date) {
+    const diffMins = Math.floor((Date.now() - date) / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+}
+
+async function createStudentNotification(studentName, action) {
+    const admin = getCurrentAdmin();
+    if (!admin) return;
+    
+    const title = action === 'add' ? 'Student Added' : 'Student Deleted';
+    const message = action === 'add' 
+        ? `${studentName} has been added to the system.`
+        : `${studentName} has been removed from the system.`;
+    const type = action === 'add' ? 'success' : 'warning';
+    
+    const { error } = await supabase
+        .from('notifications')
+        .insert({
+            admin_id: admin.admin_id,
+            title: title,
+            message: message,
+            type: type,
+            is_read: false,
+            created_at: new Date().toISOString()
+        });
+    
+    if (error) {
+        console.error('Error creating notification:', error);
+    } else {
+        fetchNotifications();
+    }
+}
+
+// ============ DARK MODE ============
 function updateDarkModeIcon(btn, isDark) {
     if (!btn) return;
     if (isDark) {
@@ -38,7 +534,6 @@ function setupDarkModeToggle() {
     const darkModeBtn = document.getElementById('darkModeToggle');
     if (!darkModeBtn) return;
     
-    // Apply saved dark mode on page load
     const savedMode = localStorage.getItem('docst_dark_mode');
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode');
@@ -52,48 +547,17 @@ function setupDarkModeToggle() {
         const nowDark = document.body.classList.contains('dark-mode');
         localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled');
         updateDarkModeIcon(darkModeBtn, nowDark);
-        
-        const notification = document.createElement('div');
-        notification.textContent = nowDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled';
-        notification.style.cssText = `
-            position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
-            background: ${nowDark ? '#1E293B' : '#2563EB'}; color: white;
-            border-radius: 8px; font-size: 13px; z-index: 10000;
-            animation: fadeInOut 2s ease;
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 2000);
+        showInfoToast(nowDark ? 'Dark mode enabled' : 'Light mode enabled', 'Display', 2000);
     };
 }
 
-// Add fadeInOut animation
-const darkModeStyle = document.createElement('style');
-darkModeStyle.textContent = `
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translateX(20px); }
-        15% { opacity: 1; transform: translateX(0); }
-        85% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(20px); }
-    }
-`;
-document.head.appendChild(darkModeStyle);
-
-// ============ UPDATE DRAWER WITH ADMIN NAME ============
 function updateDrawerWithAdminName(adminName, adminId) {
-    console.log('🔧 Updating drawer with:', adminName, adminId);
-    
     const drawerNameEl = document.getElementById('drawerAdminName');
     const drawerIdEl = document.getElementById('drawerAdminId');
     const avatarInitials = document.getElementById('avatarInitials');
     
-    if (drawerNameEl) {
-        drawerNameEl.textContent = adminName;
-    }
-    
-    if (drawerIdEl) {
-        drawerIdEl.textContent = adminId || 'Admin';
-    }
-    
+    if (drawerNameEl) drawerNameEl.textContent = adminName;
+    if (drawerIdEl) drawerIdEl.textContent = adminId || 'Admin';
     if (avatarInitials && adminName) {
         const initials = getInitialsFromName(adminName);
         avatarInitials.textContent = initials;
@@ -103,13 +567,10 @@ function updateDrawerWithAdminName(adminName, adminId) {
 function getInitialsFromName(fullName) {
     if (!fullName) return 'AD';
     const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) {
-        return parts[0].substring(0, 2).toUpperCase();
-    }
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// ============ LOAD ADMIN PROFILE ============
 async function loadAdminProfile() {
     try {
         const admin = getCurrentAdmin();
@@ -122,27 +583,11 @@ async function loadAdminProfile() {
         
         const { data: { user } } = await supabase.auth.getUser();
         if (user && user.email) {
-            let adminData = null;
-            
-            const { data: data1, error: err1 } = await supabase
+            const { data: adminData, error } = await supabase
                 .from('admins')
                 .select('full_name, name, email, role, admin_id')
                 .eq('email', user.email)
                 .maybeSingle();
-            
-            if (!err1 && data1) {
-                adminData = data1;
-            } else {
-                const { data: data2, error: err2 } = await supabase
-                    .from('admin')
-                    .select('full_name, name, email, role, admin_id')
-                    .eq('email', user.email)
-                    .maybeSingle();
-                
-                if (!err2 && data2) {
-                    adminData = data2;
-                }
-            }
             
             if (adminData) {
                 const adminName = adminData.full_name || adminData.name || user.email.split('@')[0];
@@ -162,18 +607,12 @@ async function loadAdminProfile() {
         }
     } catch (error) {
         console.error('Error loading admin profile:', error);
-        const admin = getCurrentAdmin();
-        if (admin && (admin.full_name || admin.name)) {
-            updateDrawerWithAdminName(admin.full_name || admin.name, admin.admin_id || 'Admin');
-        }
     }
 }
 
-// ============ LOAD STUDENTS FROM SUPABASE ============
+// ============ LOAD STUDENTS ============
 async function loadStudents() {
     try {
-        console.log('Loading students from Supabase...');
-        
         const { data, error } = await supabase
             .from('students')
             .select('*')
@@ -181,23 +620,14 @@ async function loadStudents() {
         
         if (error) throw error;
         
-        if (data && data.length > 0) {
-            students = data.map(s => ({
-                id: s.id,
-                name: s.name,
-                idNumber: s.id_number || s.id,
-                email: s.email,
-                course: s.course || 'Not Assigned',
-                year: s.year_level || 1,
-                status: s.status || 'active',
-                reports: s.reports || 0,
-                last_login: s.last_login,
-                created_at: s.created_at
-            }));
-            console.log('Processed students:', students.length);
-        } else {
-            students = [];
-        }
+        students = data?.map(s => ({
+            id: s.id,
+            name: s.name,
+            idNumber: s.id_number || s.id,
+            email: s.email,
+            status: s.status || 'active',
+            created_at: s.created_at
+        })) || [];
         
         renderStudents();
         updateStats();
@@ -207,17 +637,16 @@ async function loadStudents() {
         students = [];
         renderStudents();
         updateStats();
-        showNotification('Failed to load students: ' + error.message, 'error');
+        showErrorToast('Failed to load students: ' + error.message);
     }
 }
 
-// ============ RENDER STUDENTS TABLE ============
 function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
     
     if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div></td></td>`;
         return;
     }
     
@@ -232,20 +661,12 @@ function renderStudents() {
     }
     
     tbody.innerHTML = filtered.map(student => {
-        let fullName = student.name || 'Unknown';
+        const fullName = student.name || 'Unknown';
         const initials = getInitials(fullName);
-        
-        const yearNum = parseInt(student.year) || 1;
-        const yearSuffix = yearNum === 1 ? 'st' : yearNum === 2 ? 'nd' : yearNum === 3 ? 'rd' : 'th';
-        const yearDisplay = `${yearNum}${yearSuffix} Year`;
-        
-        const lastLoginDisplay = formatDate(student.last_login);
-        const statusDisplay = student.status === 'active' ? '🟢 Active' : '⚫ Inactive';
-        const statusClass = student.status === 'active' ? 'status-active' : 'status-inactive';
         
         return `
         <tr data-id="${student.id}">
-            <td class="student-col">
+            <td>
                 <div class="student-cell">
                     <div class="student-avatar">${initials}</div>
                     <div>
@@ -253,45 +674,26 @@ function renderStudents() {
                         <div class="student-id-small">${escapeHtml(student.idNumber)}</div>
                     </div>
                 </div>
-              </td>
-            <td class="id-col">
-                <span class="id-badge">${escapeHtml(student.idNumber)}</span>
-              </td>
-            <td class="email-col">
-                <span class="email-badge">${escapeHtml(student.email)}</span>
-              </td>
-            <td class="course-col">
-                <span class="course-badge">${escapeHtml(student.course)}</span>
-              </td>
-            <td class="year-col">
-                ${yearDisplay}
-              </td>
-            <td class="status-col">
-                <span class="status-badge ${statusClass}">${statusDisplay}</span>
-              </td>
-            <td class="last-login-col">
-                ${lastLoginDisplay}
-              </td>
-            <td class="actions-col">
-                <div class="action-btns">
-                    <button class="action-icon edit-student" data-id="${student.id}" title="Edit">✏️</button>
-                    <button class="action-icon toggle-status" data-id="${student.id}" title="Toggle Status">🔄</button>
-                    <button class="action-icon delete-student" data-id="${student.id}" title="Delete">🗑️</button>
+            </td>
+            <td><span class="id-badge">${escapeHtml(student.idNumber)}</span></td>
+            <td>
+                <div class="email-cell">
+                    <i class="fas fa-envelope"></i>
+                    <span class="email-badge">${escapeHtml(student.email)}</span>
                 </div>
-              </td>
+            </td>
+            <td>
+                <div class="action-btns">
+                    <button class="delete-student" data-id="${student.id}" data-name="${escapeHtml(fullName)}">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            </td>
         </tr>
     `}).join('');
     
-    document.querySelectorAll('.edit-student').forEach(btn => {
-        btn.onclick = () => editStudent(btn.dataset.id);
-    });
-    
     document.querySelectorAll('.delete-student').forEach(btn => {
-        btn.onclick = () => deleteStudent(btn.dataset.id);
-    });
-    
-    document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.onclick = () => toggleStudentStatus(btn.dataset.id);
+        btn.onclick = () => deleteStudent(btn.dataset.id, btn.dataset.name);
     });
 }
 
@@ -300,16 +702,6 @@ function getInitials(fullName) {
     const words = fullName.trim().split(/\s+/);
     if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'Never';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffHours = Math.floor((now - date) / 3600000);
-    if (diffHours < 1) return 'Just now';
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    return date.toLocaleDateString();
 }
 
 function updateStats() {
@@ -326,86 +718,36 @@ function updateStats() {
     if (verifiedEl) verifiedEl.textContent = verified;
 }
 
-function showNotification(message, type = 'success') {
-    const n = document.createElement('div');
-    n.textContent = message;
-    const bgColor = type === 'success' ? '#10B981' : (type === 'error' ? '#DC2626' : '#F59E0B');
-    n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${bgColor};color:white;padding:10px 18px;border-radius:40px;z-index:2000;font-size:14px;`;
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
-}
-
-function escapeHtml(text) { 
-    if (!text) return ''; 
-    const div = document.createElement('div'); 
-    div.textContent = text; 
-    return div.innerHTML; 
-}
-
-// ============ TOGGLE STUDENT STATUS ============
-async function toggleStudentStatus(id) {
-    const student = students.find(s => s.id == id);
-    if (student) {
-        const newStatus = student.status === 'active' ? 'inactive' : 'active';
-        
-        const { error } = await supabase
-            .from('students')
-            .update({ status: newStatus })
-            .eq('id', id);
-        
-        if (error) {
-            showNotification('Failed to update status', 'error');
-            return;
-        }
-        
-        student.status = newStatus;
-        renderStudents();
-        updateStats();
-        showNotification(`${student.name} is now ${newStatus}`, 'success');
-    }
-}
-
-// ============ DELETE STUDENT ============
-async function deleteStudent(id) {
-    const student = students.find(s => s.id == id);
-    if (!student) return;
+async function deleteStudent(id, studentName) {
+    const confirmed = confirm(`Are you sure you want to delete "${studentName}"? This action cannot be undone.`);
     
-    if (confirm(`Are you sure you want to delete "${student.name}"?`)) {
+    if (!confirmed) {
+        showInfoToast(`${studentName} was not deleted`, 'Cancelled', 2000);
+        return;
+    }
+    
+    showWarningToast(`Deleting ${studentName}...`, 'Please Wait', 2000);
+    
+    try {
         const { error } = await supabase
             .from('students')
             .delete()
             .eq('id', id);
         
-        if (error) {
-            showNotification('Failed to delete student', 'error');
-            return;
-        }
+        if (error) throw error;
         
         students = students.filter(s => s.id != id);
         renderStudents();
         updateStats();
-        showNotification(`✓ ${student.name} has been deleted`, 'success');
+        await createStudentNotification(studentName, 'delete');
+        showSuccessToast(`${studentName} has been successfully removed.`, 'Student Deleted', 4000);
+        
+    } catch (error) {
+        showErrorToast(`Error deleting ${studentName}. Please try again.`, 'Delete Error');
+        console.error('Delete error:', error);
     }
 }
 
-// ============ EDIT STUDENT ============
-function editStudent(id) {
-    const student = students.find(s => s.id == id);
-    if (!student) return;
-    
-    editingStudentId = id;
-    document.getElementById('studentId').value = student.id;
-    document.getElementById('studentName').value = student.name;
-    document.getElementById('studentIdNumber').value = student.idNumber;
-    document.getElementById('studentCourse').value = student.course;
-    document.getElementById('studentYear').value = student.year;
-    document.getElementById('studentEmail').value = student.email;
-    document.getElementById('studentStatus').value = student.status;
-    document.getElementById('modalTitle').textContent = 'Edit Student';
-    openModal();
-}
-
-// ============ SAVE STUDENT ============
 async function saveStudent(studentData, isEdit = false) {
     try {
         if (isEdit && editingStudentId) {
@@ -414,15 +756,13 @@ async function saveStudent(studentData, isEdit = false) {
                 .update({
                     name: studentData.name,
                     email: studentData.email,
-                    course: studentData.course,
-                    year_level: parseInt(studentData.year),
                     status: studentData.status,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', editingStudentId);
             
             if (error) throw error;
-            showNotification('Student updated successfully!');
+            showSuccessToast('Student updated successfully!');
         } else {
             const { error } = await supabase
                 .from('students')
@@ -430,25 +770,23 @@ async function saveStudent(studentData, isEdit = false) {
                     id: studentData.idNumber,
                     name: studentData.name,
                     email: studentData.email,
-                    course: studentData.course,
-                    year_level: parseInt(studentData.year),
                     status: studentData.status,
                     created_at: new Date().toISOString()
                 }]);
             
             if (error) throw error;
-            showNotification('Student added successfully!');
+            await createStudentNotification(studentData.name, 'add');
+            showSuccessToast('Student added successfully!');
         }
         
         await loadStudents();
         closeModal();
     } catch (error) {
         console.error('Error saving student:', error);
-        showNotification('Failed to save student: ' + error.message, 'error');
+        showErrorToast('Failed to save student: ' + error.message);
     }
 }
 
-// ============ FORM SUBMIT ============
 const studentForm = document.getElementById('studentForm');
 if (studentForm) {
     studentForm.addEventListener('submit', async (e) => {
@@ -457,19 +795,17 @@ if (studentForm) {
         const studentData = {
             name: document.getElementById('studentName')?.value.trim() || '',
             idNumber: document.getElementById('studentIdNumber')?.value.trim() || '',
-            course: document.getElementById('studentCourse')?.value || 'Not Assigned',
-            year: document.getElementById('studentYear')?.value || '1',
             email: document.getElementById('studentEmail')?.value.trim() || '',
             status: document.getElementById('studentStatus')?.value || 'active'
         };
         
         if (!studentData.name || !studentData.idNumber || !studentData.email) {
-            showNotification('Please fill in all fields', 'error');
+            showErrorToast('Please fill in all fields');
             return;
         }
         
         if (!studentData.email.endsWith('@gordoncollege.edu.ph')) {
-            showNotification('Email must end with @gordoncollege.edu.ph', 'error');
+            showErrorToast('Email must end with @gordoncollege.edu.ph');
             return;
         }
         
@@ -484,7 +820,6 @@ if (studentForm) {
     });
 }
 
-// ============ MODAL FUNCTIONS ============
 function openModal() { 
     const modal = document.getElementById('studentModal');
     if (modal) modal.classList.add('open'); 
@@ -502,7 +837,6 @@ function closeModal() {
     document.body.style.overflow = '';
 }
 
-// ============ SEARCH ============
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -511,15 +845,10 @@ if (searchInput) {
     });
 }
 
-// ============ LOGOUT ============
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-        if (confirm('Are you sure you want to logout?')) {
-            await supabase.auth.signOut();
-            localStorage.clear();
-            window.location.href = '/Assets/Landing/index.html';
-        }
+const notifyBtn = document.getElementById('notifyBtn');
+if (notifyBtn) {
+    notifyBtn.addEventListener('click', () => {
+        showNotificationPanel();
     });
 }
 
@@ -550,8 +879,9 @@ async function init() {
     setupAdminLogout('logoutBtn');
     setupAdminDrawerControls();
     
-    setupDarkModeToggle();  // Using your dark mode function
+    setupDarkModeToggle();
     await loadStudents();
+    startNotificationPolling();
 }
 
 init();

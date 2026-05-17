@@ -43,8 +43,115 @@ function clearError(inputElement) {
     if (old) old.remove()
 }
 
-function showToast(msg, type = 'info') {
-    alert(msg)
+// ============ ENHANCED TOAST SYSTEM ============
+let toastContainer = null;
+
+function getToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+    }
+    return toastContainer;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function removeToast(toast) {
+    toast.classList.add('toast-removing');
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 250);
+}
+
+function showToast(message, type = 'info', title = null, duration = 4000) {
+    const container = getToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let iconHtml = '';
+    let defaultTitle = '';
+    
+    switch(type) {
+        case 'success':
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            defaultTitle = 'Success';
+            break;
+        case 'error':
+            iconHtml = '<i class="fas fa-times-circle"></i>';
+            defaultTitle = 'Error';
+            break;
+        case 'warning':
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            defaultTitle = 'Warning';
+            break;
+        case 'info':
+        default:
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            defaultTitle = 'Information';
+            break;
+    }
+    
+    const finalTitle = title || defaultTitle;
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${iconHtml}</div>
+        <div class="toast-content">
+            <div class="toast-title">${escapeHtml(finalTitle)}</div>
+            <div class="toast-message">${escapeHtml(message)}</div>
+        </div>
+        <button class="toast-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    container.appendChild(toast);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeToast(toast);
+    });
+    
+    toast.addEventListener('click', (e) => {
+        if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+            removeToast(toast);
+        }
+    });
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            if (toast.parentElement) {
+                removeToast(toast);
+            }
+        }, duration);
+    }
+    
+    return toast;
+}
+
+function showSuccessToast(message, title = 'Success', duration = 4000) {
+    return showToast(message, 'success', title, duration);
+}
+
+function showErrorToast(message, title = 'Error', duration = 5000) {
+    return showToast(message, 'error', title, duration);
+}
+
+function showWarningToast(message, title = 'Warning', duration = 4000) {
+    return showToast(message, 'warning', title, duration);
+}
+
+function showInfoToast(message, title = 'Information', duration = 3000) {
+    return showToast(message, 'info', title, duration);
 }
 
 function disable(btn, text) {
@@ -157,22 +264,19 @@ async function handleForgotPassword() {
     const email = emailInput.value.trim();
     const forgotBtn = qs('forgotPasswordBtn');
     
-    // Clear any previous error
     clearError(emailInput);
     
     if (!email) {
-        showError(emailInput, 'Please enter your email address');
+        showErrorToast('Please enter your email address', 'Email Required');
         return;
     }
     
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        showError(emailInput, 'Please enter a valid email address');
+        showErrorToast('Please enter a valid email address', 'Invalid Email');
         return;
     }
     
-    // Check if admin exists with this email
     disable(forgotBtn, 'Checking...');
     
     try {
@@ -183,46 +287,38 @@ async function handleForgotPassword() {
             .maybeSingle();
         
         if (adminError || !admin) {
-            showError(emailInput, 'No admin account found with this email');
+            showErrorToast('No admin account found with this email', 'Account Not Found');
             enable(forgotBtn, 'Send Reset Link');
             return;
         }
         
-        // Send password reset email via Supabase
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/Assets/Admin dashboard/password/reset-password.html`
         });
         
         if (resetError) {
             console.error('Reset error:', resetError);
-            showError(emailInput, 'Failed to send reset email. Please try again.');
+            showErrorToast('Failed to send reset email. Please try again.', 'Reset Failed');
             enable(forgotBtn, 'Send Reset Link');
             return;
         }
         
-        // Show success message
-        showToast(`Password reset link sent to ${email}. Check your inbox!`);
-        
-        // Clear the email input
+        showSuccessToast(`Password reset link sent to ${email}. Check your inbox!`, 'Email Sent', 5000);
         emailInput.value = '';
-        
-        // Close the forgot password modal/popup
         closeForgotPasswordModal();
         
     } catch (error) {
         console.error('Forgot password error:', error);
-        showError(emailInput, 'An error occurred. Please try again.');
+        showErrorToast('An error occurred. Please try again.', 'Error');
         enable(forgotBtn, 'Send Reset Link');
     }
 }
 
 // ============ FORGOT PASSWORD MODAL FUNCTIONS ============
 function openForgotPasswordModal() {
-    // Check if modal exists, if not create it
     let modal = qs('forgotPasswordModal');
     
     if (!modal) {
-        // Create modal dynamically
         modal = document.createElement('div');
         modal.id = 'forgotPasswordModal';
         modal.className = 'modal';
@@ -280,7 +376,6 @@ function openForgotPasswordModal() {
         `;
         document.body.appendChild(modal);
         
-        // Add event listeners
         const closeBtn = qs('closeForgotModalBtn');
         const cancelBtn = qs('cancelForgotBtn');
         const overlay = modal.querySelector('.modal-overlay');
@@ -291,7 +386,6 @@ function openForgotPasswordModal() {
         if (overlay) overlay.onclick = closeForgotPasswordModal;
         if (forgotBtn) forgotBtn.onclick = handleForgotPassword;
         
-        // Enter key press on email input
         const emailInput = qs('forgot-email');
         if (emailInput) {
             emailInput.addEventListener('keypress', (e) => {
@@ -316,7 +410,6 @@ function closeForgotPasswordModal() {
 async function checkExistingSession() {
     console.log('Checking for existing admin session...');
     
-    // Check if there's a stored admin in localStorage
     const storedAdmin = localStorage.getItem('currentAdmin');
     if (!storedAdmin) {
         console.log('No stored admin session found');
@@ -324,7 +417,6 @@ async function checkExistingSession() {
     }
     
     try {
-        // Check session expiry (24 hours)
         const sessionExpiry = localStorage.getItem('adminSessionExpiry');
         if (sessionExpiry && new Date(sessionExpiry) < new Date()) {
             console.log('Session expired');
@@ -333,7 +425,6 @@ async function checkExistingSession() {
             return false;
         }
         
-        // Verify the session with Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session) {
@@ -343,7 +434,6 @@ async function checkExistingSession() {
             return false;
         }
         
-        // Verify the admin still exists in your database
         const admin = JSON.parse(storedAdmin);
         const { data: adminData, error: adminError } = await supabase
             .from('admins')
@@ -383,13 +473,11 @@ async function redirectIfAlreadyLoggedIn() {
 // Helper function to ensure auth user exists
 async function ensureAuthUserExists(admin) {
     try {
-        // Try to sign in to check if user exists
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email: admin.email,
             password: admin.password_hash
         })
         
-        // If user doesn't exist, create them
         if (signInError && signInError.message.includes('Invalid login credentials')) {
             console.log('Creating auth user for:', admin.email)
             
@@ -409,7 +497,6 @@ async function ensureAuthUserExists(admin) {
                 return false
             }
             
-            // Wait a moment for user to be created
             await new Promise(resolve => setTimeout(resolve, 2000))
             console.log('Auth user created for:', admin.email)
             return true
@@ -436,12 +523,12 @@ async function handleLogin() {
     clearError(passwordInput)
 
     if (!username) {
-        showError(usernameInput, 'Enter Admin ID or Email')
+        showErrorToast('Enter Admin ID or Email', 'Missing Field');
         return
     }
 
     if (!password) {
-        showError(passwordInput, 'Enter Password')
+        showErrorToast('Enter Password', 'Missing Field');
         return
     }
 
@@ -458,30 +545,29 @@ async function handleLogin() {
         console.log('Admin found:', admin)
 
         if (error || !admin) {
-            showError(usernameInput, 'Admin not found')
+            showErrorToast('Admin not found. Please check your credentials.', 'Login Failed');
             enable(loginBtn, 'Continue')
             return
         }
 
         if (admin.password_hash !== password) {
-            showError(passwordInput, 'Wrong password')
+            showErrorToast('Wrong password. Please try again.', 'Authentication Failed');
             enable(loginBtn, 'Continue')
             return
         }
 
         currentAdmin = admin
 
-        // Ensure auth user exists before sending OTP
-        showToast('Setting up secure access...')
+        showInfoToast('Setting up secure access...', 'Please Wait', 2000);
+        
         const authReady = await ensureAuthUserExists(admin)
         
         if (!authReady) {
-            showError(usernameInput, 'Failed to setup secure access. Please try again.')
+            showErrorToast('Failed to setup secure access. Please try again.', 'Setup Failed');
             enable(loginBtn, 'Continue')
             return
         }
 
-        // Send OTP
         const { error: otpError } = await supabase.auth.signInWithOtp({
             email: admin.email,
             options: {
@@ -492,9 +578,8 @@ async function handleLogin() {
         if (otpError) {
             console.error('OTP Error:', otpError)
             
-            // If still failing, try one more time with explicit user creation
             if (otpError.message.includes('User not found') || otpError.message.includes('Invalid email')) {
-                showToast('Finalizing account setup...')
+                showWarningToast('Finalizing account setup. Please wait...', 'Setting Up');
                 
                 const { error: signUpError } = await supabase.auth.signUp({
                     email: admin.email,
@@ -508,12 +593,11 @@ async function handleLogin() {
                 })
                 
                 if (signUpError) {
-                    showError(usernameInput, 'Failed to send OTP. Please contact support.')
+                    showErrorToast('Failed to send OTP. Please contact support.', 'Setup Failed');
                     enable(loginBtn, 'Continue')
                     return
                 }
                 
-                // Wait and try one more time
                 await new Promise(resolve => setTimeout(resolve, 3000))
                 
                 const { error: retryError } = await supabase.auth.signInWithOtp({
@@ -524,19 +608,19 @@ async function handleLogin() {
                 })
                 
                 if (retryError) {
-                    showError(usernameInput, 'Failed to send OTP. Please try again.')
+                    showErrorToast('Failed to send OTP. Please try again.', 'OTP Failed');
                     enable(loginBtn, 'Continue')
                     return
                 }
             } else {
-                showError(usernameInput, `Failed to send OTP: ${otpError.message}`)
+                showErrorToast(`Failed to send OTP: ${otpError.message}`, 'OTP Error');
                 enable(loginBtn, 'Continue')
                 return
             }
         }
 
         document.querySelectorAll('.otp-input').forEach(i => i.value = '')
-        showToast(`OTP sent to ${admin.email}`)
+        showSuccessToast(`OTP sent to ${admin.email}. Check your email inbox.`, 'Verification Code Sent', 4000);
 
         goToStep(2)
         startCountdown(300)
@@ -544,7 +628,7 @@ async function handleLogin() {
 
     } catch (err) {
         console.error(err)
-        showError(usernameInput, 'Login failed')
+        showErrorToast('Login failed. Please try again.', 'Error');
     }
 
     enable(loginBtn, 'Continue')
@@ -559,7 +643,7 @@ async function handleVerifyOTP() {
     const otp = Array.from(inputs).map(i => i.value).join('')
 
     if (otp.length < 6) {
-        showError(inputs[0], 'Enter complete OTP')
+        showErrorToast('Please enter the complete 6-digit OTP code.', 'Incomplete OTP');
         return
     }
 
@@ -577,19 +661,18 @@ async function handleVerifyOTP() {
             attempts++
 
             if (attempts >= maxAttempts) {
-                showError(inputs[0], 'Too many attempts. Login again.')
+                showErrorToast('Too many failed attempts. Please login again.', 'Account Locked');
                 setTimeout(() => location.reload(), 1500)
                 return
             }
 
-            showError(inputs[0], `Invalid OTP (${attempts}/${maxAttempts})`)
+            showErrorToast(`Invalid OTP (${attempts}/${maxAttempts}). Please try again.`, 'Verification Failed');
             enable(btn, 'Verify & Login')
             return
         }
 
         clearInterval(countdownInterval)
 
-        // Update last login timestamp
         await supabase
             .from('admins')
             .update({
@@ -597,7 +680,6 @@ async function handleVerifyOTP() {
             })
             .eq('id', currentAdmin.id)
 
-        // Store admin session with expiry (24 hours)
         const sessionExpiry = new Date();
         sessionExpiry.setHours(sessionExpiry.getHours() + 24);
         
@@ -621,7 +703,7 @@ async function handleVerifyOTP() {
             localStorage.removeItem('rememberedAdmin')
         }
 
-        showToast('Login successful! Redirecting...')
+        showSuccessToast(`Welcome back, ${currentAdmin.full_name || currentAdmin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
         
         setTimeout(() => {
             window.location.href = '/Assets/Admin dashboard/Admin.html'
@@ -629,7 +711,7 @@ async function handleVerifyOTP() {
 
     } catch (err) {
         console.error(err)
-        showError(inputs[0], 'OTP verification failed')
+        showErrorToast('OTP verification failed. Please try again.', 'Verification Error');
         enable(btn, 'Verify & Login')
     }
 }
@@ -645,7 +727,6 @@ async function resendOTP() {
 
         btn.disabled = true
 
-        // Ensure auth user still exists
         await ensureAuthUserExists(currentAdmin)
 
         const { error } = await supabase.auth.signInWithOtp({
@@ -657,19 +738,19 @@ async function resendOTP() {
 
         if (error) {
             console.error('Resend error:', error)
-            showToast('Failed to resend OTP. Please try again.')
+            showErrorToast('Failed to resend OTP. Please try again.', 'Resend Failed');
             btn.disabled = false
             return
         }
 
-        showToast('OTP resent successfully!')
+        showSuccessToast('OTP resent successfully! Check your email.', 'OTP Sent', 4000);
         startCountdown(300)
         startResendCooldown(30)
 
     } catch (err) {
         console.error(err)
         btn.disabled = false
-        showToast('Failed to resend OTP')
+        showErrorToast('Failed to resend OTP', 'Error');
     }
 }
 
@@ -695,13 +776,9 @@ async function syncExistingAdmins() {
 
 // ============ INITIALIZE LOGIN PAGE ============
 (async function initLoginPage() {
-    // Check if admin is already logged in
     const isAlreadyLoggedIn = await redirectIfAlreadyLoggedIn();
-    if (isAlreadyLoggedIn) return; // Stop here, already redirecting
+    if (isAlreadyLoggedIn) return;
     
-    // If not logged in, proceed with normal login page setup
-    
-    // Load remembered admin ID for "Remember Me"
     const remembered = localStorage.getItem('rememberedAdmin');
     if (remembered) {
         const usernameInput = qs('admin-username');
@@ -722,7 +799,6 @@ qs('loginBtn')?.addEventListener('click', handleLogin)
 qs('verifyBtn')?.addEventListener('click', handleVerifyOTP)
 qs('resendBtn')?.addEventListener('click', resendOTP)
 
-// Add forgot password event listener
 const forgotLink = qs('forgot-link');
 if (forgotLink) {
     forgotLink.addEventListener('click', (e) => {
