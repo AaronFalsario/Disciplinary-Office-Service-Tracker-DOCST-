@@ -9,32 +9,32 @@ const adminNavItems = [
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>', 
         label: 'Dashboard', 
-        href: '/Assets/Admin-dashboard/Admin.html'
+        href: '/Assets/Admin dashboard/Admin.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', 
         label: 'Users', 
-        href: '/Assets/Admin-dashboard/students/record.html'
+        href: '/Assets/Admin dashboard/students/record.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>', 
         label: 'Penalties', 
-        href: '/Assets/Admin-dashboard/penalties/student.html'
+        href: '/Assets/Admin dashboard/penalties/student.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>', 
         label: 'Appeals', 
-        href: '/Assets/Admin-dashboard/appeal/appeal.html'
+        href: '/Assets/Admin dashboard/appeal/appeal.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>', 
         label: 'Reports', 
-        href: '/Assets/Admin-dashboard/report/report.html'
+        href: '/Assets/Admin dashboard/report/report.html'
     },
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>', 
         label: 'Settings', 
-        href: '/Assets/Admin-dashboard/settings/setting.html'
+        href: '/Assets/Admin dashboard/settings/setting.html'
     }
 ];
 
