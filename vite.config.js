@@ -8,41 +8,21 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        // ============ ROOT ============
         main: resolve(__dirname, 'index.html'),
-
-        // ============ ADMIN DASHBOARD ============
-        adminDashboard:  resolve(__dirname, 'Assets/Admin-dashboard/Admin.html'),
-        adminPassword:   resolve(__dirname, 'Assets/Admin-dashboard/password/password.html'),
-        adminPenalties:  resolve(__dirname, 'Assets/Admin-dashboard/penalties/student.html'),
-        adminReports:    resolve(__dirname, 'Assets/Admin-dashboard/report/report.html'),
-        adminSettings:   resolve(__dirname, 'Assets/Admin-dashboard/settings/setting.html'),
-        adminStudents:   resolve(__dirname, 'Assets/Admin-dashboard/students/record.html'),
-        adminAppeals:    resolve(__dirname, 'Assets/Admin-dashboard/appeal/appeal.html'),
-
-        // ============ STUDENT AUTH ============
-        studentAuth:     resolve(__dirname, 'Assets/Student-Authentication/Student.html'),
-
-        // ============ ADMIN AUTH ============
-        adminLogin:      resolve(__dirname, 'Assets/Student-Authentication/Admin-Authentication/Admin.html'),
-        adminUpdatePass: resolve(__dirname, 'Assets/Student-Authentication/Admin-Authentication/update-password.html'),
-
-        // ============ STUDENT DASHBOARD ============
-        studentDashboard: resolve(__dirname, 'Assets/Student-Dashboard/stud.html'),
-        studentAppeal:    resolve(__dirname, 'Assets/Student-Dashboard/appeal/appeal.html'),
-        studentHistory:   resolve(__dirname, 'Assets/Student-Dashboard/history/history.html'),
-        studentPenalties: resolve(__dirname, 'Assets/Student-Dashboard/penalties/penalties.html'),
-        studentSettings:  resolve(__dirname, 'Assets/Student-Dashboard/settings/setting.html'),
+        
+        // Use glob patterns to find all HTML files
+        ...Object.fromEntries(
+          Object.entries({
+            adminDashboard: 'Assets/Admin dashboard/Admin.html',
+            adminStudents: 'Assets/Admin dashboard/students/record.html',
+            adminAppeals: 'Assets/Admin dashboard/appeal/appeal.html',
+            adminPenalties: 'Assets/Admin dashboard/penalties/student.html',
+            adminReports: 'Assets/Admin dashboard/report/report.html',
+            adminSettings: 'Assets/Admin dashboard/settings/setting.html',
+            studentAuth: 'Assets/Student Authentication/Student.html',
+          }).map(([key, value]) => [key, resolve(__dirname, value)])
+        )
       }
     }
-  },
-  server: {
-    port: 5173,
-    open: true,
-    host: true
-  },
-  preview: {
-    port: 5173,
-    open: true
   }
 })
