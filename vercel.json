@@ -4,8 +4,12 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/Assets/(.*)",
-      "destination": "/Assets/$1"
+      "source": "/Assets/Admin%20dashboard/(.*)",
+      "destination": "/Assets/Admin%20dashboard/$1"
+    },
+    {
+      "source": "/Assets/Student%20Authentication/(.*)",
+      "destination": "/Assets/Student%20Authentication/$1"
     },
     {
       "source": "/(.*)",
