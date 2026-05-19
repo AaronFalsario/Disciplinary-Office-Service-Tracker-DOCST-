@@ -810,7 +810,7 @@ function redirectToUnauthorized() {
     sessionStorage.removeItem('lastSessionId');
     
     setTimeout(() => {
-        window.location.href = '/Assets/Landing/index.html';
+        window.location.href = '/index.html';
     }, 2000);
 }
 
