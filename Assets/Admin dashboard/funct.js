@@ -1,5 +1,5 @@
 const chartScript = document.createElement('script');
-chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+chartScript.src = 'https://cdn.jsdelr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
 chartScript.onload = () => {
     console.log('✅ Chart.js loaded successfully');
     if (typeof updateChart === 'function') {
@@ -290,8 +290,187 @@ logoutToastStyles.textContent = `
 `;
 document.head.appendChild(logoutToastStyles);
 
-// ============ TOAST NOTIFICATION SYSTEM ============
+// ============ TOAST NOTIFICATION SYSTEM (FIXED FOR DARK MODE) ============
 let toastContainer = null;
+
+// ADD THIS MISSING STYLE FOR REGULAR TOASTS (FIXED DARK MODE)
+const toastStyles = document.createElement('style');
+toastStyles.textContent = `
+    .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 24px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 380px;
+        pointer-events: none;
+    }
+    
+    @media (max-width: 768px) {
+        .toast-container {
+            top: 70px;
+            right: 16px;
+            left: 16px;
+            max-width: none;
+        }
+    }
+    
+    .toast {
+        background: white;
+        border-radius: 16px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        pointer-events: auto;
+        cursor: pointer;
+        animation: toastSlideIn 0.3s ease forwards;
+        border-left: 4px solid;
+        transition: background 0.2s ease;
+    }
+    
+    .toast-success {
+        border-left-color: #10b981;
+        background: #f0fdf4;
+    }
+    .toast-success .toast-icon { background: #10b981; color: white; }
+    
+    .toast-error {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+    }
+    .toast-error .toast-icon { background: #ef4444; color: white; }
+    
+    .toast-warning {
+        border-left-color: #f59e0b;
+        background: #fffbeb;
+    }
+    .toast-warning .toast-icon { background: #f59e0b; color: white; }
+    
+    .toast-info {
+        border-left-color: #3b82f6;
+        background: #eff6ff;
+    }
+    .toast-info .toast-icon { background: #3b82f6; color: white; }
+    
+    .toast-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    
+    .toast-content {
+        flex: 1;
+    }
+    
+    .toast-title {
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 2px;
+        color: #1f2937;
+    }
+    
+    .toast-message {
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+    
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .toast-close:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #6b7280;
+    }
+    
+    @keyframes toastSlideIn {
+        from { opacity: 0; transform: translateX(100%); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes toastSlideOut {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(100%); }
+    }
+    
+    .toast-removing {
+        animation: toastSlideOut 0.25s ease forwards;
+    }
+    
+    /* ========== FIXED DARK MODE TOAST SUPPORT ========== */
+    body.dark-mode .toast {
+        background: #1e293b;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+    
+    body.dark-mode .toast-title {
+        color: #f1f5f9;
+    }
+    
+    body.dark-mode .toast-message {
+        color: #94a3b8;
+    }
+    
+    body.dark-mode .toast-success {
+        background: #064e3b;
+        border-left-color: #34d399;
+    }
+    body.dark-mode .toast-success .toast-icon {
+        background: #10b981;
+    }
+    
+    body.dark-mode .toast-error {
+        background: #7f1d1d;
+        border-left-color: #f87171;
+    }
+    body.dark-mode .toast-error .toast-icon {
+        background: #ef4444;
+    }
+    
+    body.dark-mode .toast-warning {
+        background: #78350f;
+        border-left-color: #fbbf24;
+    }
+    body.dark-mode .toast-warning .toast-icon {
+        background: #f59e0b;
+    }
+    
+    body.dark-mode .toast-info {
+        background: #1e3a5f;
+        border-left-color: #60a5fa;
+    }
+    body.dark-mode .toast-info .toast-icon {
+        background: #3b82f6;
+    }
+    
+    body.dark-mode .toast-close {
+        color: #64748b;
+    }
+    
+    body.dark-mode .toast-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+    }
+`;
+document.head.appendChild(toastStyles);
 
 function getToastContainer() {
     if (!toastContainer) {
@@ -457,12 +636,10 @@ function showLogoutToast(message, type = 'info', title = null) {
     
     container.appendChild(toast);
     
-    // Animate in
     setTimeout(() => {
         toast.classList.add('logout-toast-show');
     }, 10);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
         toast.classList.remove('logout-toast-show');
         toast.classList.add('logout-toast-hide');
@@ -485,7 +662,6 @@ async function fetchNotifications() {
         const admin = getCurrentAdmin();
         if (!admin) return [];
         
-        // Fetch notifications from Supabase
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
@@ -531,7 +707,6 @@ async function checkNewNotifications() {
     const previousCount = unreadNotifications.length;
     await fetchNotifications();
     
-    // If there are new notifications, show toast for each
     if (unreadNotifications.length > previousCount) {
         const newNotifications = unreadNotifications.slice(0, unreadNotifications.length - previousCount);
         newNotifications.forEach(notif => {
@@ -543,10 +718,8 @@ async function checkNewNotifications() {
 function startNotificationPolling() {
     if (notificationInterval) clearInterval(notificationInterval);
     
-    // Fetch immediately
     fetchNotifications();
     
-    // Poll every 30 seconds
     notificationInterval = setInterval(() => {
         checkNewNotifications();
     }, 30000);
@@ -600,7 +773,6 @@ async function markAllNotificationsAsRead() {
 }
 
 function showNotificationPanel() {
-    // Check if panel exists, create if not
     let panel = document.getElementById('notificationPanel');
     
     if (!panel) {
@@ -619,7 +791,6 @@ function showNotificationPanel() {
         `;
         document.body.appendChild(panel);
         
-        // Add event listeners
         document.getElementById('closeNotificationPanel')?.addEventListener('click', () => {
             panel.classList.remove('show');
         });
@@ -629,7 +800,6 @@ function showNotificationPanel() {
             renderNotificationList();
         });
         
-        // Close when clicking outside
         document.addEventListener('click', (e) => {
             if (panel.classList.contains('show') && 
                 !panel.contains(e.target) && 
@@ -675,7 +845,6 @@ async function renderNotificationList() {
         </div>
     `).join('');
     
-    // Add event listeners to mark as read buttons
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -685,7 +854,6 @@ async function renderNotificationList() {
         });
     });
     
-    // Add click to mark as read on item click
     document.querySelectorAll('.notification-item').forEach(item => {
         item.addEventListener('click', async (e) => {
             if (!e.target.closest('.mark-read-btn')) {
@@ -706,7 +874,6 @@ function getNotificationIcon(type) {
     }
 }
 
-// Create a sample notification (for testing)
 async function createSampleNotification() {
     const admin = getCurrentAdmin();
     if (!admin) return;
@@ -767,18 +934,15 @@ async function checkAdminAuth() {
         
         console.log('✅ Admin authorized:', adminData.full_name);
         
-        // Check if this is a new session (just logged in)
         const currentSessionId = session.access_token;
         const lastSessionId = sessionStorage.getItem('lastSessionId');
         const isNewSession = (lastSessionId !== currentSessionId);
         
         if (isNewSession) {
-            // Only show welcome toast on first load of a new session
             showSuccessToast(`Welcome back, ${adminData.full_name}!`, 'Login Successful', 3000);
             sessionStorage.setItem('lastSessionId', currentSessionId);
         }
         
-        // Store admin info
         localStorage.setItem('currentAdmin', JSON.stringify({
             id: adminData.id,
             admin_id: adminData.admin_id,
@@ -789,7 +953,6 @@ async function checkAdminAuth() {
             status: adminData.status
         }));
         
-        // Setup the admin drawer with the admin info
         setupAdminDrawer(adminData.full_name, adminData.admin_id);
         setupAdminLogout('logoutBtn');
         setupAdminDrawerControls();
@@ -1240,7 +1403,6 @@ function updateDarkModeIcon(btn, isDark) {
     }
 }
 
-// Add fadeInOut animation
 const darkModeStyle = document.createElement('style');
 darkModeStyle.textContent = `
     @keyframes fadeInOut {
@@ -1275,10 +1437,8 @@ async function init() {
     await loadAdminName();
     await refreshDashboard();
     
-    // Start notification system
     startNotificationPolling();
     
-    // Create welcome notification (only once)
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeNotification');
     if (!hasSeenWelcome) {
         setTimeout(() => {

@@ -48,12 +48,13 @@
             width: 42px;
             height: 42px;
             object-fit: contain;
+            margin-top: 7px;
         }
 
         .nav-logo span {
             font-weight: 700;
             font-size: 20px;
-            color: #0F172A;
+            color: var(--blue);
         }
 
         .portal-link {
@@ -211,6 +212,7 @@
             color: var(--text);
             margin-bottom: 10px;
         }
+        
 
         .feature-desc {
             font-size: 13px;

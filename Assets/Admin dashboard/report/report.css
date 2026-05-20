@@ -426,7 +426,7 @@ body {
 .brand-name {
     font-size: 18px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--blue);
     transition: color 0.3s ease;
 }
 

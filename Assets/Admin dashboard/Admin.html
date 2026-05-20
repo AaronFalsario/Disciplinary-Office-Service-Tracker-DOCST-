@@ -4,24 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOCST — Admin Dashboard</title>
-    
-    <!-- ============ PREVENT DRAWER FLICKER ============ -->
     <script>
         (function() {
-            // Store drawer state before page unload
             const drawerWasOpen = localStorage.getItem('drawer_state') === 'open';
             const isMobile = window.innerWidth <= 768;
-            
-            // Immediately set drawer class if it was open on mobile
+
             if (drawerWasOpen && isMobile) {
                 document.documentElement.classList.add('drawer-should-be-open');
             }
             
-            // Add preload class to prevent transition on load
             document.documentElement.classList.add('preload');
         })();
-        
-        // Dark mode check
+    
         if (localStorage.getItem('docst_dark_mode') === 'enabled') {
             document.documentElement.classList.add('dark-mode');
         }
@@ -34,12 +28,10 @@
     <base href="/">
     
     <style>
-        /* Prevent drawer transition on page load */
         .preload .drawer {
             transition: none !important;
         }
-        
-        /* Remove preload class after page loads to re-enable animations */
+
         .preload {
             transition: none !important;
         }
@@ -62,14 +54,13 @@
                 </div>
                 <div class="drawer-info">
                     <div class="drawer-name" id="drawerAdminName">Administrator</div>
-                    <div class="drawer-role">Disciplinary Officer</div>
+                    <div class="drawer-role">Student Affair Officer</div>
                 </div>
                 <span class="drawer-badge" id="drawerAdminId">Admin</span>
             </div>
         </div>
         <div class="drawer-nav">
             <div class="drawer-nav-main" id="drawerNavMain">
-                <!-- Navigation will be populated by drawer-admin.js -->
             </div>
         </div>
         <div class="drawer-footer">
@@ -85,11 +76,11 @@
         <div class="topbar-left">
             <div class="brand">
                 <div class="brand-logo">
-                    <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
                 </div>
                 <div>
-                    <span class="brand-name">DOCST</span>
-                    <span class="brand-tagline">Disciplinary Management System</span>
+                    <span class="brand-name">SAOCST</span>
+                    <span class="brand-tagline">Student Affair Office Management System</span>
                 </div>
             </div>
         </div>

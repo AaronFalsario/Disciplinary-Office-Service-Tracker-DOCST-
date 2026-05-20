@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>DOCST — Submit Appeal</title>
+    <title>SAOCST — Submit Appeal</title>
     <script>
         if (localStorage.getItem('docst_dark_mode') === 'enabled') {
             document.documentElement.classList.add('dark-mode');
@@ -42,7 +42,6 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
                     <span>My Penalties</span>
                 </button>
-                <!-- ✅ ACTIVE: Appeal -->
                 <button class="drawer-item active" onclick="window.location.href='/Assets/Student_Dashboard/appeal/appeal.html'">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>
                     <span>Appeal</span>
@@ -70,10 +69,10 @@
         <div class="topbar-left">
             <div class="brand">
                 <div class="brand-logo">
-                    <img src="/Assets/Images/DOCST LOGO.png" alt="DOCST Logo">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
                 </div>
-                <span class="brand-name">DOCST</span>
-                <span class="brand-tagline">| Submit Appeal</span>
+                <span class="brand-name">SAOCST</span>
+                <span class="brand-tagline">Submit Appeal</span>
             </div>
         </div>
         <div class="topbar-right">
@@ -216,10 +215,17 @@
                 <div class="table-wrap">
                     <table>
                         <thead>
-                            <tr><th>DATE SUBMITTED</th><th>PENALTY</th><th>REASON</th><th>STATUS</th><th>RESPONSE DATE</th></tr>
+                            <tr>
+                                <th>DATE SUBMITTED</th>
+                                <th>PENALTY</th>
+                                <th>REASON</th>
+                                <th>STATUS</th>
+                                <th>RESPONSE DATE</th>
+                                <th>ACTION</th>
+                            </tr>
                         </thead>
                         <tbody id="appealsTableBody">
-                            <tr><td colspan="5" class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No Appeals Found</div><div class="empty-sub">Submit an appeal to see it here</div></td></tr>
+                            <tr><td colspan="6" class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No Appeals Found</div><div class="empty-sub">Submit an appeal to see it here</div></td><tr>
                         </tbody>
                     </table>
                 </div>
@@ -227,7 +233,83 @@
         </div>
     </main>
 
+    <!-- Reason Modal - UPDATED with Admin Notes section -->
+    <div class="reason-modal-overlay" id="reasonModal">
+        <div class="reason-modal-content">
+            <div class="reason-modal-header rejected" id="modalHeader">
+                <div class="modal-header-icon">
+                    <i id="modalIcon" class="fas fa-times-circle"></i>
+                </div>
+                <div class="modal-header-text">
+                    <h3 id="modalTitle">Appeal Rejected</h3>
+                    <p>Review the details below</p>
+                </div>
+                <button class="modal-close-btn" id="modalCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="reason-modal-body">
+                <div class="modal-info-grid">
+                    <div class="modal-info-row">
+                        <span class="modal-info-label"><i class="fas fa-gavel"></i> Violation</span>
+                        <span class="modal-info-value" id="modalViolation">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label"><i class="fas fa-calendar-plus"></i> Submitted</span>
+                        <span class="modal-info-value" id="modalSubmitted">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label"><i class="fas fa-calendar-check"></i> Reviewed</span>
+                        <span class="modal-info-value" id="modalReviewed">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label"><i class="fas fa-user-shield"></i> Reviewed By</span>
+                        <span class="modal-info-value" id="modalReviewedBy">—</span>
+                    </div>
+                    <!-- ADDED: Admin Notes Row -->
+                    <div class="modal-info-row" id="adminNotesModalRow" style="display: flex;">
+                        <span class="modal-info-label"><i class="fas fa-comment-dots"></i> Admin Notes</span>
+                        <span class="modal-info-value" id="modalAdminNotes">—</span>
+                    </div>
+                    <div class="modal-info-row" id="adjustedRow">
+                        <span class="modal-info-label"><i class="fas fa-clock"></i> Adjusted Hours</span>
+                        <span class="modal-info-value" id="modalAdjustedHours">—</span>
+                    </div>
+                    <div class="modal-info-row" id="deadlineRow">
+                        <span class="modal-info-label"><i class="fas fa-calendar-alt"></i> New Deadline</span>
+                        <span class="modal-info-value" id="modalNewDeadline">—</span>
+                    </div>
+                </div>
+                <div class="modal-reason-section">
+                    <div class="modal-reason-label">
+                        <i class="fas fa-comment-alt"></i> Decision Reason
+                    </div>
+                    <div class="modal-reason-text" id="modalDecisionReason">—</div>
+                </div>
+                <div class="modal-reason-section">
+                    <div class="modal-reason-label">
+                        <i class="fas fa-sticky-note"></i> Additional Comments
+                    </div>
+                    <div class="modal-reason-text secondary" id="modalReviewComments">—</div>
+                </div>
+            </div>
+            <div class="reason-modal-footer">
+                <button class="btn-close-modal" onclick="closeReasonModal()">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="reason-modal-bg" id="modalOverlayBg"></div>
+
     <div id="toastNotification" class="toast-notification"></div>
+    
+    <script>
+        function closeReasonModal() {
+            document.getElementById('reasonModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    </script>
     <script type="module">
         import { initBottomNav, setupBottomNavResize } from '/Assets/bottom-nav.js';
         initBottomNav();

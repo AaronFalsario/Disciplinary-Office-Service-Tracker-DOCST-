@@ -497,19 +497,18 @@ async function submitAppeal() {
     }
 }
 
-// Render appeals table
+// ============ UPDATED: Render appeals table WITH admin notes column ============
 function renderAppealsTable() {
     const tbody = document.getElementById('appealsTableBody')
     if (!tbody) return
     
     if (myAppeals.length === 0) {
         tbody.innerHTML = `
-            <tr><td colspan="5" class="empty-state">
+            <tr><td colspan="6" class="empty-state">
                 <div class="empty-icon">📋</div>
                 <div class="empty-title">No Appeals Found</div>
                 <div class="empty-sub">Submit an appeal to see it here</div>
-            </td
-        </tr>
+            </td></tr>
         `
         return
     }
@@ -517,25 +516,101 @@ function renderAppealsTable() {
     tbody.innerHTML = myAppeals.map(appeal => {
         let statusClass = 'status-pending'
         let statusText = 'Pending Review'
-        
+        let actionBtn = ''
+
         if (appeal.status === 'approved') {
             statusClass = 'status-approved'
             statusText = 'Approved ✓'
+            actionBtn = `<button class="view-reason-btn approved" onclick="openReasonModal(${appeal.id})">
+                <i class="fas fa-check-circle"></i> View Decision
+            </button>`
         } else if (appeal.status === 'rejected') {
             statusClass = 'status-rejected'
             statusText = 'Rejected ✗'
+            actionBtn = `<button class="view-reason-btn rejected" onclick="openReasonModal(${appeal.id})">
+                <i class="fas fa-exclamation-circle"></i> View Reason
+            </button>`
         }
-        
+
+        // ADDED: Show admin notes indicator if present
+        const hasAdminNotes = appeal.admin_notes && appeal.admin_notes.trim() !== ''
+        const notesIndicator = hasAdminNotes ? '<span class="admin-notes-indicator" title="Has admin notes"><i class="fas fa-comment-dots"></i></span>' : ''
+
         return `
             <tr>
-                <td>${formatDate(appeal.created_at)}</span>
+                <td>${formatDate(appeal.created_at)} ${notesIndicator}</td>
                 <td><strong>${escapeHtml(appeal.penalty_violation)}</strong></td>
-                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}</span>
+                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'}</span>
+                <td>${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'}</td>
+                <td>${actionBtn}</td>
             </tr>
         `
     }).join('')
+}
+
+// ============ UPDATED: Open reason modal to show admin notes ============
+window.openReasonModal = function(appealId) {
+    const appeal = myAppeals.find(a => a.id === appealId)
+    if (!appeal) return
+
+    const isRejected = appeal.status === 'rejected'
+    const isApproved = appeal.status === 'approved'
+
+    document.getElementById('modalViolation').textContent = appeal.penalty_violation || '—'
+    document.getElementById('modalSubmitted').textContent = formatDate(appeal.created_at)
+    document.getElementById('modalReviewed').textContent = appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'
+    document.getElementById('modalReviewedBy').textContent = appeal.reviewed_by_name || appeal.reviewed_by || '—'
+    document.getElementById('modalDecisionReason').textContent = appeal.decision_reason || 'No reason provided.'
+    document.getElementById('modalReviewComments').textContent = appeal.review_comment || 'No additional comments.'
+    document.getElementById('modalAdjustedHours').textContent = appeal.adjusted_hours ? `${appeal.adjusted_hours} hours` : '—'
+    document.getElementById('modalNewDeadline').textContent = appeal.new_deadline ? formatDate(appeal.new_deadline) : '—'
+    
+    // ADDED: Display admin notes from the database
+    const adminNotesElement = document.getElementById('modalAdminNotes')
+    const adminNotesRow = document.getElementById('adminNotesModalRow')
+    
+    if (appeal.admin_notes && appeal.admin_notes.trim() !== '') {
+        if (adminNotesElement) adminNotesElement.textContent = appeal.admin_notes
+        if (adminNotesRow) adminNotesRow.style.display = 'flex'
+    } else {
+        if (adminNotesElement) adminNotesElement.textContent = 'No admin notes available.'
+        if (adminNotesRow) adminNotesRow.style.display = 'flex'
+    }
+
+    const header = document.getElementById('modalHeader')
+    const icon = document.getElementById('modalIcon')
+    const title = document.getElementById('modalTitle')
+
+    if (isRejected) {
+        header.className = 'reason-modal-header rejected'
+        icon.className = 'fas fa-times-circle'
+        title.textContent = 'Appeal Rejected'
+    } else if (isApproved) {
+        header.className = 'reason-modal-header approved'
+        icon.className = 'fas fa-check-circle'
+        title.textContent = 'Appeal Approved'
+    }
+
+    // Show/hide adjusted hours row only for approved
+    document.getElementById('adjustedRow').style.display = isApproved ? 'flex' : 'none'
+    document.getElementById('deadlineRow').style.display = isApproved ? 'flex' : 'none'
+
+    document.getElementById('reasonModal').classList.add('show')
+    document.body.style.overflow = 'hidden'
+}
+
+function closeReasonModal() {
+    document.getElementById('reasonModal').classList.remove('show')
+    document.body.style.overflow = ''
+}
+
+function initReasonModal() {
+    document.getElementById('modalCloseBtn')?.addEventListener('click', closeReasonModal)
+    document.getElementById('modalOverlay')?.addEventListener('click', closeReasonModal)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeReasonModal()
+    })
 }
 
 // Dark mode
@@ -599,6 +674,7 @@ async function init() {
     
     initDarkMode()
     initNotification()
+    initReasonModal()
     
     await loadPenalties()
     await loadAppeals()
@@ -621,6 +697,7 @@ async function init() {
         document.getElementById('violationName').textContent = '—'
         document.getElementById('violationHours').textContent = '—'
         document.getElementById('violationDeadline').textContent = '—'
+        document.getElementById('modalCloseFooterBtn')?.addEventListener('click', closeReasonModal)
     })
 }
 

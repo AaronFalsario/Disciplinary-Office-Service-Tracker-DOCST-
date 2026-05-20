@@ -1,8 +1,5 @@
-// Mobile Hamburger Menu - Add hamburger to HTML first
-// Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Add hamburger button to navigation if not exists
     const nav = document.querySelector('nav');
     const navActions = document.querySelector('.nav-actions');
     
@@ -17,8 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             nav.insertBefore(hamburgerBtn, navLogo.nextSibling);
         }
     }
-    
-    // Hamburger menu functionality
+
     const hamburger = document.getElementById('hamburger');
     if (hamburger) {
         hamburger.addEventListener('click', function() {
@@ -28,8 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Secret Admin Button - Double click to reveal admin login
+
     const secretAdminBtn = document.getElementById('secretAdminBtn');
     if (secretAdminBtn) {
         console.log('✅ Secret admin button found');
