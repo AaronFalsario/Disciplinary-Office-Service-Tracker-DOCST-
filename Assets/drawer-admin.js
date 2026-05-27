@@ -5,6 +5,46 @@ if (localStorage.getItem('docst_dark_mode') === 'enabled') {
     document.body?.classList.add('dark-mode');
 }
 
+// Add drawer color styles
+const drawerStyles = document.createElement('style');
+drawerStyles.textContent = `
+    /* Drawer Background Color */
+    .drawer {
+        background: #0f172a !important;
+    }
+    
+    /* Dark mode adjustment if needed */
+    .dark-mode .drawer {
+        background: #0f172a !important;
+    }
+    
+    /* Drawer items hover and active states */
+    .drawer-item:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .drawer-item.active {
+        background: rgba(37, 99, 235, 0.2) !important;
+        color: #3b82f6 !important;
+    }
+    
+    /* Drawer divider */
+    .drawer-divider {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Drawer header and footer */
+    .drawer-header {
+        background: #0f172a !important;
+    }
+    
+    .drawer-footer {
+        background: #0f172a !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+`;
+document.head.appendChild(drawerStyles);
+
 const adminNavItems = [
     { 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>', 

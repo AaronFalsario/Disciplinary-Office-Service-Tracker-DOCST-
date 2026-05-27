@@ -1,5 +1,66 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { initAdminDrawer, getCurrentAdmin, showLogoutToast } from '/Assets/drawer-admin.js';
+// ============ REMOVE DRAWER LOADING ANIMATIONS ============
+const removeDrawerAnimations = document.createElement('style');
+removeDrawerAnimations.textContent = `
+    /* Remove all drawer animations - instant loading */
+    .drawer {
+        transition: none !important;
+        transform: translateX(0) !important;
+    }
+    
+    .drawer-overlay {
+        transition: none !important;
+    }
+    
+    .drawer-item,
+    .drawer-logout,
+    .drawer-close {
+        transition: none !important;
+    }
+    
+    /* Remove mobile drawer animation */
+    @media (max-width: 768px) {
+        .drawer {
+            transition: none !important;
+        }
+        .drawer.open {
+            transform: translateX(0) !important;
+        }
+    }
+    
+    /* Remove hover transform animations */
+    .drawer-item:hover,
+    .drawer-logout:hover {
+        transform: none !important;
+        transition: none !important;
+    }
+    
+    /* Remove any fade animations */
+    .drawer-overlay {
+        transition: none !important;
+    }
+    
+    /* Remove content fade animations */
+    .dashboard-main,
+    .welcome-section,
+    .stat-card,
+    .section-hdr,
+    .action-buttons-row,
+    .table-wrap,
+    tbody tr {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    /* Disable all keyframe animations */
+    * {
+        animation-delay: 0s !important;
+        animation-duration: 0s !important;
+    }
+`;
+document.head.appendChild(removeDrawerAnimations);
 
 const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
 const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
@@ -84,12 +145,11 @@ function showInfoToast(message, title = 'Information', duration = 3000) { return
 async function getCurrentAdminInfo() {
     currentAdmin = getCurrentAdmin();
     if (currentAdmin) {
-        // Unsubscribe from existing channel if any
         if (notificationChannel) {
             notificationChannel.unsubscribe();
         }
         
-        // Subscribe to real-time notifications
+        // Subscribe only to admin notifications
         notificationChannel = supabase
             .channel('notifications-channel')
             .on(
@@ -98,20 +158,16 @@ async function getCurrentAdminInfo() {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'notifications',
-                    filter: `admin_id=eq.${currentAdmin.admin_id}`
+                    filter: `admin_id=eq.${currentAdmin.admin_id}`  // Only admin_id matches
                 },
                 (payload) => {
-                    console.log('🔔 New notification received:', payload);
+                    console.log('🔔 New admin notification received:', payload);
                     const newNotification = payload.new;
                     
-                    // Add to unread notifications
                     unreadNotifications.unshift(newNotification);
                     updateNotificationBadge();
-                    
-                    // Show toast for new notification
                     showNotificationToast(newNotification);
                     
-                    // If notification panel is open, refresh it
                     const panel = document.getElementById('notificationPanel');
                     if (panel && panel.classList.contains('show')) {
                         renderNotificationList();
@@ -128,11 +184,11 @@ async function getCurrentAdminInfo() {
 async function fetchNotifications() {
     try {
         if (!currentAdmin && !(await getCurrentAdminInfo())) return [];
-        
+
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .or(`admin_id.eq.${currentAdmin?.admin_id},admin_id.is.null`)
+            .eq('admin_id', currentAdmin?.admin_id)  
             .eq('is_read', false)
             .order('created_at', { ascending: false })
             .limit(20);
@@ -718,7 +774,7 @@ function renderAppeals() {
               </span></td>
             <td><span class="status-badge status-${appeal.status}">${getStatusText(appeal.status)}</span></td>
             <td>${formatDate(appeal.created_at)}</span></td>
-            <td><button class="view-appeal-btn" data-id="${appeal.id}">👁️ View</button></span></td>
+            <td><button class="view-appeal-btn" data-id="${appeal.id}"> View</button></span></td>
         </tr>
     `).join('');
     
@@ -1208,6 +1264,7 @@ async function createStudentNotification(appealId, status) {
         : `Your appeal for ${appeal.violation} has been reviewed. ${appeal.admin_notes ? `Note: ${appeal.admin_notes}` : 'Please contact the disciplinary office for more information.'}`;
     const type = status === 'approved' ? 'success' : 'error';
     
+    // Insert notification for student ONLY - admin_id should be NULL
     const { error } = await supabase
         .from('notifications')
         .insert({
@@ -1216,10 +1273,37 @@ async function createStudentNotification(appealId, status) {
             message: message,
             type: type,
             is_read: false,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            is_admin_notification: false  // Add this field to distinguish
+            // OR just don't set admin_id at all
         });
     
     if (error) console.error('Error creating student notification:', error);
+    
+    // Also create an admin notification (optional)
+    await createAdminNotification(appeal, status);
+}
+
+// Optional: Create notification for admin
+async function createAdminNotification(appeal, status) {
+    const admin = getCurrentAdmin();
+    if (!admin) return;
+    
+    const title = `Appeal ${status}`;
+    const message = `Appeal from ${appeal.student_name} (${appeal.student_id}) for ${appeal.violation} has been ${status}.`;
+    
+    const { error } = await supabase
+        .from('notifications')
+        .insert({
+            admin_id: admin.admin_id,
+            title: title,
+            message: message,
+            type: 'info',
+            is_read: false,
+            created_at: new Date().toISOString()
+        });
+    
+    if (error) console.error('Error creating admin notification:', error);
 }
 
 // ============ DARK MODE ============

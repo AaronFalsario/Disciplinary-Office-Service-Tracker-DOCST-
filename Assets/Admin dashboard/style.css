@@ -45,7 +45,7 @@ html, body {
     line-height: 1.5;   
 }
 
-/* ============ DRAWER - DESKTOP ============ */
+/* ============ DRAWER - DESKTOP (NO ANIMATIONS) ============ */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -53,7 +53,7 @@ html, body {
     z-index: 200;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .25s ease;
+    transition: none;
 }
 
 .drawer-overlay.open {
@@ -72,7 +72,7 @@ html, body {
     display: flex;
     flex-direction: column;
     transform: translateX(0);
-    transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     overflow-y: auto;
     box-shadow: 2px 0 12px rgba(0,0,0,0.08);
 }
@@ -94,7 +94,7 @@ html, body {
     color: rgba(255,255,255,0.6);
     padding: 6px;
     border-radius: 6px;
-    transition: all 0.15s;
+    transition: none;
     display: none;
 }
 
@@ -177,7 +177,7 @@ html, body {
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: none;
 }
 
 .drawer-item:hover {
@@ -221,7 +221,7 @@ html, body {
     padding: 10px 0;
     font-family: 'DM Sans', sans-serif;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: none;
 }
 
 .drawer-logout:hover {
@@ -245,7 +245,7 @@ html, body {
     border-radius: 4px;
 }
 
-/* ============ MOBILE DRAWER ============ */
+/* ============ MOBILE DRAWER (NO ANIMATIONS) ============ */
 @media (max-width: 768px) {
     .drawer {
         top: auto;
@@ -258,7 +258,7 @@ html, body {
         border-top: 1px solid rgba(255,255,255,0.1);
         border-right: none;
         border-radius: 20px 20px 0 0;
-        transition: transform 0.3s ease;
+        transition: none;
         background: var(--navy);
         backdrop-filter: blur(10px);
         z-index: 1000;
@@ -303,7 +303,7 @@ html, body {
     }
     
     .drawer-item:hover {
-        transform: translateY(-2px);
+        transform: none;
         background: rgba(255,255,255,0.1);
     }
     
@@ -447,19 +447,13 @@ html, body {
     color: var(--blue);
 }
 
-/* ============ MAIN CONTENT ============ */
+/* ============ MAIN CONTENT (NO ANIMATIONS) ============ */
 .dashboard-main {
     max-width: calc(1600px - var(--drawer-w));
     margin-left: var(--drawer-w);
     padding: 28px 32px 48px;
     transition: background 0.3s ease;
-    animation: contentFadeIn 0.4s ease-out;
     background: #F0F2F5;
-}
-
-@keyframes contentFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 @media (max-width: 768px) {
@@ -471,15 +465,9 @@ html, body {
     }
 }
 
-/* Welcome Section */
+/* Welcome Section (NO ANIMATIONS) */
 .welcome-section {
     margin-bottom: 32px;
-    animation: slideUp 0.4s ease-out 0.05s both;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .welcome-title {
@@ -946,11 +934,6 @@ body.drawer-open {
     flex-shrink: 0;
 }
 
-.toast-success .toast-icon { background: #10b981; color: white; }
-.toast-error .toast-icon { background: #ef4444; color: white; }
-.toast-warning .toast-icon { background: #f59e0b; color: white; }
-.toast-info .toast-icon { background: #3b82f6; color: white; }
-
 .toast-content { flex: 1; }
 .toast-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1f2937; }
 .toast-message { font-size: 13px; color: #6b7280; line-height: 1.4; }
@@ -1097,7 +1080,182 @@ body.drawer-open {
 
 .empty-notifications i { font-size: 48px; margin-bottom: 12px; }
 
-/* ============ LOGOUT MODAL & TOAST - COMPACT ============ */
+/* ============ NOTIFICATION MODAL ============ */
+.notification-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+}
+
+.notification-modal-content {
+    background: white;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .notification-modal-content {
+    background: #1e1e2e;
+    color: #e0e0e0;
+}
+
+.notification-modal-header {
+    padding: 24px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    border-radius: 24px 24px 0 0;
+}
+
+.notification-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.dark-mode .form-group label {
+    color: #e5e7eb;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: white;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+    background: #2d2d3a;
+    border-color: #3d3d4a;
+    color: #e0e0e0;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.notification-modal-footer {
+    padding: 20px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    border-top: 1px solid #e5e7eb;
+}
+
+.dark-mode .notification-modal-footer {
+    border-top-color: #3d3d4a;
+}
+
+.notification-modal-footer button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-cancel {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.modal-cancel:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.modal-send {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+}
+
+.modal-send:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+}
+
+.modal-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.dark-mode .modal-cancel {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+.dark-mode .modal-cancel:hover {
+    background: #4b5563;
+}
+
+/* Recipient badges */
+.recipient-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.dark-mode .recipient-badge {
+    background: #2d2d3a;
+}
+
+.recipient-count {
+    font-weight: 600;
+    color: #2563eb;
+}
+
+/* ============ LOGOUT MODAL & TOAST ============ */
 .logout-modal {
     position: fixed;
     top: 0;
@@ -1118,13 +1276,7 @@ body.drawer-open {
     width: 90%;
     max-width: 340px;
     overflow: hidden;
-    animation: modalPop 0.2s ease;
     border: 1px solid var(--border);
-}
-
-@keyframes modalPop {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
 }
 
 .logout-modal-header {
@@ -1315,6 +1467,97 @@ body.dark-mode .notification-message { color: #9ca3af; }
 body.dark-mode .logout-modal-content,
 body.dark-mode .logout-toast { background: #1E293B; }
 body.dark-mode .logout-modal-cancel { background: #334155; color: #E2E8F0; border-color: #475569; }
+
+/* ============ FORCE REMOVE ALL ANIMATIONS ============ */
+/* Remove drawer animations */
+.drawer,
+.drawer-overlay,
+.drawer-item,
+.drawer-logout,
+.drawer-close {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Remove mobile drawer animations */
+@media (max-width: 768px) {
+    .drawer {
+        transition: none !important;
+    }
+    .drawer.open {
+        transform: translateY(0) !important;
+    }
+}
+
+/* Remove all page loading animations */
+.dashboard-main,
+.welcome-section,
+.stat-card,
+.section-hdr,
+.action-buttons-row,
+.table-wrap,
+tbody tr,
+.chart-card,
+.violations-list,
+.recent-table,
+.activity-feed,
+.page-header,
+.page-title,
+.page-sub,
+.stat-card,
+.stat-icon,
+.stat-value {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Remove hover transformations */
+.drawer-item:hover,
+.drawer-logout:hover,
+.action-btn:hover,
+.stat-card:hover,
+.bottom-nav-item:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Disable all delayed animations */
+* {
+    animation-delay: 0s !important;
+}
+
+/* Disable keyframe animations completely */
+/* Define each keyframe separately */
+@keyframes contentFadeIn {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes slideUp {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes modalPop {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes toastSlideIn {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes toastSlideOut {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+}
 
 /* Responsive */
 @media (max-width: 480px) {

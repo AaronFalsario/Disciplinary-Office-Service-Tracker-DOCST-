@@ -87,33 +87,38 @@
     </style>
 </head>
 <body>
-<div class="drawer-overlay" id="overlay"></div>
-<nav class="drawer" id="drawer">
-    <div class="drawer-header">
-        <div class="drawer-profile">
-            <div class="drawer-avatar" id="drawerAvatar">
-                <span id="avatarInitials">AD</span>
+    <!-- Drawer - Always visible on desktop -->
+    <div class="drawer-overlay" id="overlay"></div>
+    <nav class="drawer" id="drawer">
+        <div class="drawer-header">
+            <button class="drawer-close" id="drawerClose">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="drawer-profile">
+                <div class="drawer-avatar" id="drawerAvatar">
+                    <span id="avatarInitials">AD</span>
+                </div>
+                <div class="drawer-info">
+                    <div class="drawer-name" id="drawerAdminName">Administrator</div>
+                    <div class="drawer-role">Student Affair Officer</div>
+                </div>
+                <span class="drawer-badge" id="drawerAdminId">Admin</span>
             </div>
-            <div class="drawer-info">
-                <div class="drawer-name" id="drawerAdminName">Administrator</div>
-                <div class="drawer-role">Student Affair Officer</div>
+        </div>
+        <div class="drawer-nav">
+            <div class="drawer-nav-main" id="drawerNavMain">
             </div>
-            <span class="drawer-badge" id="drawerAdminId">Admin</span>
         </div>
-    </div>
-    <div class="drawer-nav">
-        <div class="drawer-nav-main" id="drawerNavMain">
-            <!-- Populated by drawer-admin.js -->
+        <div class="drawer-footer">
+            <button class="drawer-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
         </div>
-    </div>
-    <div class="drawer-footer">
-        <button class="drawer-logout" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
-    </div>
-</nav>
-
+    </nav>
 <!-- Topbar -->
 <header class="topbar">
     <div class="topbar-left">

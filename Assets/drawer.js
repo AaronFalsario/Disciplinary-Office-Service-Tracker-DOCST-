@@ -1,10 +1,75 @@
-// ============ STUDENT DRAWER ============
+// ============ STUDENT DRAWER (SAME DESIGN AS ADMIN) ============
 
 // Apply dark mode INSTANTLY before anything renders (prevents flash)
 if (localStorage.getItem('docst_dark_mode') === 'enabled') {
     document.documentElement.classList.add('dark-mode');
     document.body?.classList.add('dark-mode');
 }
+
+// Add drawer color styles to match admin drawer
+const drawerStyles = document.createElement('style');
+drawerStyles.textContent = `
+    /* Drawer Background Color - Match Admin Drawer */
+    .drawer {
+        background: #0f172a !important;
+    }
+    
+    /* Dark mode adjustment */
+    .dark-mode .drawer {
+        background: #0f172a !important;
+    }
+    
+    /* Drawer items hover and active states - Match Admin */
+    .drawer-item:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .drawer-item.active {
+        background: rgba(37, 99, 235, 0.2) !important;
+        color: #3b82f6 !important;
+    }
+    
+    /* Drawer divider */
+    .drawer-divider {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Drawer header and footer */
+    .drawer-header {
+        background: #0f172a !important;
+    }
+    
+    .drawer-footer {
+        background: #0f172a !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* REMOVE ALL ANIMATIONS - INSTANT LOADING */
+    .drawer,
+    .drawer-overlay,
+    .drawer-item,
+    .drawer-logout,
+    .drawer-close {
+        transition: none !important;
+    }
+    
+    /* Remove hover transform animations */
+    .drawer-item:hover,
+    .drawer-logout:hover {
+        transform: none !important;
+    }
+    
+    /* Mobile drawer - no animations */
+    @media (max-width: 768px) {
+        .drawer {
+            transition: none !important;
+        }
+        .drawer.open {
+            transform: translateY(0) !important;
+        }
+    }
+`;
+document.head.appendChild(drawerStyles);
 
 const navItems = [
     { 
@@ -162,7 +227,6 @@ export function setupLogout(logoutBtnId = 'logoutBtn') {
     logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
 
     newBtn.addEventListener('click', async () => {
-        // Show confirmation
         if (!confirm('Are you sure you want to logout?')) return;
         
         try {
@@ -183,7 +247,6 @@ export function setupLogout(logoutBtnId = 'logoutBtn') {
             console.error('Logout error:', error);
             alert('Failed to logout. Please try again.');
             
-            // Reset button state
             const btn = document.getElementById(logoutBtnId);
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';

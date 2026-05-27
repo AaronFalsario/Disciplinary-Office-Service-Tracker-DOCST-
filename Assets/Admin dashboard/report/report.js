@@ -649,9 +649,9 @@ async function loadData() {
         
         updateAnalytics();
         updateCharts();
-        updateRecentPenaltiesTable();
         updateTopStudentsTable();
         updateMonthlySummaryTable();
+        updateRecentPenaltiesTable();
         
         showSuccessToast(`Loaded ${penaltiesData.length} penalty records`, 'Data Loaded', 2000);
         
@@ -661,27 +661,39 @@ async function loadData() {
     }
 }
 
-// ============ UPDATE ANALYTICS CARDS ============
+// ============ UPDATE RECENT PENALTIES TABLE (ALIAS) ============
+function updateRecentPenaltiesTable() {
+    const year = document.getElementById('yearFilter')?.value || 'all';
+    const month = document.getElementById('monthFilter')?.value || 'all';
+    updateRecentPenaltiesTableWithFilter(year, month);
+}
+
+// ============ UPDATE ANALYTICS (WITH FULL REFRESH) ============
 function updateAnalytics() {
-    const year = document.getElementById('yearFilter')?.value || '2026';
+    const year = document.getElementById('yearFilter')?.value;
     const month = document.getElementById('monthFilter')?.value;
     
     let filteredPenalties = penaltiesData;
     
-    if (year) {
+    // Filter by year
+    if (year && year !== 'all') {
         filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
             const date = new Date(p.created_at);
             return date.getFullYear().toString() === year;
         });
     }
     
+    // Filter by month
     if (month && month !== 'all') {
         filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
             const date = new Date(p.created_at);
             return (date.getMonth() + 1).toString() === month;
         });
     }
     
+    // Update Analytics Cards with filtered data
     const totalPenalties = filteredPenalties.length;
     const completedPenalties = filteredPenalties.filter(p => p.status === 'completed').length;
     const completionRate = totalPenalties > 0 ? Math.round((completedPenalties / totalPenalties) * 100) : 0;
@@ -691,6 +703,9 @@ function updateAnalytics() {
     const pendingPenalties = filteredPenalties.filter(p => p.status === 'pending').length;
     const inProgressPenalties = filteredPenalties.filter(p => p.status === 'in-progress').length;
     
+    const completedElement = document.getElementById('completedPenalties');
+    if (completedElement) completedElement.textContent = completedPenalties;
+    
     document.getElementById('totalPenalties').textContent = totalPenalties;
     document.getElementById('completionRate').textContent = `${completionRate}%`;
     document.getElementById('totalHours').textContent = totalHours;
@@ -698,9 +713,309 @@ function updateAnalytics() {
     document.getElementById('totalAdmins').textContent = totalAdmins;
     document.getElementById('pendingPenalties').textContent = pendingPenalties;
     document.getElementById('inProgressPenalties').textContent = inProgressPenalties;
+    
+    // UPDATE CHARTS WITH FILTERED DATA
+    updateTrendChartWithFilter(year);
+    updateCategoryChartWithFilter(year, month);
+    updateStatusChartWithFilter(year, month);
+    
+    // UPDATE TABLES WITH FILTERED DATA
+    updateRecentPenaltiesTableWithFilter(year, month);
+    updateMonthlySummaryTableWithFilter(year);
 }
 
-// ============ UPDATE CHARTS ============
+// ============ UPDATE TREND CHART WITH YEAR FILTER ============
+function updateTrendChartWithFilter(year) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const targetYear = year && year !== 'all' ? parseInt(year) : new Date().getFullYear();
+    const monthlyCounts = new Array(12).fill(0);
+    
+    penaltiesData.forEach(penalty => {
+        if (penalty.created_at) {
+            const date = new Date(penalty.created_at);
+            if (date.getFullYear() === targetYear) {
+                monthlyCounts[date.getMonth()]++;
+            }
+        }
+    });
+    
+    const ctx = document.getElementById('trendChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (trendChart) trendChart.destroy();
+    
+    trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: `Penalties (${targetYear})`,
+                data: monthlyCounts,
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#2563EB',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#1E293B', titleColor: '#fff', bodyColor: '#94A3B8' }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }
+            }
+        }
+    });
+}
+
+// ============ UPDATE CATEGORY CHART WITH FILTERS ============
+function updateCategoryChartWithFilter(year, month) {
+    let filteredPenalties = penaltiesData;
+    
+    if (year && year !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return new Date(p.created_at).getFullYear().toString() === year;
+        });
+    }
+    
+    if (month && month !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return (new Date(p.created_at).getMonth() + 1).toString() === month;
+        });
+    }
+    
+    const violationCount = {};
+    filteredPenalties.forEach(penalty => {
+        if (penalty.violation) {
+            violationCount[penalty.violation] = (violationCount[penalty.violation] || 0) + 1;
+        }
+    });
+    
+    const sorted = Object.entries(violationCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const labels = sorted.map(v => v[0]);
+    const data = sorted.map(v => v[1]);
+    
+    const ctx = document.getElementById('categoryChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (categoryChart) categoryChart.destroy();
+    
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, color: '#64748B' } },
+                tooltip: { backgroundColor: '#1E293B' }
+            }
+        }
+    });
+}
+
+// ============ UPDATE STATUS CHART WITH FILTERS ============
+function updateStatusChartWithFilter(year, month) {
+    let filteredPenalties = penaltiesData;
+    
+    if (year && year !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return new Date(p.created_at).getFullYear().toString() === year;
+        });
+    }
+    
+    if (month && month !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return (new Date(p.created_at).getMonth() + 1).toString() === month;
+        });
+    }
+    
+    const statusCount = {
+        pending: 0,
+        'in-progress': 0,
+        completed: 0
+    };
+    
+    filteredPenalties.forEach(penalty => {
+        const status = penalty.status || 'pending';
+        if (status === 'pending') statusCount.pending++;
+        else if (status === 'in-progress') statusCount['in-progress']++;
+        else if (status === 'completed') statusCount.completed++;
+    });
+    
+    const ctx = document.getElementById('statusChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (statusChart) statusChart.destroy();
+    
+    statusChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Pending', 'In Progress', 'Completed'],
+            datasets: [{
+                label: 'Number of Penalties',
+                data: [statusCount.pending, statusCount['in-progress'], statusCount.completed],
+                backgroundColor: ['#F59E0B', '#2563EB', '#10B981'],
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#1E293B' }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }
+            }
+        }
+    });
+}
+
+// ============ RECENT PENALTIES TABLE WITH FILTERS ============
+function updateRecentPenaltiesTableWithFilter(year, month) {
+    const tbody = document.getElementById('recentPenaltiesTable');
+    if (!tbody) return;
+    
+    let filteredPenalties = penaltiesData;
+    
+    if (year && year !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return new Date(p.created_at).getFullYear().toString() === year;
+        });
+    }
+    
+    if (month && month !== 'all') {
+        filteredPenalties = filteredPenalties.filter(p => {
+            if (!p.created_at) return false;
+            return (new Date(p.created_at).getMonth() + 1).toString() === month;
+        });
+    }
+    
+    const recentPenalties = [...filteredPenalties].slice(0, 10);
+    
+    if (recentPenalties.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-icon">📊</div><div>No penalties found for selected period</div></td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = recentPenalties.map(penalty => `
+        <tr>
+            <td>${escapeHtml(penalty.student_id || 'N/A')}</td>
+            <td>${escapeHtml(penalty.violation || 'N/A')}</td>
+            <td>${penalty.hours || 0} hrs</td>
+            <td><span class="status-badge status-${penalty.status === 'in-progress' ? 'progress' : penalty.status}">${penalty.status === 'in-progress' ? 'In Progress' : (penalty.status || 'pending')}</span></td>
+            <td>${penalty.deadline ? new Date(penalty.deadline).toLocaleDateString() : 'N/A'}</td>
+            <td>${penalty.created_at ? new Date(penalty.created_at).toLocaleDateString() : 'N/A'}</td>
+        </tr>
+    `).join('');
+}
+
+// ============ MONTHLY SUMMARY TABLE WITH YEAR FILTER ============
+function updateMonthlySummaryTableWithFilter(year) {
+    const tbody = document.getElementById('monthlySummaryTable');
+    if (!tbody) return;
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const targetYear = year && year !== 'all' ? parseInt(year) : new Date().getFullYear();
+    const monthlyData = {};
+    
+    // Initialize months for the selected year
+    for (let i = 0; i < 12; i++) {
+        monthlyData[months[i]] = { total: 0, completed: 0, hours: 0 };
+    }
+    
+    penaltiesData.forEach(penalty => {
+        if (penalty.created_at) {
+            const date = new Date(penalty.created_at);
+            if (date.getFullYear() === targetYear) {
+                const monthName = months[date.getMonth()];
+                monthlyData[monthName].total++;
+                if (penalty.status === 'completed') monthlyData[monthName].completed++;
+                monthlyData[monthName].hours += penalty.hours || 0;
+            }
+        }
+    });
+    
+    const hasData = Object.values(monthlyData).some(m => m.total > 0);
+    
+    if (!hasData) {
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><div class="empty-icon">📅</div><div>No data available for ${targetYear}</div></td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = months.map(month => {
+        const data = monthlyData[month];
+        const completionRate = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+        return `
+            <tr>
+                <td>${month} ${targetYear}</td>
+                <td>${data.total}</td>
+                <td>${completionRate}%</td>
+                <td>${data.hours} hrs</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ============ MONTHLY SUMMARY TABLE (ORIGINAL) ============
+function updateMonthlySummaryTable() {
+    const year = document.getElementById('yearFilter')?.value || new Date().getFullYear().toString();
+    updateMonthlySummaryTableWithFilter(year);
+}
+
+// ============ POPULATE YEAR FILTER DYNAMICALLY ============
+function populateYearFilter() {
+    const yearFilter = document.getElementById('yearFilter');
+    if (!yearFilter) return;
+    
+    const years = new Set();
+    const currentYear = new Date().getFullYear();
+    
+    // Add current year and previous years
+    for (let i = 0; i <= 5; i++) {
+        years.add(currentYear - i);
+    }
+    
+    // Also get years from penalty data
+    penaltiesData.forEach(penalty => {
+        if (penalty.created_at) {
+            const year = new Date(penalty.created_at).getFullYear();
+            years.add(year);
+        }
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    
+    yearFilter.innerHTML = '<option value="all">All Years</option>' + 
+        sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
+}
+
+// ============ UPDATE CHARTS (original - keep for initial load) ============
 function updateCharts() {
     updateTrendChart();
     updateCategoryChart();
@@ -843,31 +1158,7 @@ function updateStatusChart() {
     });
 }
 
-// ============ RECENT PENALTIES TABLE ============
-function updateRecentPenaltiesTable() {
-    const tbody = document.getElementById('recentPenaltiesTable');
-    if (!tbody) return;
-    
-    const recentPenalties = [...penaltiesData].slice(0, 10);
-    
-    if (recentPenalties.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No penalties found</td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = recentPenalties.map(penalty => `
-        <tr>
-            <td>${escapeHtml(penalty.student_id || 'N/A')}</td>
-            <td>${escapeHtml(penalty.violation || 'N/A')}</td>
-            <td>${penalty.hours || 0} hrs</td>
-            <td><span class="status-badge status-${penalty.status === 'in-progress' ? 'progress' : penalty.status}">${penalty.status || 'pending'}</span></td>
-            <td>${penalty.deadline ? new Date(penalty.deadline).toLocaleDateString() : 'N/A'}</td>
-            <td>${penalty.created_at ? new Date(penalty.created_at).toLocaleDateString() : 'N/A'}</td>
-        </tr>
-    `).join('');
-}
-
-// ============ TOP STUDENTS TABLE ============
+// ============ UPDATE TOP STUDENTS TABLE ============
 function updateTopStudentsTable() {
     const tbody = document.getElementById('topStudentsTable');
     if (!tbody) return;
@@ -885,65 +1176,17 @@ function updateTopStudentsTable() {
         .slice(0, 10);
     
     if (sortedStudents.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No student data available</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state"><div class="empty-icon">👥</div><div>No student data available</div></td></tr>`;
         return;
     }
     
     tbody.innerHTML = sortedStudents.map(([studentId, count], index) => `
         <tr>
             <td>${index + 1}</td>
-            <td>${escapeHtml(studentId)}</td>
-            <td>${count}</td>
+            <td>${escapeHtml(studentId)}</span></td>
+            <td>${count}</span></td>
         </tr>
     `).join('');
-}
-
-// ============ MONTHLY SUMMARY TABLE ============
-function updateMonthlySummaryTable() {
-    const tbody = document.getElementById('monthlySummaryTable');
-    if (!tbody) return;
-    
-    const monthlyData = {};
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    penaltiesData.forEach(penalty => {
-        if (penalty.created_at) {
-            const date = new Date(penalty.created_at);
-            const monthYear = `${months[date.getMonth()]} ${date.getFullYear()}`;
-            
-            if (!monthlyData[monthYear]) {
-                monthlyData[monthYear] = { total: 0, completed: 0, hours: 0 };
-            }
-            
-            monthlyData[monthYear].total++;
-            if (penalty.status === 'completed') monthlyData[monthYear].completed++;
-            monthlyData[monthYear].hours += penalty.hours || 0;
-        }
-    });
-    
-    const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-        const dateA = new Date(a);
-        const dateB = new Date(b);
-        return dateB - dateA;
-    }).slice(0, 12);
-    
-    if (sortedMonths.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No monthly data available</td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = sortedMonths.map(month => {
-        const data = monthlyData[month];
-        const completionRate = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
-        return `
-            <tr>
-                <td>${month}</td>
-                <td>${data.total}</td>
-                <td>${completionRate}%</td>
-                <td>${data.hours} hrs</td>
-            </tr>
-        `;
-    }).join('');
 }
 
 // ============ EXPORT FUNCTIONS ============
@@ -1272,13 +1515,38 @@ async function init() {
     await getCurrentAdminInfo();
     initDarkMode();
     await loadData();
+    populateYearFilter();
     startNotificationPolling();
     
-    document.getElementById('refreshBtn')?.addEventListener('click', loadData);
+    // Add event listeners for filters
+    const yearFilter = document.getElementById('yearFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    
+    if (yearFilter) {
+        yearFilter.addEventListener('change', () => {
+            updateAnalytics();
+        });
+    }
+    
+    if (monthFilter) {
+        monthFilter.addEventListener('change', () => {
+            updateAnalytics();
+        });
+    }
+    
+    // Add refresh button listener
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            await loadData();
+            populateYearFilter();
+            updateAnalytics();
+        });
+    }
+    
+    // Export and report buttons
     document.getElementById('exportCSVBtn')?.addEventListener('click', exportToCSV);
     document.getElementById('generateReportBtn')?.addEventListener('click', generateReport);
-    document.getElementById('yearFilter')?.addEventListener('change', updateAnalytics);
-    document.getElementById('monthFilter')?.addEventListener('change', updateAnalytics);
 }
 
 init();

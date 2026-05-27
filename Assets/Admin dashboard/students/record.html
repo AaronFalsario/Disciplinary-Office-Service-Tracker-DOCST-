@@ -16,6 +16,7 @@
     <base href="/">
 </head>
 <body>
+    <!-- Drawer - Always visible on desktop -->
     <div class="drawer-overlay" id="overlay"></div>
     <nav class="drawer" id="drawer">
         <div class="drawer-header">
@@ -38,27 +39,6 @@
         </div>
         <div class="drawer-nav">
             <div class="drawer-nav-main" id="drawerNavMain">
-                <button class="drawer-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                    <span>Dashboard</span>
-                </button>
-                <button class="drawer-item active" onclick="window.location.href='/Assets/Admin dashboard/students/record.html'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span>Users</span>
-                </button>
-                <button class="drawer-item" onclick="window.location.href='/Assets/Admin dashboard/penalties/student.html'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span>Penalties</span>
-                </button>
-                <button class="drawer-item" onclick="window.location.href='/Assets/Admin dashboard/Reports/reports.html'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-                    <span>Reports</span>
-                </button>
-                <hr class="drawer-divider">
-                <button class="drawer-item" onclick="window.location.href='/Assets/Admin dashboard/settings/setting.html'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-                    <span>Settings</span>
-                </button>
             </div>
         </div>
         <div class="drawer-footer">
@@ -107,21 +87,44 @@
 
         <div class="stats-row">
             <div class="stat-card">
-                <div class="stat-icon">👨‍🎓</div>
+                <div class="stat-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                </div>
                 <div class="stat-info">
                     <h3 id="totalStudents">0</h3>
                     <p>Total Enrolled Students</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">✅</div>
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <path d="M17 10c.7.3 1.3.8 1.7 1.5"/>
+                        <path d="M7 10c-.7.3-1.3.8-1.7 1.5"/>
+                        <path d="M12 14v5"/>
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3 id="activeStudents">0</h3>
                     <p>Active Enrollments</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📧</div>
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                        <path d="M22 7L12 13 2 7"/>
+                        <path d="M17 13l4 4"/>
+                        <path d="M7 13l-4 4"/>
+                        <circle cx="18.5" cy="10.5" r="2.5"/>
+                    </svg>
+                </div>
                 <div class="stat-info">
                     <h3 id="verifiedEmails">0</h3>
                     <p>Verified Emails</p>

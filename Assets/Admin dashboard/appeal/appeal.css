@@ -46,7 +46,7 @@ html, body {
     overflow-x: hidden;
 }
 
-/* ============ DRAWER STYLES ============ */
+/* ============ DRAWER STYLES (NO ANIMATIONS) ============ */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -54,7 +54,7 @@ html, body {
     z-index: 200;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .25s ease;
+    transition: none;
 }
 
 .drawer-overlay.open {
@@ -73,7 +73,7 @@ html, body {
     display: flex;
     flex-direction: column;
     transform: translateX(0);
-    transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     overflow-y: auto;
     box-shadow: 2px 0 12px rgba(0,0,0,0.08);
 }
@@ -81,6 +81,7 @@ html, body {
 @media (max-width: 768px) {
     .drawer {
         transform: translateX(-100%);
+        transition: none;
     }
     .drawer.open {
         transform: translateX(0);
@@ -104,7 +105,7 @@ html, body {
     color: rgba(255,255,255,0.6);
     padding: 6px;
     border-radius: 6px;
-    transition: all 0.15s;
+    transition: none;
     display: none;
 }
 
@@ -199,7 +200,7 @@ html, body {
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: none;
 }
 
 .drawer-item:hover {
@@ -244,11 +245,15 @@ html, body {
     padding: 10px 0;
     font-family: 'DM Sans', sans-serif;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: none;
 }
 
 .drawer-logout:hover {
     color: #fff;
+}
+
+.drawer-logout:hover svg {
+    stroke: #fff;
 }
 
 .drawer::-webkit-scrollbar {
@@ -262,6 +267,79 @@ html, body {
 .drawer::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,0.2);
     border-radius: 4px;
+}
+
+/* ============ MOBILE DRAWER ============ */
+@media (max-width: 768px) {
+    .drawer {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        transform: translateY(100%);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        border-right: none;
+        border-radius: 20px 20px 0 0;
+        transition: none;
+        background: var(--navy);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+    }
+    
+    .drawer.open {
+        transform: translateY(0);
+    }
+    
+    .drawer-header {
+        display: none;
+    }
+    
+    .drawer-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--navy);
+    }
+    
+    .drawer-item {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 12px;
+        border-left: none;
+        border-radius: 12px;
+        justify-content: center;
+        text-align: center;
+        font-size: 10px;
+        flex: 1;
+    }
+    
+    .drawer-item svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .drawer-item span {
+        font-size: 10px;
+    }
+    
+    .drawer-item:hover {
+        transform: none;
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .drawer-item.active {
+        border-left: none;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+    
+    .drawer-divider, .drawer-footer {
+        display: none;
+    }
 }
 
 /* ============ TOPBAR ============ */
@@ -397,6 +475,25 @@ html, body {
     color: var(--blue);
 }
 
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 20px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+}
+
 /* ============ MAIN CONTENT ============ */
 .appeals-main {
     margin-left: var(--drawer-w);
@@ -404,12 +501,6 @@ html, body {
     min-height: calc(100vh - 60px);
     background: var(--bg);
     transition: background 0.3s ease;
-    animation: contentFadeIn 0.4s ease-out;
-}
-
-@keyframes contentFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 @media (max-width: 768px) {
@@ -422,12 +513,6 @@ html, body {
 /* ============ PAGE HEADER ============ */
 .page-header {
     margin-bottom: 32px;
-    animation: slideUp 0.4s ease-out 0.05s both;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .page-title {
@@ -699,12 +784,6 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .appeal-detail-content {
@@ -714,19 +793,7 @@ tbody tr:hover {
     max-width: 600px;
     max-height: 85vh;
     overflow-y: auto;
-    animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
 }
 
 .appeal-detail-content::-webkit-scrollbar {
@@ -1255,13 +1322,7 @@ tbody tr:hover {
     width: 90%;
     max-width: 340px;
     overflow: hidden;
-    animation: modalPop 0.2s ease;
     border: 1px solid var(--border);
-}
-
-@keyframes modalPop {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
 }
 
 .logout-modal-header {
@@ -1708,7 +1769,7 @@ body.dark-mode .logout-modal-cancel {
     border-color: #475569;
 }
 
-/* Responsive */
+/* ============ RESPONSIVE ============ */
 @media (max-width: 640px) {
     .action-buttons {
         flex-direction: column;
