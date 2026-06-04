@@ -799,7 +799,7 @@ th:nth-child(8), td:nth-child(8) { width: 90px; }
     color: var(--text-3);
 }
 
-/* Modal */
+/* ============ MODAL - FIXED FOR DARK MODE ============ */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -822,6 +822,8 @@ th:nth-child(8), td:nth-child(8) { width: 90px; }
     border-radius: 20px;
     width: 90%;
     max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
     padding: 28px;
     box-shadow: var(--card-shadow);
     transition: background 0.3s ease;
@@ -869,7 +871,8 @@ th:nth-child(8), td:nth-child(8) { width: 90px; }
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid var(--border);
@@ -882,10 +885,16 @@ th:nth-child(8), td:nth-child(8) { width: 90px; }
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--blue);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
 }
 
 .form-row {
@@ -912,7 +921,203 @@ th:nth-child(8), td:nth-child(8) { width: 90px; }
     transform: translateY(-2px);
 }
 
-/* Student Selector Styles */
+/* Offense Level Styles */
+.offense-level {
+    margin-bottom: 20px;
+}
+
+.offense-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.offense-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.offense-btn:hover {
+    border-color: var(--blue);
+    background: var(--blue-light);
+    transform: translateY(-2px);
+}
+
+.offense-btn.selected {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: white;
+}
+
+.offense-btn.first-offense.selected {
+    border-color: #10b981;
+    background: #10b981;
+    color: white;
+}
+
+.offense-btn.second-offense.selected {
+    border-color: #f59e0b;
+    background: #f59e0b;
+    color: white;
+}
+
+.offense-btn.third-offense.selected {
+    border-color: #ef4444;
+    background: #ef4444;
+    color: white;
+}
+
+.offense-info {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    display: none;
+}
+
+.offense-info.show {
+    display: block;
+}
+
+.offense-info.success {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.offense-info.warning {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.offense-info.danger {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* ============ ENHANCED STUDENT SEARCH STYLES ============ */
+.student-search-container {
+    position: relative;
+    width: 100%;
+}
+
+.student-search-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.2s ease;
+}
+
+.student-search-input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.student-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.student-search-results.show {
+    display: block;
+}
+
+.search-result-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: var(--blue-light);
+}
+
+.search-result-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.search-result-email {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.selected-student-info {
+    background: var(--green-light);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+    display: none;
+}
+
+.selected-student-info.show {
+    display: block;
+}
+
+.selected-student-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 4px;
+}
+
+.selected-student-details {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.clear-selection-btn {
+    background: none;
+    border: none;
+    color: var(--red);
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.clear-selection-btn:hover {
+    background: var(--red-light);
+}
+
+/* Student Selector Styles (Legacy - kept for compatibility) */
 .student-select {
     width: 100%;
     padding: 12px 16px;
@@ -1477,7 +1682,7 @@ body.drawer-open {
     to { width: 0%; }
 }
 
-/* ============ DARK MODE ============ */
+/* ============ DARK MODE - FIXED MODAL VISIBILITY ============ */
 body.dark-mode {
     background: #0F172A;
     color: #F1F5F9;
@@ -1611,6 +1816,7 @@ body.dark-mode .empty-sub {
     color: #94A3B8;
 }
 
+/* ============ DARK MODE MODAL - FIXED VISIBILITY ============ */
 body.dark-mode .modal {
     background: #1E293B;
 }
@@ -1636,14 +1842,22 @@ body.dark-mode .form-group label {
 }
 
 body.dark-mode .form-group input,
-body.dark-mode .form-group select {
+body.dark-mode .form-group select,
+body.dark-mode .form-group textarea {
     background: #0F172A;
     border-color: #334155;
     color: #F1F5F9;
 }
 
+body.dark-mode .form-group input::placeholder,
+body.dark-mode .form-group select::placeholder,
+body.dark-mode .form-group textarea::placeholder {
+    color: #64748B;
+}
+
 body.dark-mode .form-group input:focus,
-body.dark-mode .form-group select:focus {
+body.dark-mode .form-group select:focus,
+body.dark-mode .form-group textarea:focus {
     border-color: #3B82F6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
@@ -1674,6 +1888,108 @@ body.dark-mode .page-title {
 
 body.dark-mode .page-sub {
     color: #94A3B8;
+}
+
+/* Dark mode offense level */
+body.dark-mode .offense-btn {
+    background: #1E293B;
+    border-color: #334155;
+    color: #E2E8F0;
+}
+
+body.dark-mode .offense-btn:hover {
+    background: #1E3A5F;
+    border-color: #3B82F6;
+}
+
+body.dark-mode .offense-btn.selected {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    color: white;
+}
+
+body.dark-mode .offense-btn.first-offense.selected {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+body.dark-mode .offense-btn.second-offense.selected {
+    background: #f59e0b;
+    border-color: #f59e0b;
+}
+
+body.dark-mode .offense-btn.third-offense.selected {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+body.dark-mode .offense-info {
+    background: #0F172A;
+    color: #94A3B8;
+}
+
+body.dark-mode .offense-info.success {
+    color: #34D399;
+    background: rgba(16, 185, 129, 0.15);
+}
+
+body.dark-mode .offense-info.warning {
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.15);
+}
+
+body.dark-mode .offense-info.danger {
+    color: #F87171;
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* Dark mode student search */
+body.dark-mode .student-search-input {
+    background: #0F172A;
+    border-color: #334155;
+    color: #F1F5F9;
+}
+
+body.dark-mode .student-search-input:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+body.dark-mode .student-search-results {
+    background: #1E293B;
+    border-color: #334155;
+}
+
+body.dark-mode .search-result-item {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .search-result-item:hover {
+    background: #0F172A;
+}
+
+body.dark-mode .search-result-name {
+    color: #F1F5F9;
+}
+
+body.dark-mode .search-result-email {
+    color: #94A3B8;
+}
+
+body.dark-mode .selected-student-info {
+    background: #064E3B;
+}
+
+body.dark-mode .selected-student-label {
+    color: #34D399;
+}
+
+body.dark-mode .selected-student-details {
+    color: #F1F5F9;
+}
+
+body.dark-mode .clear-selection-btn:hover {
+    background: #7F1D1D;
 }
 
 body.dark-mode .student-select {
@@ -1777,6 +2093,14 @@ body.dark-mode .logout-modal-cancel {
         grid-template-columns: 1fr;
         gap: 0;
     }
+    
+    .offense-buttons {
+        flex-direction: column;
+    }
+    
+    .offense-btn {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1809,5 +2133,17 @@ body.dark-mode .logout-modal-cancel {
     
     .logout-toast-icon {
         font-size: 20px;
+    }
+    
+    .student-search-results {
+        max-height: 200px;
+    }
+    
+    .search-result-item {
+        padding: 10px 12px;
+    }
+    
+    .selected-student-info {
+        padding: 10px;
     }
 }

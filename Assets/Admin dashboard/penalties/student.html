@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
@@ -10,82 +11,201 @@
             document.body?.classList.add('dark-mode');
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+        rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin dashboard/penalties/stud.css">
     <base href="/">
     <style>
-        .student-select {
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--bg);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            color: var(--text);
-            transition: all 0.2s ease;
+        /* Additional styles for table */
+        .checkbox-cell {
+            text-align: center;
+            width: 40px;
         }
-        
-        .student-select:focus {
-            outline: none;
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
-        
-        .selected-student-name {
-            font-size: 12px;
-            color: #10b981;
-            padding: 6px 10px;
-            background: #d1fae5;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        
-        body.dark-mode .selected-student-name {
-            background: #064e3b;
-            color: #34d399;
-        }
-        
-        .toggle-manual-btn, .quick-add-btn {
+
+        .edit-penalty-btn,
+        .delete-penalty-btn {
             background: none;
             border: none;
             cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .edit-penalty-btn:hover {
+            background: var(--blue-light);
+        }
+
+        .delete-penalty-btn:hover {
+            background: var(--red-light);
+        }
+
+        /* Offense level styles */
+        .offense-level {
+            margin-bottom: 20px;
+        }
+
+        .offense-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .offense-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .offense-btn:hover {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            transform: translateY(-2px);
+        }
+
+        .offense-btn.selected {
+            border-color: var(--blue);
+            background: var(--blue);
+            color: white;
+        }
+
+        .offense-btn.first-offense.selected {
+            border-color: #10b981;
+            background: #10b981;
+            color: white;
+        }
+
+        .offense-btn.second-offense.selected {
+            border-color: #f59e0b;
+            background: #f59e0b;
+            color: white;
+        }
+
+        .offense-btn.third-offense.selected {
+            border-color: #ef4444;
+            background: #ef4444;
+            color: white;
+        }
+
+        .offense-info {
             font-size: 12px;
-            padding: 6px 0;
-            transition: opacity 0.2s;
+            color: var(--text-3);
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            display: none;
         }
-        
-        .toggle-manual-btn:hover, .quick-add-btn:hover {
-            opacity: 0.7;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        
-        @media (max-width: 640px) {
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-        }
-        
-        .small-hint {
-            font-size: 11px;
-            color: #f59e0b;
-            margin-top: 4px;
+
+        .offense-info.show {
             display: block;
         }
+
+        .offense-info.warning {
+            color: #f59e0b;
+        }
+
+        .offense-info.danger {
+            color: #ef4444;
+        }
+
+        .offense-info.success {
+            color: #10b981;
+        }
+
+        /* Disabled field styles */
+        .form-group input:disabled,
+        .form-group select:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        #penaltyHours:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .disabled-section {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        body.dark-mode .offense-btn {
+            background: #1E293B;
+            border-color: #334155;
+        }
+
+        body.dark-mode .offense-btn:hover {
+            background: #1E3A5F;
+        }
+
+        body.dark-mode .offense-info {
+            background: #0F172A;
+        }
+
+        body.dark-mode #penaltyHours:disabled,
+        body.dark-mode .form-group input:disabled,
+        body.dark-mode .form-group select:disabled {
+            background: #334155;
+        }
         
-        body.dark-mode .small-hint {
+        /* Warning message for first offense */
+        .warning-message-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .warning-message-box.show {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .warning-message-box i {
+            font-size: 20px;
+            color: #f59e0b;
+        }
+        
+        .warning-message-box .warning-text {
+            color: #92400e;
+            font-size: 13px;
+        }
+        
+        body.dark-mode .warning-message-box {
+            background: #451a03;
+        }
+        
+        body.dark-mode .warning-message-box .warning-text {
             color: #fbbf24;
         }
     </style>
 </head>
+
 <body>
     <!-- Drawer - Always visible on desktop -->
     <div class="drawer-overlay" id="overlay"></div>
@@ -93,8 +213,8 @@
         <div class="drawer-header">
             <button class="drawer-close" id="drawerClose">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
             <div class="drawer-profile">
@@ -119,261 +239,498 @@
             </button>
         </div>
     </nav>
-<!-- Topbar -->
-<header class="topbar">
-    <div class="topbar-left">
-        <div class="brand">
-            <div class="brand-logo">
-                <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
-            </div>
-            <div>
-                <span class="brand-name">SAOCST</span>
-                <span class="brand-tagline">Student Affair Management</span>
-            </div>
-        </div>
-    </div>
-    <div class="topbar-right">
-        <button class="icon-btn" id="darkModeToggle">
-            <i class="fas fa-moon"></i>
-        </button>
-        <button class="icon-btn" id="notifyBtn">
-            <i class="fas fa-bell"></i>
-        </button>
-        <button class="admin-pill" id="adminPill">Admin</button>
-    </div>
-</header>
 
-<!-- Main Content -->
-<main class="users-section">
-    <div class="page-header">
-        <h1 class="page-title">Penalties Management</h1>
-        <p class="page-sub">Manage community service penalties, track hours, and monitor student compliance</p>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number" id="totalStudents">0</div>
-                <div class="stat-label">Total Students</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number" id="totalPenalties">0</div>
-                <div class="stat-label">Total Penalties</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number" id="pendingCases">0</div>
-                <div class="stat-label">Pending Cases</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number" id="completedHours">0</div>
-                <div class="stat-label">Completed Hours</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Manage Penalties Section -->
-    <div class="section-hdr">
-        <h2 class="section-title">Manage Penalties</h2>
-        <button class="add-student-btn" id="addPenaltyBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Add Penalty
-        </button>
-    </div>
-
-    <!-- Action Buttons Row -->
-    <div class="action-buttons-row">
-        <button class="action-btn edit-btn" id="editPenaltyBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 3l4 4-7 7H10v-4l7-7z"/>
-                <path d="M4 20h16"/>
-            </svg>
-            Edit
-        </button>
-        <button class="action-btn delete-btn" id="deletePenaltyBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M8 6V4h8v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-            </svg>
-            Delete
-        </button>
-    </div>
-
-    <!-- Penalties Table -->
-    <div class="table-wrap">
-        <table role="table" aria-label="Penalties table">
-            <thead>
-                <tr>
-                    <th scope="col"><input type="checkbox" id="selectAll"></th>
-                    <th scope="col">STUDENT ID</th>
-                    <th scope="col">VIOLATION</th>
-                    <th scope="col">SERVICE TYPE</th>
-                    <th scope="col">HOURS</th>
-                    <th scope="col">STATUS</th>
-                    <th scope="col">DEADLINE</th>
-                    <th scope="col">ACTION</th>
-                </tr>
-            </thead>
-            <tbody id="penaltiesTableBody">
-            </tbody>
-        </table>
-    </div>
-</main>
-
-<!-- Bottom Navigation (Mobile) -->
-<nav class="bottom-nav">
-    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
-        <i class="fas fa-chart-line"></i>
-        <span>Home</span>
-    </button>
-    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/students/record.html'">
-        <i class="fas fa-users"></i>
-        <span>Students</span>
-    </button>
-    <button class="bottom-nav-item active">
-        <i class="fas fa-gavel"></i>
-        <span>Penalties</span>
-    </button>
-    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/report/report.html'">
-        <i class="fas fa-chart-bar"></i>
-        <span>Reports</span>
-    </button>
-    <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/settings/setting.html'">
-        <i class="fas fa-cog"></i>
-        <span>Settings</span>
-    </button>
-</nav>
-
-<!-- Add/Edit Penalty Modal - ENHANCED with Student Selector -->
-<div class="modal-overlay" id="penaltyModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 class="modal-title" id="modalTitle">Add New Penalty</h3>
-            <button class="modal-close" id="closeModalBtn">&times;</button>
-        </div>
-        <form id="penaltyForm">
-            <input type="hidden" id="penaltyId">
-            
-            <!-- Student Selection Section -->
-            <div class="form-group">
-                <label>Select Student</label>
-                <select id="penaltyStudentSelect" class="student-select">
-                    <option value="">-- Select a student --</option>
-                </select>
-                <div id="selectedStudentName" class="selected-student-name" style="display: none;"></div>
-                <div style="display: flex; gap: 12px; margin-top: 8px;">
-                    <button type="button" id="toggleManualEntry" class="toggle-manual-btn" style="color: var(--blue);">
-                        📝 Enter Manually
-                    </button>
-                    <button type="button" id="quickAddStudent" class="quick-add-btn" style="color: var(--green);">
-                        ➕ Student not registered? Quick Add
-                    </button>
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger" id="hamburgerBtn">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="brand">
+                <div class="brand-logo">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
+                </div>
+                <div>
+                    <span class="brand-name">SAOCST</span>
+                    <span class="brand-tagline">Student Affair Management</span>
                 </div>
             </div>
-            
-            <!-- Manual Entry Section (hidden by default) -->
-            <div id="manualEntryGroup" class="form-group" style="display: none;">
-                <label>Student ID (Manual Entry)</label>
-                <input type="text" id="penaltyStudentId" placeholder="e.g., 2024-00123">
-                <small class="small-hint">⚠️ Only use this if the student is not in the dropdown list above</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Violation</label>
-                <select id="penaltyViolation" required>
-                    <option value="" disabled selected>Select Violation</option>
-                    <option value="Uniform Violation">Uniform Violation</option>
-                    <option value="No ID Violation">No ID Violation</option>
-                    <option value="Dress Code Violation">Dress Code Violation</option>
-                    <option value="Littering">Littering</option>
-                    <option value="Vandalism">Vandalism</option>
-                    <option value="Disrespectful Behavior">Disrespectful Behavior</option>
-                    <option value="Public Disturbance">Public Disturbance</option>
-                    <option value="Tardiness">Tardiness</option>
-                    <option value="Bullying">Bullying</option>
-                    <option value="Smoking on Campus">Smoking on Campus</option>
-                    <option value="Vaping">Vaping</option>
-                    <option value="Theft">Theft</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Service Type</label>
-                <select id="penaltyServiceType" required>
-                    <option value="" disabled selected>Select Service Type</option>
-                    <option value="Garden cleaning">Garden cleaning</option>
-                    <option value="Campus cleanup">Campus cleanup</option>
-                    <option value="Environmental cleanup">Environmental cleanup</option>
-                    <option value="Library assistance">Library assistance</option>
-                    <option value="Office assistance">Office assistance</option>
-                </select>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hours Required</label>
-                    <input type="number" id="penaltyHours" required placeholder="e.g., 5" min="1">
+        </div>
+        <div class="topbar-right">
+            <button class="icon-btn" id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="icon-btn" id="notifyBtn">
+                <i class="fas fa-bell"></i>
+            </button>
+            <button class="admin-pill" id="adminPill">Admin</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="users-section">
+        <div class="page-header">
+            <h1 class="page-title">Penalties Management</h1>
+            <p class="page-sub">Manage community service penalties, track hours, and monitor student compliance</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
                 </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                        <path
+                            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="totalPenalties">0</div>
+                    <div class="stat-label">Total Penalties</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="pendingCases">0</div>
+                    <div class="stat-label">Pending Cases</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number" id="completedHours">0</div>
+                    <div class="stat-label">Completed Hours</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Penalties Section -->
+        <div class="section-hdr">
+            <h2 class="section-title">Manage Penalties</h2>
+            <button class="add-student-btn" id="addPenaltyBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add Penalty
+            </button>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="action-buttons-row">
+            <button class="action-btn edit-btn" id="editPenaltyBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 3l4 4-7 7H10v-4l7-7z" />
+                    <path d="M4 20h16" />
+                </svg>
+                Edit
+            </button>
+            <button class="action-btn delete-btn" id="deletePenaltyBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M8 6V4h8v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                </svg>
+                Delete
+            </button>
+        </div>
+
+        <!-- Penalties Table -->
+        <div class="table-wrap">
+            <table role="table" aria-label="Penalties table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell"><input type="checkbox" id="selectAll"></th>
+                        <th>STUDENT NAME</th>
+                        <th>VIOLATION</th>
+                        <th>OFFENSE LEVEL</th>
+                        <th>SERVICE TYPE</th>
+                        <th>HOURS</th>
+                        <th>STATUS</th>
+                        <th>DEADLINE</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="penaltiesTableBody">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/Admin.html'">
+            <i class="fas fa-chart-line"></i>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/students/record.html'">
+            <i class="fas fa-users"></i>
+            <span>Students</span>
+        </button>
+        <button class="bottom-nav-item active">
+            <i class="fas fa-gavel"></i>
+            <span>Penalties</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/report/report.html'">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Admin dashboard/settings/setting.html'">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Add/Edit Penalty Modal - ENHANCED with Student Search & Offense Levels -->
+    <div class="modal-overlay" id="penaltyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Penalty</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="penaltyForm">
+                <input type="hidden" id="penaltyId">
+
+                <!-- Enhanced Student Search Section -->
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="penaltyStatus">
-                        <option value="pending">⏳ Pending</option>
-                        <option value="in-progress">🔄 In Progress</option>
-                        <option value="completed">✅ Completed</option>
+                    <label>Search Student <span style="color: var(--red);">*</span></label>
+                    <div class="student-search-container">
+                        <input type="text" id="studentSearchInput" class="student-search-input"
+                            placeholder="Search by name or email...">
+                        <div id="studentSearchResults" class="student-search-results"></div>
+                    </div>
+
+                    <div id="selectedStudentInfo" class="selected-student-info">
+                        <div class="selected-student-label">
+                            <i class="fas fa-check-circle"></i> Selected Student:
+                        </div>
+                        <div class="selected-student-details" id="selectedStudentDetails"></div>
+                        <button type="button" id="clearSelectionBtn" class="clear-selection-btn">
+                            <i class="fas fa-times"></i> Clear Selection
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="penaltyStudentId">
+                    <input type="hidden" id="penaltyStudentName">
+                    <input type="hidden" id="penaltyStudentEmail">
+
+                    <div style="display: flex; gap: 12px; margin-top: 12px;">
+                        <button type="button" id="toggleManualEntry" class="toggle-manual-btn"
+                            style="color: var(--blue);">
+                            📝 Enter Student ID Manually
+                        </button>
+                        <button type="button" id="quickAddStudent" class="quick-add-btn" style="color: var(--green);">
+                            ➕ Quick Add New Student
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Entry Section (hidden by default) -->
+                <div id="manualEntryGroup" class="form-group" style="display: none;">
+                    <label>Student ID (Manual Entry)</label>
+                    <input type="text" id="manualStudentId" placeholder="e.g., 2024-00123">
+                    <small class="small-hint">⚠️ Only use this if the student is not in the database above</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Violation <span style="color: var(--red);">*</span></label>
+                    <select id="penaltyViolation" required>
+                        <option value="" disabled selected>Select Violation</option>
+                        <option value="Uniform Violation">Uniform Violation</option>
+                        <option value="No ID Violation">No ID Violation</option>
+                        <option value="Dress Code Violation">Dress Code Violation</option>
+                        <option value="Littering">Littering</option>
+                        <option value="Vandalism">Vandalism</option>
+                        <option value="Disrespectful Behavior">Disrespectful Behavior</option>
+                        <option value="Public Disturbance">Public Disturbance</option>
+                        <option value="Tardiness">Tardiness</option>
+                        <option value="Bullying">Bullying</option>
+                        <option value="Smoking on Campus">Smoking on Campus</option>
+                        <option value="Vaping">Vaping</option>
+                        <option value="Theft">Theft</option>
                     </select>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Deadline</label>
-                <input type="date" id="penaltyDeadline" required>
-            </div>
-            
-            <button type="submit" class="modal-submit">💾 Save Penalty</button>
-        </form>
-    </div>
-</div>
 
-<script type="module" src="/Assets/Admin dashboard/penalties/stud.js"></script>
-<script src="/Assets/admin-nav.js" type="module"></script>
+                <!-- Offense Level Selection -->
+                <div class="form-group offense-level">
+                    <label>Offense Level <span style="color: var(--red);">*</span></label>
+                    <div class="offense-buttons">
+                        <button type="button" class="offense-btn first-offense" data-offense="1st Offense"
+                            data-hours="0" data-requires-hours="false"
+                            data-message="✅ First Offense - Warning only. No community service hours required. Student will receive a formal warning notice.">
+                            1st Offense<br>
+                            <small>⚠️ Warning Only</small>
+                        </button>
+                        <button type="button" class="offense-btn second-offense" data-offense="2nd Offense"
+                            data-hours="5" data-requires-hours="true"
+                            data-message="⚠️ Second Offense - 5 hours community service required. Student will receive a formal notice.">
+                            2nd Offense<br>
+                            <small>5 hours + Notice</small>
+                        </button>
+                        <button type="button" class="offense-btn third-offense" data-offense="3rd Offense"
+                            data-hours="10" data-requires-hours="true"
+                            data-message="🔴 Third Offense - 10 hours community service required plus a meeting with SAO.">
+                            3rd Offense<br>
+                            <small>10 hours + Meeting</small>
+                        </button>
+                    </div>
+                    <input type="hidden" id="offenseLevel" value="1st Offense">
+                    <input type="hidden" id="requiresHours" value="false">
+                    <div id="offenseInfo" class="offense-info show success">
+                        ✅ First Offense - Warning only. No community service hours required. Student will receive a
+                        formal warning notice.
+                    </div>
+                </div>
+
+                <!-- Warning Message Box for First Offense -->
+                <div id="warningMessageBox" class="warning-message-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="warning-text">
+                        <strong>⚠️ First Offense - Warning Only</strong><br>
+                        No service type, hours, status, or deadline required. This is a formal warning notice.
+                    </div>
+                </div>
+
+                <div class="form-group" id="serviceTypeGroup">
+                    <label>Service Type <span style="color: var(--red);" id="serviceTypeStar">*</span></label>
+                    <select id="penaltyServiceType">
+                        <option value="" disabled selected>Select Service Type</option>
+                        <option value="Garden cleaning">Garden cleaning</option>
+                        <option value="Campus cleanup">Campus cleanup</option>
+                        <option value="Environmental cleanup">Environmental cleanup</option>
+                        <option value="Library assistance">Library assistance</option>
+                        <option value="Office assistance">Office assistance</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" id="hoursGroup">
+                        <label>Hours Required <span style="color: var(--red);" id="hoursRequiredStar">*</span></label>
+                        <input type="number" id="penaltyHours" placeholder="e.g., 5" min="0" value="0">
+                        <small id="hoursHint" class="small-hint" style="color: #10b981;">ℹ️ First offense is a
+                            warning only - no hours required.</small>
+                    </div>
+                    <div class="form-group" id="statusGroup">
+                        <label>Status</label>
+                        <select id="penaltyStatus">
+                            <option value="pending">⏳ Pending</option>
+                            <option value="in-progress">🔄 In Progress</option>
+                            <option value="completed">✅ Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="deadlineGroup">
+                    <label>Deadline <span style="color: var(--red);" id="deadlineStar">*</span></label>
+                    <input type="date" id="penaltyDeadline">
+                </div>
+
+                <button type="submit" class="modal-submit">💾 Save Penalty</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Add Student Modal -->
+    <div id="quickAddStudentModal" class="quick-add-modal" style="display: none;">
+        <div class="quick-add-content">
+            <h3><i class="fas fa-user-plus"></i> Quick Add Student</h3>
+            <div class="form-group">
+                <label>Full Name <span style="color: var(--red);">*</span></label>
+                <input type="text" id="quickStudentName" placeholder="e.g., Juan Dela Cruz">
+            </div>
+            <div class="form-group">
+                <label>Student ID Number <span style="color: var(--red);">*</span></label>
+                <input type="text" id="quickStudentId" placeholder="e.g., 2024-00123">
+            </div>
+            <div class="form-group">
+                <label>Email Address <span style="color: var(--red);">*</span></label>
+                <input type="email" id="quickStudentEmail" placeholder="student.name@gmail.com">
+            </div>
+            <div class="quick-add-buttons">
+                <button class="quick-add-cancel" id="quickAddCancel">Cancel</button>
+                <button class="quick-add-submit" id="quickAddSubmit">Add & Select</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/Assets/Admin dashboard/penalties/stud.js"></script>
+    <script>
+        // Offense level selector functionality - COMPLETE with field disabling
+        document.addEventListener('DOMContentLoaded', function () {
+            const offenseBtns = document.querySelectorAll('.offense-btn');
+            const offenseInfo = document.getElementById('offenseInfo');
+            const penaltyHours = document.getElementById('penaltyHours');
+            const offenseLevelInput = document.getElementById('offenseLevel');
+            const requiresHoursInput = document.getElementById('requiresHours');
+            const hoursRequiredStar = document.getElementById('hoursRequiredStar');
+            const serviceTypeStar = document.getElementById('serviceTypeStar');
+            const deadlineStar = document.getElementById('deadlineStar');
+            const hoursHint = document.getElementById('hoursHint');
+            const warningMessageBox = document.getElementById('warningMessageBox');
+            
+            // Fields to disable for first offense
+            const serviceTypeSelect = document.getElementById('penaltyServiceType');
+            const penaltyStatus = document.getElementById('penaltyStatus');
+            const penaltyDeadline = document.getElementById('penaltyDeadline');
+            
+            // Group containers
+            const serviceTypeGroup = document.getElementById('serviceTypeGroup');
+            const hoursGroup = document.getElementById('hoursGroup');
+            const statusGroup = document.getElementById('statusGroup');
+            const deadlineGroup = document.getElementById('deadlineGroup');
+
+            function setFieldsDisabled(isWarning) {
+                if (isWarning) {
+                    // Disable all fields for first offense
+                    serviceTypeSelect.disabled = true;
+                    penaltyStatus.disabled = true;
+                    penaltyDeadline.disabled = true;
+                    penaltyHours.disabled = true;
+                    
+                    // Add visual indicators
+                    serviceTypeGroup.style.opacity = '0.6';
+                    statusGroup.style.opacity = '0.6';
+                    deadlineGroup.style.opacity = '0.6';
+                    hoursGroup.style.opacity = '0.6';
+                    
+                    // Update placeholder text
+                    penaltyHours.value = 0;
+                    penaltyHours.placeholder = 'Not required (Warning only)';
+                    
+                    // Clear required star indicators
+                    if (serviceTypeStar) serviceTypeStar.style.opacity = '0.3';
+                    if (hoursRequiredStar) hoursRequiredStar.style.opacity = '0.3';
+                    if (deadlineStar) deadlineStar.style.opacity = '0.3';
+                    
+                    if (hoursHint) {
+                        hoursHint.textContent = 'ℹ️ First offense is a warning only - no hours required.';
+                        hoursHint.style.color = '#10b981';
+                    }
+                    
+                    // Show warning message box
+                    if (warningMessageBox) warningMessageBox.classList.add('show');
+                    
+                } else {
+                    // Enable fields for 2nd and 3rd offense
+                    serviceTypeSelect.disabled = false;
+                    penaltyStatus.disabled = false;
+                    penaltyDeadline.disabled = false;
+                    penaltyHours.disabled = false;
+                    
+                    // Remove visual indicators
+                    serviceTypeGroup.style.opacity = '1';
+                    statusGroup.style.opacity = '1';
+                    deadlineGroup.style.opacity = '1';
+                    hoursGroup.style.opacity = '1';
+                    
+                    // Restore required star indicators
+                    if (serviceTypeStar) serviceTypeStar.style.opacity = '1';
+                    if (hoursRequiredStar) hoursRequiredStar.style.opacity = '1';
+                    if (deadlineStar) deadlineStar.style.opacity = '1';
+                    
+                    if (hoursHint) {
+                        hoursHint.textContent = '⚠️ Community service hours required for this offense.';
+                        hoursHint.style.color = '#f59e0b';
+                    }
+                    
+                    // Hide warning message box
+                    if (warningMessageBox) warningMessageBox.classList.remove('show');
+                }
+            }
+
+            function updateHoursField(requiresHours, hoursValue) {
+                if (requiresHours === false || requiresHours === 'false') {
+                    penaltyHours.disabled = true;
+                    penaltyHours.value = 0;
+                    penaltyHours.placeholder = 'Not required (Warning only)';
+                    if (hoursRequiredStar) hoursRequiredStar.style.opacity = '0.5';
+                    if (hoursHint) {
+                        hoursHint.textContent = 'ℹ️ First offense is a warning only - no hours required.';
+                        hoursHint.style.color = '#10b981';
+                    }
+                } else {
+                    penaltyHours.disabled = false;
+                    if (hoursValue && hoursValue > 0) {
+                        penaltyHours.value = hoursValue;
+                    }
+                    penaltyHours.placeholder = 'e.g., 5';
+                    if (hoursRequiredStar) hoursRequiredStar.style.opacity = '1';
+                    if (hoursHint) {
+                        hoursHint.textContent = '⚠️ Community service hours required for this offense.';
+                        hoursHint.style.color = '#f59e0b';
+                    }
+                }
+            }
+
+            offenseBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    offenseBtns.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    const offenseValue = this.dataset.offense;
+                    if (offenseLevelInput) offenseLevelInput.value = offenseValue;
+
+                    const requiresHours = this.dataset.requiresHours === 'true';
+                    if (requiresHoursInput) requiresHoursInput.value = requiresHours;
+
+                    const hours = parseInt(this.dataset.hours);
+                    
+                    // Check if this is first offense (warning)
+                    const isFirstOffense = this.classList.contains('first-offense');
+                    setFieldsDisabled(isFirstOffense);
+                    
+                    updateHoursField(requiresHours, hours);
+
+                    const message = this.dataset.message;
+                    if (offenseInfo && message) {
+                        offenseInfo.textContent = message;
+                        offenseInfo.classList.add('show');
+
+                        offenseInfo.classList.remove('success', 'warning', 'danger');
+                        if (this.classList.contains('first-offense')) {
+                            offenseInfo.classList.add('success');
+                        } else if (this.classList.contains('second-offense')) {
+                            offenseInfo.classList.add('warning');
+                        } else if (this.classList.contains('third-offense')) {
+                            offenseInfo.classList.add('danger');
+                        }
+                    }
+                });
+            });
+
+            // Trigger first offense by default
+            const firstOffense = document.querySelector('.offense-btn.first-offense');
+            if (firstOffense) firstOffense.click();
+        });
+    </script>
 </body>
+
 </html>

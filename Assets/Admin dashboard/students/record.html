@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +10,15 @@
             document.documentElement.classList.add('dark-mode');
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Admin dashboard/students/rec.css">
     <base href="/">
 </head>
+
 <body>
     <!-- Drawer - Always visible on desktop -->
     <div class="drawer-overlay" id="overlay"></div>
@@ -22,8 +26,8 @@
         <div class="drawer-header">
             <button class="drawer-close" id="drawerClose">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
             <div class="drawer-profile">
@@ -78,22 +82,23 @@
             <p class="page-sub">Complete list of enrolled students at Gordon College</p>
             <div class="college-badge">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                 </svg>
-                @gordoncollege.edu.ph only
+                Student Records Management
             </div>
         </div>
 
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
                 </div>
                 <div class="stat-info">
                     <h3 id="totalStudents">0</h3>
@@ -102,12 +107,13 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <path d="M17 10c.7.3 1.3.8 1.7 1.5"/>
-                        <path d="M7 10c-.7.3-1.3.8-1.7 1.5"/>
-                        <path d="M12 14v5"/>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <path d="M17 10c.7.3 1.3.8 1.7 1.5" />
+                        <path d="M7 10c-.7.3-1.3.8-1.7 1.5" />
+                        <path d="M12 14v5" />
                     </svg>
                 </div>
                 <div class="stat-info">
@@ -117,12 +123,13 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <rect x="2" y="4" width="20" height="16" rx="2"/>
-                        <path d="M22 7L12 13 2 7"/>
-                        <path d="M17 13l4 4"/>
-                        <path d="M7 13l-4 4"/>
-                        <circle cx="18.5" cy="10.5" r="2.5"/>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                        <path d="M22 7L12 13 2 7" />
+                        <path d="M17 13l4 4" />
+                        <path d="M7 13l-4 4" />
+                        <circle cx="18.5" cy="10.5" r="2.5" />
                     </svg>
                 </div>
                 <div class="stat-info">
@@ -135,10 +142,10 @@
         <div class="search-bar">
             <div class="search-input-wrapper">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search by name, ID, or email...">
+                <input type="text" id="searchInput" placeholder="Search by name or email...">
             </div>
             <button class="add-student-btn" id="addStudentBtn">
                 <i class="fas fa-user-plus"></i>
@@ -150,8 +157,7 @@
             <table id="studentsTable">
                 <thead>
                     <tr>
-                        <th>Student</th>
-                        <th>ID Number</th>
+                        <th>Student Name</th>
                         <th>Email Address</th>
                         <th>Actions</th>
                     </tr>
@@ -182,20 +188,9 @@
                     <input type="text" id="studentName" required placeholder="e.g., Juan M. Dela Cruz">
                 </div>
                 <div class="form-group">
-                    <label>ID Number</label>
-                    <input type="text" id="studentIdNumber" required placeholder="e.g., 2024-00123">
-                </div>
-                <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" id="studentEmail" required placeholder="student.name@gordoncollege.edu.ph">
-                    <div class="email-hint">📧 Must end with @gordoncollege.edu.ph</div>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="studentStatus">
-                        <option value="active">🟢 Active</option>
-                        <option value="inactive">🔴 Inactive</option>
-                    </select>
+                    <input type="email" id="studentEmail" required placeholder="student.name@gmail.com">
+                    <div class="email-hint">📧 Any valid email address is accepted</div>
                 </div>
                 <button type="submit" class="modal-submit">💾 Save Student</button>
             </form>
@@ -205,4 +200,5 @@
     <script type="module" src="/Assets/Admin dashboard/students/rec.js"></script>
     <script src="/Assets/admin-nav.js" type="module"></script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -9,11 +10,14 @@
             document.documentElement.classList.add('dark-mode');
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Student_Dashboard/appeal/appeal.css">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
 </head>
+
 <body>
     <!-- Drawer Navigation -->
     <div class="drawer-overlay" id="overlay"></div>
@@ -30,7 +34,6 @@
                     <div class="drawer-name" id="drawerStudentName">Student Name</div>
                     <div class="drawer-role">Student Portal</div>
                 </div>
-                <span class="drawer-badge" id="drawerStudentId">Student</span>
             </div>
         </div>
         <div class="drawer-nav">
@@ -46,8 +49,14 @@
         </div>
     </nav>
 
+    <!-- Topbar -->
     <header class="topbar">
         <div class="topbar-left">
+            <button class="hamburger" id="hamburgerBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="brand">
                 <div class="brand-logo">
                     <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
@@ -59,14 +68,15 @@
         <div class="topbar-right">
             <button class="icon-btn" id="darkModeToggle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
             </button>
             <div class="notification-wrapper">
                 <button class="notification-btn" id="notifyBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                 </button>
                 <div class="notification-dropdown" id="notificationDropdown">
@@ -93,12 +103,15 @@
 
     <div class="notification-overlay" id="notificationOverlay"></div>
 
+    <!-- Main Content -->
     <main class="appeal-main">
         <div class="page-header">
             <h1 class="page-title">Submit an Appeal</h1>
             <p class="page-sub">Request a review of your penalty decision</p>
         </div>
+
         <div class="appeal-container">
+            <!-- Appeal Form Card -->
             <div class="appeal-form-card">
                 <div class="card-header">
                     <h3><i class="fas fa-file-alt"></i> Appeal Form</h3>
@@ -111,6 +124,7 @@
                             <option value="">Loading penalties...</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label>Violation Details</label>
                         <div class="violation-info" id="violationInfo">
@@ -128,14 +142,19 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label>Appeal Reason</label>
-                        <textarea id="appealReason" rows="5" placeholder="Explain why you are appealing this penalty. Provide any relevant details or evidence..."></textarea>
+                        <textarea id="appealReason" rows="5"
+                            placeholder="Explain why you are appealing this penalty. Provide any relevant details or evidence..."></textarea>
                     </div>
+
                     <div class="form-group">
                         <label>Supporting Statement</label>
-                        <textarea id="supportingStatement" rows="3" placeholder="Additional comments or statements to support your appeal..."></textarea>
+                        <textarea id="supportingStatement" rows="3"
+                            placeholder="Additional comments or statements to support your appeal..."></textarea>
                     </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
                         <button type="button" class="btn-primary" id="submitAppealBtn">
@@ -144,6 +163,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Appeal Guidelines Card -->
             <div class="appeal-guidelines-card">
                 <div class="card-header">
                     <h3><i class="fas fa-gavel"></i> Appeal Guidelines</h3>
@@ -181,12 +202,15 @@
                     <div class="warning-box">
                         <i class="fas fa-exclamation-triangle"></i>
                         <div class="warning-content">
-                            <strong>Important:</strong> Submitting false or misleading information may result in additional penalties.
+                            <strong>Important:</strong> Submitting false or misleading information may result in
+                            additional penalties.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Recent Appeals Table -->
         <div class="recent-appeals-card">
             <div class="card-header">
                 <h3><i class="fas fa-history"></i> My Recent Appeals</h3>
@@ -198,15 +222,21 @@
                         <thead>
                             <tr>
                                 <th>DATE SUBMITTED</th>
-                                <th>PENALTY</th>
-                                <th>REASON</th>
+                                <th>VIOLATION</th>
+                                <th>APPEAL REASON</th>
                                 <th>STATUS</th>
                                 <th>RESPONSE DATE</th>
                                 <th>ACTION</th>
                             </tr>
                         </thead>
                         <tbody id="appealsTableBody">
-                            <tr><td colspan="6" class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No Appeals Found</div><div class="empty-sub">Submit an appeal to see it here</div></td><tr>
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <div class="empty-icon">📋</div>
+                                    <div class="empty-title">No Appeals Found</div>
+                                    <div class="empty-sub">Submit an appeal to see it here</div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -214,7 +244,7 @@
         </div>
     </main>
 
-    <!-- Reason Modal - UPDATED with Admin Notes section -->
+    <!-- Reason Modal -->
     <div class="reason-modal-overlay" id="reasonModal">
         <div class="reason-modal-content">
             <div class="reason-modal-header rejected" id="modalHeader">
@@ -247,7 +277,6 @@
                         <span class="modal-info-label"><i class="fas fa-user-shield"></i> Reviewed By</span>
                         <span class="modal-info-value" id="modalReviewedBy">—</span>
                     </div>
-                    <!-- ADDED: Admin Notes Row -->
                     <div class="modal-info-row" id="adminNotesModalRow" style="display: flex;">
                         <span class="modal-info-label"><i class="fas fa-comment-dots"></i> Admin Notes</span>
                         <span class="modal-info-value" id="modalAdminNotes">—</span>
@@ -275,19 +304,19 @@
                 </div>
             </div>
             <div class="reason-modal-footer">
-                <button class="btn-close-modal" onclick="closeReasonModal()">
-                    Close
-                </button>
+                <button class="btn-close-modal" id="modalCloseFooterBtn" onclick="closeReasonModal()">Close</button>
             </div>
         </div>
     </div>
     <div class="reason-modal-bg" id="modalOverlayBg"></div>
 
+    <!-- Toast Notification -->
     <div id="toastNotification" class="toast-notification"></div>
-    
+
     <script>
         function closeReasonModal() {
-            document.getElementById('reasonModal').classList.remove('show');
+            const modal = document.getElementById('reasonModal');
+            if (modal) modal.classList.remove('show');
             document.body.style.overflow = '';
         }
     </script>
@@ -298,4 +327,5 @@
     </script>
     <script type="module" src="/Assets/Student_Dashboard/appeal/appeal.js"></script>
 </body>
+
 </html>

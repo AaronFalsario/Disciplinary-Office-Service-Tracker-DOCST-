@@ -12,6 +12,275 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Student_Dashboard/style.css">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
+    <style>
+        /* Additional styles for offense level badge */
+        .offense-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .offense-first {
+            background: #10b981;
+            color: white;
+        }
+        .offense-second {
+            background: #f59e0b;
+            color: white;
+        }
+        .offense-third {
+            background: #ef4444;
+            color: white;
+        }
+        body.dark-mode .offense-first {
+            background: #059669;
+        }
+        body.dark-mode .offense-second {
+            background: #d97706;
+        }
+        body.dark-mode .offense-third {
+            background: #dc2626;
+        }
+        
+        /* View details button */
+        .view-penalty-btn {
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .view-penalty-btn:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+        }
+        
+        /* Table responsive */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            min-width: 800px;
+            width: 100%;
+        }
+        
+        /* Warning message for first offense */
+        .warning-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #fef3c7;
+            color: #92400e;
+        }
+        body.dark-mode .warning-badge {
+            background: #451a03;
+            color: #fbbf24;
+        }
+        
+        /* Offense Levels Summary Section */
+        .offense-summary {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .offense-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        .offense-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .offense-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+        }
+        .offense-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+        .offense-card-icon.first {
+            background: #d1fae5;
+            color: #059669;
+        }
+        .offense-card-icon.second {
+            background: #fed7aa;
+            color: #ea580c;
+        }
+        .offense-card-icon.third {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .offense-card h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .offense-card p {
+            font-size: 12px;
+            color: var(--text-3);
+        }
+        body.dark-mode .offense-card-icon.first {
+            background: #064e3b;
+        }
+        body.dark-mode .offense-card-icon.second {
+            background: #78350f;
+        }
+        body.dark-mode .offense-card-icon.third {
+            background: #7f1d1d;
+        }
+        
+        /* Warning Info Section */
+        .warning-info-section {
+            margin-top: 24px;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+        .warning-info-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-bottom: 1px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        body.dark-mode .warning-info-header {
+            background: linear-gradient(135deg, #451a03, #78350f);
+            border-bottom-color: #f59e0b;
+        }
+        .warning-info-header i {
+            font-size: 24px;
+            color: #d97706;
+        }
+        .warning-info-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #92400e;
+            margin: 0;
+        }
+        body.dark-mode .warning-info-header h3 {
+            color: #fbbf24;
+        }
+        .warning-info-body {
+            padding: 20px;
+        }
+        .warning-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .warning-info-item:last-child {
+            border-bottom: none;
+        }
+        .warning-info-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #fef3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        body.dark-mode .warning-info-icon {
+            background: #451a03;
+        }
+        .warning-info-icon i {
+            font-size: 14px;
+            color: #d97706;
+        }
+        .warning-info-content {
+            flex: 1;
+        }
+        .warning-info-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .warning-info-text {
+            font-size: 12px;
+            color: var(--text-3);
+            line-height: 1.5;
+        }
+        .warning-action-btn {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .warning-action-btn:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+        }
+        
+        /* Empty state improvements */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+        .empty-sub {
+            font-size: 13px;
+            color: var(--text-3);
+        }
+        
+        /* Make penalties table take full width */
+        .penalties-table {
+            margin-bottom: 0;
+        }
+        
+        .dashboard-main {
+            padding-bottom: 32px;
+        }
+    </style>
 </head>
 <body>
     <!-- Drawer Navigation -->
@@ -155,56 +424,179 @@
             </div>
         </div>
 
-        <div class="two-columns">
-            <div class="activity-feed">
-                <div class="card-header">
-                    <div class="card-title">Recent Activity</div>
-                </div>
-                <div id="activityContainer">
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <div>No recent activity</div>
-                    </div>
-                </div>
-            </div>
-            <div class="deadlines-list">
-                <div class="card-header">
-                    <div class="card-title">Upcoming Deadlines</div>
-                </div>
-                <div id="deadlinesContainer">
-                    <div class="empty-state">
-                        <div class="empty-icon">📅</div>
-                        <div>No upcoming deadlines</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- PENALTIES TABLE - Full width, no extra content below -->
         <div class="penalties-table">
             <div class="card-header" style="padding: 16px 20px 0;">
                 <div class="card-title">My Penalties</div>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Violation</th>
-                        <th>Service Type</th>
-                        <th>Hours</th>
-                        <th>Status</th>
-                        <th>Deadline</th>
-                    </tr>
-                </thead>
-                <tbody id="penaltiesTableBody">
-                    <tr>
-                        <td colspan="5" class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <div>No penalty records found</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Violation</th>
+                            <th>Offense Level</th>
+                            <th>Service Type</th>
+                            <th>Hours</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="penaltiesTableBody">
+                        <tr class="loading-row">
+                            <td colspan="8" class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <div>Loading penalties...</div>
+                             </div>
+                          </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Offense Levels Summary Section -->
+        <div class="offense-summary">
+            <div class="offense-card">
+                <div class="offense-card-icon first">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h4>1st Offense</h4>
+                <p>⚠️ Warning Only<br>No community service required</p>
+            </div>
+            <div class="offense-card">
+                <div class="offense-card-icon second">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h4>2nd Offense</h4>
+                <p>5 hours community service<br>+ Formal Notice</p>
+            </div>
+            <div class="offense-card">
+                <div class="offense-card-icon third">
+                    <i class="fas fa-gavel"></i>
+                </div>
+                <h4>3rd Offense</h4>
+                <p>10 hours community service<br>+ Meeting with SAO</p>
+            </div>
+        </div>
+
+        <!-- Warning Information Section (shown when there's a first offense) -->
+        <div class="warning-info-section" id="warningInfoSection" style="display: none;">
+            <div class="warning-info-header">
+                <i class="fas fa-shield-alt"></i>
+                <h3>⚠️ First Offense Warning Information</h3>
+            </div>
+            <div class="warning-info-body">
+                <div class="warning-info-item">
+                    <div class="warning-info-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="warning-info-content">
+                        <div class="warning-info-title">What does "Warning Only" mean?</div>
+                        <div class="warning-info-text">A first offense is considered a warning. No community service hours are required. However, this serves as an official notice to remind you to follow the student code of conduct.</div>
+                    </div>
+                </div>
+                <div class="warning-info-item">
+                    <div class="warning-info-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="warning-info-content">
+                        <div class="warning-info-title">What happens next?</div>
+                        <div class="warning-info-text">This warning will remain in your record. Future violations may result in increased penalties, including community service hours or disciplinary actions.</div>
+                    </div>
+                </div>
+                <div class="warning-info-item">
+                    <div class="warning-info-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="warning-info-content">
+                        <div class="warning-info-title">How to avoid further penalties?</div>
+                        <div class="warning-info-text">Familiarize yourself with the student handbook. Follow school policies and maintain good conduct. If you have questions, consult the Student Affairs Office.</div>
+                    </div>
+                </div>
+                <button class="warning-action-btn" onclick="window.location.href='/Assets/Student_Dashboard/appeal/appeal.html'">
+                    <i class="fas fa-gavel"></i> Submit an Appeal
+                </button>
+            </div>
         </div>
     </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Student_Dashboard/stud.html'">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Student_Dashboard/penalties/penalties.html'">
+            <i class="fas fa-gavel"></i>
+            <span>Penalties</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Student_Dashboard/history/history.html'">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Student_Dashboard/appeal/appeal.html'">
+            <i class="fas fa-file-alt"></i>
+            <span>Appeal</span>
+        </button>
+        <button class="bottom-nav-item" onclick="window.location.href='/Assets/Student_Dashboard/settings/settings.html'">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Penalty Details Modal -->
+    <div class="penalty-modal" id="penaltyModal">
+        <div class="penalty-modal-content">
+            <div class="penalty-modal-header">
+                <h3><i class="fas fa-gavel"></i> Penalty Details</h3>
+                <button class="penalty-modal-close" id="closePenaltyModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="penalty-modal-body">
+                <div class="detail-group">
+                    <label>Violation</label>
+                    <p id="modalViolation">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Offense Level</label>
+                    <p id="modalOffenseLevel">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Service Type</label>
+                    <p id="modalServiceType">-</p>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-group half">
+                        <label>Hours Required</label>
+                        <p id="modalHours">-</p>
+                    </div>
+                    <div class="detail-group half">
+                        <label>Status</label>
+                        <p id="modalStatus">-</p>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-group half">
+                        <label>Date Issued</label>
+                        <p id="modalDateIssued">-</p>
+                    </div>
+                    <div class="detail-group half">
+                        <label>Deadline</label>
+                        <p id="modalDeadline">-</p>
+                    </div>
+                </div>
+                <div class="detail-group">
+                    <label>Description / Notes</label>
+                    <p id="modalDescription">No additional notes provided.</p>
+                </div>
+            </div>
+            <div class="penalty-modal-footer">
+                <button class="modal-close-btn" id="modalCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initBottomNav, setupBottomNavResize } from '/Assets/bottom-nav.js';

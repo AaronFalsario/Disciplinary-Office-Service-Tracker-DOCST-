@@ -49,21 +49,56 @@ function loadCurrentStudent() {
         return false
     }
     currentStudent = JSON.parse(stored)
+    console.log('Current student loaded:', currentStudent.name)
     return true
 }
 
 async function loadMyPenalties() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
+    console.log('Loading penalties for student:', currentStudent.name)
+    
     try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from('penalties')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
         
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('Trying by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('penalties')
+                .select('*')
+                .eq('student_email', currentStudent.email)
+                .order('created_at', { ascending: false })
+            
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+        
+        if ((!data || data.length === 0) && currentStudent.name) {
+            console.log('Trying by name...')
+            const { data: nameData, error: nameError } = await supabase
+                .from('penalties')
+                .select('*')
+                .ilike('student_name', `%${currentStudent.name}%`)
+                .order('created_at', { ascending: false })
+            
+            if (!nameError && nameData && nameData.length > 0) {
+                data = nameData
+                error = null
+            }
+        }
+        
         if (error) throw error
+        
         myPenalties = data || []
+        console.log('Penalties found:', myPenalties.length)
         return myPenalties
     } catch (error) {
         console.error('Error loading penalties:', error)
@@ -76,11 +111,13 @@ async function loadMyPenalties() {
 async function loadNotifications() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
     try {
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
             .limit(10)
         
@@ -135,11 +172,13 @@ async function markAsRead(notificationId) {
 async function markAllAsRead() {
     if (unreadCount === 0) return
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
     try {
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .eq('is_read', false)
         
         if (error) throw error
@@ -288,20 +327,24 @@ function updateStats() {
     if (completedEl) completedEl.textContent = completedHours
     if (violationsEl) violationsEl.textContent = totalViolations
     if (rateEl) rateEl.textContent = `${complianceRate}%`
+    
+    console.log('Stats updated:', { totalViolations, pending, completedHours, complianceRate })
 }
 
+// ============ RENDER PENALTIES TABLE ============
 function renderPenaltiesTable() {
     const tbody = document.getElementById('penaltiesTableBody')
     if (!tbody) return
     
     if (myPenalties.length === 0) {
         tbody.innerHTML = `
-            <tr><td colspan="5" class="empty-state">
-                <div class="empty-icon">✅</div>
-                <div class="empty-title">No Penalty Records</div>
-                <div class="empty-sub">You have no violations recorded. Great job! 🎉</div>
-            </td
-        </tr>
+            <tr>
+                <td colspan="7" class="empty-state">
+                    <div class="empty-icon">✅</div>
+                    <div class="empty-title">No Penalty Records</div>
+                    <div class="empty-sub">You have no violations recorded. Great job! 🎉</div>
+                </div>
+            </td>
         `
         return
     }
@@ -320,14 +363,104 @@ function renderPenaltiesTable() {
         
         return `
             <tr>
-                <td><strong>${escapeHtml(penalty.violation)}</strong></td>
-                <td>${escapeHtml(penalty.service_type || 'Community Service')}</td>
+                <td>${formatDate(penalty.created_at)}</span>
+                <td><strong>${escapeHtml(penalty.violation)}</strong></span>
+                <td>${escapeHtml(penalty.service_type || 'Community Service')}</span>
                 <td>${penalty.hours} hrs</span>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></span>
                 <td>${formatDate(penalty.deadline)}</span>
+                <td>
+                    <button class="view-penalty-btn" data-id="${penalty.id}">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                </span>
             </tr>
         `
     }).join('')
+    
+    document.querySelectorAll('.view-penalty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const penaltyId = parseInt(btn.dataset.id)
+            const penalty = myPenalties.find(p => p.id === penaltyId)
+            if (penalty) {
+                showPenaltyDetails(penalty)
+            }
+        })
+    })
+}
+
+// ============ PENALTY DETAIL MODAL FUNCTIONS ============
+function showPenaltyDetails(penalty) {
+    const modal = document.getElementById('penaltyModal')
+    if (!modal) {
+        console.error('Modal element not found')
+        return
+    }
+    
+    // Set modal content
+    const violationEl = document.getElementById('modalViolation')
+    const serviceTypeEl = document.getElementById('modalServiceType')
+    const hoursEl = document.getElementById('modalHours')
+    const statusEl = document.getElementById('modalStatus')
+    const dateIssuedEl = document.getElementById('modalDateIssued')
+    const deadlineEl = document.getElementById('modalDeadline')
+    const descriptionEl = document.getElementById('modalDescription')
+    
+    if (violationEl) violationEl.textContent = penalty.violation || 'N/A'
+    if (serviceTypeEl) serviceTypeEl.textContent = penalty.service_type || 'Community Service'
+    if (hoursEl) hoursEl.textContent = `${penalty.hours} hour${penalty.hours !== 1 ? 's' : ''}`
+    
+    // Format status with proper styling
+    let statusText = penalty.status || 'pending'
+    let statusDisplay = statusText.charAt(0).toUpperCase() + statusText.slice(1)
+    if (statusText === 'in-progress') statusDisplay = 'In Progress'
+    if (statusEl) {
+        statusEl.innerHTML = `<span class="status-badge status-${statusText}">${statusDisplay}</span>`
+    }
+    
+    if (dateIssuedEl) dateIssuedEl.textContent = formatDate(penalty.created_at)
+    if (deadlineEl) deadlineEl.textContent = formatDate(penalty.deadline)
+    
+    const notes = penalty.notes || penalty.description || 'No additional notes provided.'
+    if (descriptionEl) descriptionEl.textContent = notes
+    
+    // Show modal
+    modal.classList.add('show')
+}
+
+function closePenaltyModal() {
+    const modal = document.getElementById('penaltyModal')
+    if (modal) modal.classList.remove('show')
+}
+
+function initModal() {
+    const closeBtn = document.getElementById('closePenaltyModal')
+    const modalCloseBtn = document.getElementById('modalCloseBtn')
+    const modal = document.getElementById('penaltyModal')
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closePenaltyModal)
+    }
+    
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', closePenaltyModal)
+    }
+    
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closePenaltyModal()
+            }
+        })
+    }
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+            closePenaltyModal()
+        }
+    })
 }
 
 // ============ DARK MODE ============
@@ -388,25 +521,118 @@ function initDarkMode() {
     }
 }
 
+// ============ ACTIVITY FEED & DEADLINES ============
+function updateActivityFeed() {
+    const container = document.getElementById('activityContainer')
+    if (!container) return
+    
+    const activities = []
+    
+    myPenalties.forEach(penalty => {
+        if (penalty.created_at) {
+            activities.push({
+                text: `⚠️ Penalty issued: ${penalty.violation} (${penalty.hours} hours)`,
+                time: new Date(penalty.created_at)
+            })
+        }
+        
+        if (penalty.status === 'completed') {
+            activities.push({
+                text: `🎉 Completed ${penalty.hours} hours for ${penalty.violation}`,
+                time: new Date(penalty.updated_at || penalty.created_at)
+            })
+        }
+    })
+    
+    activities.sort((a, b) => b.time - a.time)
+    const recentActivities = activities.slice(0, 5)
+    
+    if (recentActivities.length === 0) {
+        container.innerHTML = `<div class="empty-state">📭 No recent activity</div>`
+        return
+    }
+    
+    container.innerHTML = recentActivities.map(a => `
+        <div class="activity-item">
+            <div class="activity-icon">📋</div>
+            <div class="activity-content">
+                <div class="activity-text">${escapeHtml(a.text)}</div>
+                <div class="activity-time">${formatRelativeTime(a.time)}</div>
+            </div>
+        </div>
+    `).join('')
+}
+
+function updateDeadlines() {
+    const container = document.getElementById('deadlinesContainer')
+    if (!container) return
+    
+    const upcoming = myPenalties
+        .filter(p => p.status !== 'completed' && p.deadline)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        .slice(0, 5)
+    
+    if (upcoming.length === 0) {
+        container.innerHTML = `<div class="empty-state">📅 No upcoming deadlines</div>`
+        return
+    }
+    
+    container.innerHTML = upcoming.map(p => `
+        <div class="deadline-item" data-id="${p.id}">
+            <div class="deadline-title">${escapeHtml(p.violation)}</div>
+            <div class="deadline-date ${isDeadlineSoon(p.deadline) ? 'urgent' : ''}">
+                ⏰ ${formatDate(p.deadline)}
+                ${isDeadlineSoon(p.deadline) ? ' - URGENT!' : ''}
+            </div>
+        </div>
+    `).join('')
+}
+
+function isDeadlineSoon(date) {
+    if (!date) return false
+    const daysLeft = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
+    return daysLeft <= 3 && daysLeft >= 0
+}
+
 // ============ REFRESH ============
-async function refreshPenalties() {
+async function refreshDashboard() {
     await loadMyPenalties()
     updateStats()
     renderPenaltiesTable()
+    updateActivityFeed()
+    updateDeadlines()
+    console.log('Dashboard refreshed')
 }
 
 // ============ INITIALIZE ============
 async function init() {
+    console.log('Initializing penalties page...')
+    
     if (!loadCurrentStudent()) return
     
     initDarkMode()
     initNotification()
-    await refreshPenalties()
+    initModal()
+    await refreshDashboard()
     await loadNotifications()
     
-    // Setup centralized drawer
-    setupDrawer(currentStudent.name, currentStudent.studentId)
+    // Setup centralized drawer - student name only, no ID
+    setupDrawer(currentStudent.name, 'Student')
     setupLogout('logoutBtn')
+    
+    // Set page title with student name
+    const hour = new Date().getHours()
+    let greeting = 'Good morning'
+    if (hour >= 12 && hour < 18) greeting = 'Good afternoon'
+    if (hour >= 18) greeting = 'Good evening'
+    
+    const pageTitle = document.querySelector('.page-title')
+    if (pageTitle) {
+        pageTitle.textContent = `${greeting}, ${currentStudent.name || 'Student'}`
+    }
+    
+    console.log('Penalties page initialized')
 }
 
+// Start initialization
 init()

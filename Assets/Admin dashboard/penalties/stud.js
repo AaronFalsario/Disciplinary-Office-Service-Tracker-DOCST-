@@ -8,14 +8,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // ============ INITIALIZE DRAWER ============
 initAdminDrawer();
 
-// ============ TOAST NOTIFICATION SYSTEM ============
+// ============ GLOBAL VARIABLES ============
 let toastContainer = null;
 let currentAdmin = null;
 let unreadNotifications = [];
 let notificationInterval = null;
 let notificationBadge = null;
 let studentsList = [];
+let selectedStudent = null;
+let searchTimeout = null;
 
+// ============ TOAST NOTIFICATION SYSTEM ============
 function getToastContainer() {
     if (!toastContainer) {
         toastContainer = document.querySelector('.toast-container');
@@ -125,7 +128,7 @@ function showInfoToast(message, title = 'Information', duration = 3000) {
     return showToast(message, 'info', title, duration);
 }
 
-// ============ SYNCHRONIZED NOTIFICATION SYSTEM ============
+// ============ NOTIFICATION SYSTEM ============
 async function getCurrentAdminInfo() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -178,23 +181,6 @@ function updateNotificationBadge() {
             notificationBadge = document.createElement('span');
             notificationBadge.id = 'notificationBadge';
             notificationBadge.className = 'notification-badge';
-            notificationBadge.style.cssText = `
-                position: absolute;
-                top: -4px;
-                right: -4px;
-                background: #ef4444;
-                color: white;
-                font-size: 10px;
-                font-weight: 600;
-                padding: 2px 6px;
-                border-radius: 20px;
-                min-width: 18px;
-                height: 18px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-family: monospace;
-            `;
             notifyBtn.style.position = 'relative';
             notifyBtn.appendChild(notificationBadge);
         }
@@ -211,411 +197,245 @@ function updateNotificationBadge() {
     }
 }
 
-function showNotificationToast(notification) {
-    const type = notification.type || 'info';
-    const title = notification.title || 'New Notification';
-    const message = notification.message || '';
-    
-    showToast(message, type, title, 5000);
-}
-
-async function checkNewNotifications() {
-    const previousCount = unreadNotifications.length;
-    await fetchNotifications();
-    
-    if (unreadNotifications.length > previousCount) {
-        const newNotifications = unreadNotifications.slice(0, unreadNotifications.length - previousCount);
-        newNotifications.forEach(notif => {
-            showNotificationToast(notif);
-        });
-    }
-}
-
 function startNotificationPolling() {
     if (notificationInterval) clearInterval(notificationInterval);
-    
     fetchNotifications();
-    
     notificationInterval = setInterval(() => {
-        checkNewNotifications();
+        fetchNotifications();
     }, 30000);
 }
 
-async function markNotificationAsRead(notificationId) {
+// ============ ENHANCED STUDENT SEARCH ============
+async function searchStudents(searchTerm) {
+    if (!searchTerm || searchTerm.length < 2) {
+        const resultsDiv = document.getElementById('studentSearchResults');
+        if (resultsDiv) resultsDiv.classList.remove('show');
+        return [];
+    }
+    
     try {
-        const { error } = await supabase
-            .from('notifications')
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('id', notificationId);
+        const { data, error } = await supabase
+            .from('students')
+            .select('id, name, email')
+            .or(`name.ilike.%${searchTerm}%, email.ilike.%${searchTerm}%`)
+            .limit(10);
         
         if (error) throw error;
         
-        unreadNotifications = unreadNotifications.filter(n => n.id !== notificationId);
-        updateNotificationBadge();
-        
-        showSuccessToast('Notification marked as read', 'Updated');
+        displaySearchResults(data || []);
+        return data || [];
     } catch (error) {
-        console.error('Error marking notification as read:', error);
+        console.error('Search error:', error);
+        return [];
     }
 }
 
-async function markAllNotificationsAsRead() {
-    if (unreadNotifications.length === 0) return;
+function displaySearchResults(students) {
+    const resultsDiv = document.getElementById('studentSearchResults');
+    if (!resultsDiv) return;
     
-    try {
-        const { error } = await supabase
-            .from('notifications')
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .or(`admin_id.eq.${currentAdmin?.admin_id},admin_id.is.null`)
-            .eq('is_read', false);
-        
-        if (error) throw error;
-        
-        unreadNotifications = [];
-        updateNotificationBadge();
-        showSuccessToast('All notifications marked as read', 'Cleared');
-    } catch (error) {
-        console.error('Error marking all as read:', error);
-        showErrorToast('Failed to clear notifications', 'Error');
-    }
-}
-
-function formatRelativeTime(date) {
-    const diffMins = Math.floor((Date.now() - date) / 60000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    return date.toLocaleDateString();
-}
-
-function getNotificationIcon(type) {
-    switch(type) {
-        case 'success': return 'fa-check-circle';
-        case 'error': return 'fa-exclamation-circle';
-        case 'warning': return 'fa-exclamation-triangle';
-        default: return 'fa-info-circle';
-    }
-}
-
-async function renderNotificationList() {
-    const listContainer = document.getElementById('notificationList');
-    if (!listContainer) return;
-    
-    await fetchNotifications();
-    
-    if (unreadNotifications.length === 0) {
-        listContainer.innerHTML = `
-            <div class="empty-notifications">
-                <i class="fas fa-bell-slash"></i>
-                <p>No new notifications</p>
-            </div>
-        `;
+    if (students.length === 0) {
+        resultsDiv.innerHTML = '<div class="search-result-item">No students found</div>';
+        resultsDiv.classList.add('show');
         return;
     }
     
-    listContainer.innerHTML = unreadNotifications.map(notif => `
-        <div class="notification-item ${notif.type}" data-id="${notif.id}">
-            <div class="notification-icon">
-                <i class="fas ${getNotificationIcon(notif.type)}"></i>
-            </div>
-            <div class="notification-details">
-                <div class="notification-title">${escapeHtml(notif.title || 'Notification')}</div>
-                <div class="notification-message">${escapeHtml(notif.message)}</div>
-                <div class="notification-time">${formatRelativeTime(new Date(notif.created_at))}</div>
-            </div>
-            <button class="mark-read-btn" data-id="${notif.id}">
-                <i class="fas fa-check"></i>
-            </button>
+    resultsDiv.innerHTML = students.map(student => `
+        <div class="search-result-item" data-id="${student.id}" data-name="${escapeHtml(student.name)}" data-email="${escapeHtml(student.email)}">
+            <div class="search-result-name">${escapeHtml(student.name)}</div>
+            <div class="search-result-email">${escapeHtml(student.email)}</div>
         </div>
     `).join('');
     
-    document.querySelectorAll('.mark-read-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.dataset.id;
-            await markNotificationAsRead(id);
-            renderNotificationList();
-        });
-    });
+    resultsDiv.classList.add('show');
     
-    document.querySelectorAll('.notification-item').forEach(item => {
-        item.addEventListener('click', async (e) => {
-            if (!e.target.closest('.mark-read-btn')) {
-                const id = item.dataset.id;
-                await markNotificationAsRead(id);
-                renderNotificationList();
-            }
+    document.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+            selectStudent({
+                id: item.dataset.id,
+                name: item.dataset.name,
+                email: item.dataset.email
+            });
         });
     });
 }
 
-function showNotificationPanel() {
-    let panel = document.getElementById('notificationPanel');
+function selectStudent(student) {
+    selectedStudent = student;
     
-    if (!document.getElementById('notificationPanelStyles')) {
-        const style = document.createElement('style');
-        style.id = 'notificationPanelStyles';
-        style.textContent = `
-            .notification-panel {
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                width: 380px;
-                max-width: calc(100vw - 40px);
-                background: white;
-                border-radius: 20px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-                z-index: 10001;
-                transform: translateX(120%);
-                transition: transform 0.3s ease;
-                overflow: hidden;
-            }
-            
-            .notification-panel.show {
-                transform: translateX(0);
-            }
-            
-            .notification-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 16px 20px;
-                background: linear-gradient(135deg, #2563EB, #1D4ED8);
-                color: white;
-            }
-            
-            .notification-header h3 {
-                margin: 0;
-                font-size: 16px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .clear-all-btn {
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: white;
-                padding: 6px 12px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 12px;
-                transition: background 0.2s;
-            }
-            
-            .clear-all-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-            }
-            
-            .close-panel-btn {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 0;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
-                transition: background 0.2s;
-            }
-            
-            .close-panel-btn:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-            
-            .notification-list {
-                max-height: 400px;
-                overflow-y: auto;
-            }
-            
-            .notification-item {
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                padding: 16px;
-                border-bottom: 1px solid #e5e7eb;
-                cursor: pointer;
-                transition: background 0.2s;
-            }
-            
-            .notification-item:hover {
-                background: #f9fafb;
-            }
-            
-            .notification-item.success {
-                border-left: 3px solid #10b981;
-            }
-            .notification-item.error {
-                border-left: 3px solid #ef4444;
-            }
-            .notification-item.warning {
-                border-left: 3px solid #f59e0b;
-            }
-            .notification-item.info {
-                border-left: 3px solid #3b82f6;
-            }
-            
-            .notification-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-            
-            .notification-item.success .notification-icon {
-                background: #d1fae5;
-                color: #10b981;
-            }
-            .notification-item.error .notification-icon {
-                background: #fee2e2;
-                color: #ef4444;
-            }
-            .notification-item.warning .notification-icon {
-                background: #fed7aa;
-                color: #f59e0b;
-            }
-            .notification-item.info .notification-icon {
-                background: #dbeafe;
-                color: #3b82f6;
-            }
-            
-            .notification-details {
-                flex: 1;
-            }
-            
-            .notification-title {
-                font-weight: 600;
-                font-size: 14px;
-                color: #1f2937;
-                margin-bottom: 4px;
-            }
-            
-            .notification-message {
-                font-size: 13px;
-                color: #6b7280;
-                margin-bottom: 4px;
-            }
-            
-            .notification-time {
-                font-size: 11px;
-                color: #9ca3af;
-            }
-            
-            .mark-read-btn {
-                background: none;
-                border: none;
-                color: #9ca3af;
-                cursor: pointer;
-                padding: 6px;
-                border-radius: 8px;
-                transition: all 0.2s;
-                flex-shrink: 0;
-            }
-            
-            .mark-read-btn:hover {
-                background: #e5e7eb;
-                color: #10b981;
-            }
-            
-            .empty-notifications {
-                text-align: center;
-                padding: 40px 20px;
-                color: #9ca3af;
-            }
-            
-            .empty-notifications i {
-                font-size: 48px;
-                margin-bottom: 12px;
-            }
-            
-            .loading-notifications {
-                text-align: center;
-                padding: 40px;
-                color: #9ca3af;
-            }
-            
-            body.dark-mode .notification-panel {
-                background: #1f2937;
-            }
-            
-            body.dark-mode .notification-item {
-                border-bottom-color: #374151;
-            }
-            
-            body.dark-mode .notification-item:hover {
-                background: #374151;
-            }
-            
-            body.dark-mode .notification-title {
-                color: #f3f4f6;
-            }
-            
-            body.dark-mode .notification-message {
-                color: #9ca3af;
-            }
-            
-            body.dark-mode .empty-notifications {
-                color: #6b7280;
-            }
-            
-            @media (max-width: 480px) {
-                .notification-panel {
-                    top: 60px;
-                    right: 10px;
-                    left: 10px;
-                    width: auto;
-                }
-            }
+    document.getElementById('penaltyStudentId').value = student.id;
+    document.getElementById('penaltyStudentName').value = student.name;
+    document.getElementById('penaltyStudentEmail').value = student.email;
+    
+    const selectedInfo = document.getElementById('selectedStudentInfo');
+    const selectedDetails = document.getElementById('selectedStudentDetails');
+    const searchInput = document.getElementById('studentSearchInput');
+    
+    if (selectedDetails) {
+        selectedDetails.innerHTML = `
+            <strong>${escapeHtml(student.name)}</strong><br>
+            <small>ID: ${escapeHtml(student.id)} | Email: ${escapeHtml(student.email)}</small>
         `;
-        document.head.appendChild(style);
     }
     
-    if (!panel) {
-        panel = document.createElement('div');
-        panel.id = 'notificationPanel';
-        panel.className = 'notification-panel';
-        panel.innerHTML = `
-            <div class="notification-header">
-                <h3><i class="fas fa-bell"></i> Notifications</h3>
-                <button id="clearAllNotifications" class="clear-all-btn">Clear All</button>
-                <button id="closeNotificationPanel" class="close-panel-btn">&times;</button>
-            </div>
-            <div class="notification-list" id="notificationList">
-                <div class="loading-notifications">Loading...</div>
-            </div>
-        `;
-        document.body.appendChild(panel);
+    if (selectedInfo) selectedInfo.classList.add('show');
+    if (searchInput) searchInput.value = student.name;
+    
+    const resultsDiv = document.getElementById('studentSearchResults');
+    if (resultsDiv) resultsDiv.classList.remove('show');
+    
+    const manualGroup = document.getElementById('manualEntryGroup');
+    if (manualGroup) manualGroup.style.display = 'none';
+    
+    showSuccessToast(`Selected: ${student.name}`, 'Student Selected', 2000);
+}
+
+function clearStudentSelection() {
+    selectedStudent = null;
+    document.getElementById('penaltyStudentId').value = '';
+    document.getElementById('penaltyStudentName').value = '';
+    document.getElementById('penaltyStudentEmail').value = '';
+    document.getElementById('studentSearchInput').value = '';
+    document.getElementById('selectedStudentInfo').classList.remove('show');
+}
+
+function setupStudentSearch() {
+    const searchInput = document.getElementById('studentSearchInput');
+    const clearBtn = document.getElementById('clearSelectionBtn');
+    const toggleManualBtn = document.getElementById('toggleManualEntry');
+    const manualGroup = document.getElementById('manualEntryGroup');
+    const manualStudentId = document.getElementById('manualStudentId');
+    
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
         
-        document.getElementById('closeNotificationPanel')?.addEventListener('click', () => {
-            panel.classList.remove('show');
+        if (selectedStudent) {
+            clearStudentSelection();
+        }
+        
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.trim();
+            if (term.length >= 2) {
+                searchStudents(term);
+            } else {
+                const resultsDiv = document.getElementById('studentSearchResults');
+                if (resultsDiv) resultsDiv.classList.remove('show');
+            }
+        }, 300);
+    });
+    
+    document.addEventListener('click', (e) => {
+        const resultsDiv = document.getElementById('studentSearchResults');
+        const searchContainer = document.querySelector('.student-search-container');
+        if (resultsDiv && searchContainer && !searchContainer.contains(e.target)) {
+            resultsDiv.classList.remove('show');
+        }
+    });
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            clearStudentSelection();
+            showInfoToast('Student selection cleared', 'Cleared', 1500);
         });
-        
-        document.getElementById('clearAllNotifications')?.addEventListener('click', () => {
-            markAllNotificationsAsRead();
-            renderNotificationList();
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (panel.classList.contains('show') && 
-                !panel.contains(e.target) && 
-                !e.target.closest('#notifyBtn')) {
-                panel.classList.remove('show');
+    }
+    
+    if (toggleManualBtn && manualGroup) {
+        toggleManualBtn.addEventListener('click', () => {
+            if (manualGroup.style.display === 'none' || manualGroup.style.display === '') {
+                manualGroup.style.display = 'block';
+                toggleManualBtn.textContent = '🔍 Search from List';
+                clearStudentSelection();
+                if (manualStudentId) manualStudentId.value = '';
+            } else {
+                manualGroup.style.display = 'none';
+                toggleManualBtn.textContent = '📝 Enter Student ID Manually';
             }
         });
     }
     
-    renderNotificationList();
-    panel.classList.add('show');
+    if (manualStudentId) {
+        manualStudentId.addEventListener('input', (e) => {
+            document.getElementById('penaltyStudentId').value = e.target.value;
+        });
+    }
+}
+
+// ============ QUICK ADD STUDENT ============
+function setupQuickAddModal() {
+    const quickAddBtn = document.getElementById('quickAddStudent');
+    const modal = document.getElementById('quickAddStudentModal');
+    const cancelBtn = document.getElementById('quickAddCancel');
+    const submitBtn = document.getElementById('quickAddSubmit');
+    
+    if (!quickAddBtn || !modal) return;
+    
+    quickAddBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+    });
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.getElementById('quickStudentName').value = '';
+            document.getElementById('quickStudentId').value = '';
+            document.getElementById('quickStudentEmail').value = '';
+        });
+    }
+    
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async () => {
+            const name = document.getElementById('quickStudentName')?.value.trim();
+            const studentId = document.getElementById('quickStudentId')?.value.trim();
+            const email = document.getElementById('quickStudentEmail')?.value.trim();
+            
+            if (!name || !studentId || !email) {
+                showErrorToast('Please fill all fields', 'Missing Information');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .insert([{
+                        id: studentId,
+                        name: name,
+                        email: email,
+                        status: 'active',
+                        created_at: new Date().toISOString()
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                showSuccessToast(`Student ${name} added successfully!`, 'Student Added');
+                modal.style.display = 'none';
+                
+                document.getElementById('quickStudentName').value = '';
+                document.getElementById('quickStudentId').value = '';
+                document.getElementById('quickStudentEmail').value = '';
+                
+                await loadStudentsList();
+                
+                selectStudent({
+                    id: studentId,
+                    name: name,
+                    email: email
+                });
+                
+            } catch (error) {
+                console.error('Error adding student:', error);
+                showErrorToast('Failed to add student. ID might already exist.', 'Error');
+            }
+        });
+    }
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
 }
 
 // ============ LOAD STUDENTS LIST ============
@@ -633,287 +453,6 @@ async function loadStudentsList() {
     } catch (error) {
         console.error('Error loading students:', error);
         return [];
-    }
-}
-
-// ============ ENHANCED STUDENT SELECTOR ============
-function setupStudentSelector() {
-    const studentSelect = document.getElementById('penaltyStudentSelect');
-    const manualEntryGroup = document.getElementById('manualEntryGroup');
-    const toggleManualBtn = document.getElementById('toggleManualEntry');
-    const studentIdInput = document.getElementById('penaltyStudentId');
-    const studentNameDisplay = document.getElementById('selectedStudentName');
-    
-    if (!studentSelect) return;
-    
-    // Populate dropdown with students
-    studentSelect.innerHTML = '<option value="">-- Select a student --</option>';
-    studentsList.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.id;
-        option.textContent = `${student.name} (${student.id})`;
-        option.dataset.name = student.name;
-        studentSelect.appendChild(option);
-    });
-    
-    // Handle selection change
-    studentSelect.addEventListener('change', () => {
-        const selectedOption = studentSelect.options[studentSelect.selectedIndex];
-        if (studentSelect.value) {
-            studentIdInput.value = studentSelect.value;
-            if (studentNameDisplay) {
-                studentNameDisplay.textContent = `Selected: ${selectedOption.textContent}`;
-                studentNameDisplay.style.display = 'block';
-            }
-            manualEntryGroup.style.display = 'none';
-            toggleManualBtn.textContent = '📝 Enter Manually';
-        } else {
-            studentIdInput.value = '';
-            if (studentNameDisplay) studentNameDisplay.style.display = 'none';
-        }
-    });
-    
-    // Toggle manual entry
-    if (toggleManualBtn) {
-        toggleManualBtn.addEventListener('click', () => {
-            if (manualEntryGroup.style.display === 'none' || manualEntryGroup.style.display === '') {
-                manualEntryGroup.style.display = 'block';
-                toggleManualBtn.textContent = '📋 Select from List';
-                studentSelect.value = '';
-                studentIdInput.value = '';
-                if (studentNameDisplay) studentNameDisplay.style.display = 'none';
-            } else {
-                manualEntryGroup.style.display = 'none';
-                toggleManualBtn.textContent = '📝 Enter Manually';
-                if (studentSelect.value) {
-                    studentIdInput.value = studentSelect.value;
-                }
-            }
-        });
-    }
-    
-    // Add quick add button for unregistered students
-    const quickAddBtn = document.getElementById('quickAddStudent');
-    if (quickAddBtn) {
-        quickAddBtn.addEventListener('click', () => {
-            openQuickAddStudentModal();
-        });
-    }
-}
-
-// ============ QUICK ADD STUDENT MODAL ============
-function openQuickAddStudentModal() {
-    let modal = document.getElementById('quickAddStudentModal');
-    
-    if (!modal) {
-        const style = document.createElement('style');
-        style.textContent = `
-            .quick-add-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.6);
-                backdrop-filter: blur(4px);
-                z-index: 20000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.2s ease;
-            }
-            
-            .quick-add-content {
-                background: white;
-                border-radius: 24px;
-                padding: 28px;
-                max-width: 450px;
-                width: 90%;
-                animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            }
-            
-            body.dark-mode .quick-add-content {
-                background: #1e293b;
-            }
-            
-            .quick-add-content h3 {
-                font-size: 20px;
-                font-weight: 700;
-                margin-bottom: 20px;
-                color: #1e293b;
-            }
-            
-            body.dark-mode .quick-add-content h3 {
-                color: #f1f5f9;
-            }
-            
-            .quick-add-content .form-group {
-                margin-bottom: 16px;
-            }
-            
-            .quick-add-content label {
-                display: block;
-                font-size: 13px;
-                font-weight: 600;
-                margin-bottom: 6px;
-                color: #475569;
-            }
-            
-            body.dark-mode .quick-add-content label {
-                color: #cbd5e1;
-            }
-            
-            .quick-add-content input {
-                width: 100%;
-                padding: 10px 14px;
-                border: 1.5px solid #e2e8f0;
-                border-radius: 12px;
-                font-size: 14px;
-                background: #f8fafc;
-            }
-            
-            body.dark-mode .quick-add-content input {
-                background: #0f172a;
-                border-color: #334155;
-                color: #f1f5f9;
-            }
-            
-            .quick-add-buttons {
-                display: flex;
-                gap: 12px;
-                margin-top: 20px;
-            }
-            
-            .quick-add-buttons button {
-                flex: 1;
-                padding: 12px;
-                border-radius: 12px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            
-            .quick-add-cancel {
-                background: #e2e8f0;
-                border: none;
-                color: #475569;
-            }
-            
-            .quick-add-cancel:hover {
-                background: #cbd5e1;
-            }
-            
-            .quick-add-submit {
-                background: linear-gradient(135deg, #2563EB, #1D4ED8);
-                border: none;
-                color: white;
-            }
-            
-            .quick-add-submit:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            }
-            
-            body.dark-mode .quick-add-cancel {
-                background: #334155;
-                color: #cbd5e1;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        modal = document.createElement('div');
-        modal.id = 'quickAddStudentModal';
-        modal.className = 'quick-add-modal';
-        modal.innerHTML = `
-            <div class="quick-add-content">
-                <h3><i class="fas fa-user-plus"></i> Quick Add Student</h3>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="quickStudentName" placeholder="e.g., Juan Dela Cruz">
-                </div>
-                <div class="form-group">
-                    <label>Student ID Number</label>
-                    <input type="text" id="quickStudentId" placeholder="e.g., 2024-00123">
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="quickStudentEmail" placeholder="student.name@gordoncollege.edu.ph">
-                </div>
-                <div class="quick-add-buttons">
-                    <button class="quick-add-cancel">Cancel</button>
-                    <button class="quick-add-submit">Add & Select</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        modal.querySelector('.quick-add-cancel').addEventListener('click', () => {
-            modal.remove();
-        });
-        
-        modal.querySelector('.quick-add-submit').addEventListener('click', async () => {
-            await quickAddStudent();
-        });
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-    }
-    
-    modal.style.display = 'flex';
-}
-
-async function quickAddStudent() {
-    const name = document.getElementById('quickStudentName')?.value.trim();
-    const studentId = document.getElementById('quickStudentId')?.value.trim();
-    const email = document.getElementById('quickStudentEmail')?.value.trim();
-    
-    if (!name || !studentId || !email) {
-        showErrorToast('Please fill all fields', 'Missing Information');
-        return;
-    }
-    
-    if (!email.endsWith('@gordoncollege.edu.ph')) {
-        showErrorToast('Email must end with @gordoncollege.edu.ph', 'Invalid Email');
-        return;
-    }
-    
-    try {
-        const { data, error } = await supabase
-            .from('students')
-            .insert([{
-                id: studentId,
-                name: name,
-                email: email,
-                status: 'active',
-                created_at: new Date().toISOString()
-            }])
-            .select();
-        
-        if (error) throw error;
-        
-        showSuccessToast(`Student ${name} added successfully!`, 'Student Added');
-        
-        // Close modal
-        const modal = document.getElementById('quickAddStudentModal');
-        if (modal) modal.remove();
-        
-        // Reload students list and update selector
-        await loadStudentsList();
-        setupStudentSelector();
-        
-        // Auto-select the newly added student
-        const studentSelect = document.getElementById('penaltyStudentSelect');
-        if (studentSelect) {
-            studentSelect.value = studentId;
-            const event = new Event('change');
-            studentSelect.dispatchEvent(event);
-        }
-        
-    } catch (error) {
-        console.error('Error adding student:', error);
-        showErrorToast('Failed to add student. ID might already exist.', 'Error');
     }
 }
 
@@ -940,34 +479,59 @@ async function loadPenalties() {
     }
 }
 
+// ============ DISPLAY PENALTIES WITH OFFENSE LEVEL ============
 function displayPenalties(penalties) {
     const tbody = document.getElementById('penaltiesTableBody');
     if (!tbody) return;
     
     if (penalties.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No penalties found</td></tr>';
+        tbody.innerHTML = '<table><td colspan="9" style="text-align: center; padding: 40px;">No penalties found</td></tr>';
         return;
     }
     
-    tbody.innerHTML = penalties.map(penalty => `
-        <tr data-id="${penalty.id}">
-            <td style="text-align: center;"><input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}"></td>
-            <td><strong>${escapeHtml(penalty.student_id || 'N/A')}</strong></td>
-            <td>${escapeHtml(penalty.violation || 'N/A')}</td>
-            <td>${escapeHtml(penalty.service_type || 'N/A')}</td>
-            <td>${penalty.hours || 0} hrs</td>
-            <td><span class="status-badge status-${penalty.status || 'pending'}">${penalty.status || 'pending'}</span></td>
-            <td>${penalty.deadline ? new Date(penalty.deadline).toLocaleDateString() : 'N/A'}</td>
-            <td>
-                <button class="edit-penalty-btn" data-id="${penalty.id}" style="background: none; border: none; cursor: pointer; margin-right: 8px;">
-                    <i class="fas fa-edit" style="color: var(--blue);"></i>
-                </button>
-                <button class="delete-penalty-btn" data-id="${penalty.id}" style="background: none; border: none; cursor: pointer;">
-                    <i class="fas fa-trash" style="color: var(--red);"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = penalties.map(penalty => {
+        // Get offense level display
+        const offenseLevel = penalty.offense_level || '1st Offense';
+        let offenseClass = '';
+        let offenseDisplay = offenseLevel;
+        
+        if (offenseLevel === '1st Offense') {
+            offenseClass = 'offense-first';
+            offenseDisplay = '⚠️ 1st Offense (Warning)';
+        } else if (offenseLevel === '2nd Offense') {
+            offenseClass = 'offense-second';
+            offenseDisplay = '⚠️ 2nd Offense';
+        } else if (offenseLevel === '3rd Offense') {
+            offenseClass = 'offense-third';
+            offenseDisplay = '🔴 3rd Offense';
+        }
+        
+        const isWarning = penalty.is_warning || offenseLevel === '1st Offense';
+        const hoursDisplay = isWarning ? '<span class="warning-badge">⚠️ Warning Only</span>' : `${penalty.hours || 0} hrs`;
+        
+        return `
+            <tr data-id="${penalty.id}">
+                <td class="checkbox-cell" style="text-align: center;">
+                    <input type="checkbox" class="penalty-checkbox" data-id="${penalty.id}">
+                </td>
+                <td><strong>${escapeHtml(penalty.student_name || 'Unknown Student')}</strong></td>
+                <td>${escapeHtml(penalty.violation || 'N/A')}</td>
+                <td><span class="offense-badge ${offenseClass}">${escapeHtml(offenseDisplay)}</span></td>
+                <td>${escapeHtml(penalty.service_type || 'N/A')}</td>
+                <td class="hours-cell">${hoursDisplay}</td>
+                <td><span class="status-badge status-${penalty.status || 'pending'}">${penalty.status || 'pending'}</span></td>
+                <td>${penalty.deadline ? new Date(penalty.deadline).toLocaleDateString() : 'N/A'}</td>
+                <td class="action-btns">
+                    <button class="edit-penalty-btn" data-id="${penalty.id}" title="Edit">
+                        <i class="fas fa-edit" style="color: var(--blue);"></i>
+                    </button>
+                    <button class="delete-penalty-btn" data-id="${penalty.id}" title="Delete">
+                        <i class="fas fa-trash" style="color: var(--red);"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
     
     document.querySelectorAll('.edit-penalty-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -990,7 +554,8 @@ function updateStats(penalties) {
     const pendingCases = document.getElementById('pendingCases');
     const completedHours = document.getElementById('completedHours');
     
-    if (totalStudents) totalStudents.textContent = penalties.length;
+    const uniqueStudents = new Set(penalties.map(p => p.student_id));
+    if (totalStudents) totalStudents.textContent = uniqueStudents.size;
     if (totalPenalties) totalPenalties.textContent = penalties.length;
     
     const pending = penalties.filter(p => p.status === 'pending').length;
@@ -1002,26 +567,59 @@ function updateStats(penalties) {
     if (completedHours) completedHours.textContent = completed;
 }
 
-// ============ SAVE PENALTY ============
+// ============ FIXED SAVE PENALTY - HANDLES WARNINGS CORRECTLY ============
 async function savePenalty(event) {
     event.preventDefault();
     
     const penaltyId = document.getElementById('penaltyId').value;
-    const studentId = document.getElementById('penaltyStudentId').value.trim();
-    const violation = document.getElementById('penaltyViolation').value;
-    const serviceType = document.getElementById('penaltyServiceType').value;
-    const hours = parseInt(document.getElementById('penaltyHours').value);
-    const status = document.getElementById('penaltyStatus').value;
-    const deadline = document.getElementById('penaltyDeadline').value;
+    let studentId = document.getElementById('penaltyStudentId').value.trim();
+    const studentName = document.getElementById('penaltyStudentName').value.trim();
+    const manualStudentId = document.getElementById('manualStudentId')?.value.trim();
     
-    if (!studentId || !violation || !serviceType || !hours || !deadline) {
-        showErrorToast('Please fill all required fields', 'Missing Fields');
+    // Get offense level from hidden input
+    const offenseLevel = document.getElementById('offenseLevel')?.value || '1st Offense';
+    const isWarning = offenseLevel === '1st Offense';
+    
+    if (!studentId && manualStudentId) {
+        studentId = manualStudentId;
+    }
+    
+    const violation = document.getElementById('penaltyViolation').value;
+    
+    // Only get these fields if NOT a warning
+    const serviceType = isWarning ? null : document.getElementById('penaltyServiceType').value;
+    const hours = isWarning ? 0 : parseInt(document.getElementById('penaltyHours').value);
+    const status = isWarning ? 'pending' : document.getElementById('penaltyStatus').value;
+    const deadline = isWarning ? null : document.getElementById('penaltyDeadline').value;
+    
+    // Validation - only require student and violation
+    if (!studentId || !violation) {
+        showErrorToast('Please select a student and violation', 'Missing Fields');
         return;
+    }
+    
+    // For non-warning, validate required fields
+    if (!isWarning) {
+        if (!serviceType) {
+            showErrorToast('Please select a service type', 'Missing Fields');
+            return;
+        }
+        if (!hours || hours <= 0) {
+            showErrorToast('Please enter valid hours', 'Missing Fields');
+            return;
+        }
+        if (!deadline) {
+            showErrorToast('Please select a deadline', 'Missing Fields');
+            return;
+        }
     }
     
     const penaltyData = {
         student_id: studentId,
+        student_name: studentName || 'Unknown Student',
         violation: violation,
+        offense_level: offenseLevel,
+        is_warning: isWarning,
         service_type: serviceType,
         hours: hours,
         status: status,
@@ -1037,8 +635,7 @@ async function savePenalty(event) {
                 .eq('id', penaltyId);
             if (error) throw error;
             
-            await createPenaltyNotification({ student_id: studentId, violation: violation, status: status }, 'update');
-            showSuccessToast('Penalty updated successfully!', 'Updated');
+            showSuccessToast(`Penalty updated for ${studentName || studentId}!`, 'Updated');
         } else {
             penaltyData.created_at = new Date().toISOString();
             const { error } = await supabase
@@ -1046,16 +643,21 @@ async function savePenalty(event) {
                 .insert([penaltyData]);
             if (error) throw error;
             
-            await createPenaltyNotification({ student_id: studentId, violation: violation, status: status }, 'add');
-            showSuccessToast('Penalty added successfully!', 'Added');
+            // Show appropriate message based on offense type
+            if (isWarning) {
+                showSuccessToast(`Warning issued to ${studentName || studentId}!`, 'Warning Issued');
+            } else {
+                showSuccessToast(`Penalty added for ${studentName || studentId}!`, 'Penalty Added');
+            }
         }
         
         closeModal();
         loadPenalties();
+        clearStudentSelection();
         
     } catch (error) {
         console.error('Error saving penalty:', error);
-        showErrorToast('Failed to save penalty', 'Error');
+        showErrorToast('Failed to save: ' + error.message, 'Error');
     }
 }
 
@@ -1071,20 +673,46 @@ async function editPenalty(id) {
         
         document.getElementById('modalTitle').textContent = 'Edit Penalty';
         document.getElementById('penaltyId').value = data.id;
-        document.getElementById('penaltyStudentId').value = data.student_id || '';
         document.getElementById('penaltyViolation').value = data.violation || '';
         document.getElementById('penaltyServiceType').value = data.service_type || '';
-        document.getElementById('penaltyHours').value = data.hours || '';
+        document.getElementById('penaltyHours').value = data.hours || 0;
         document.getElementById('penaltyStatus').value = data.status || 'pending';
         document.getElementById('penaltyDeadline').value = data.deadline || '';
         
-        // Also update the select dropdown if the student exists
-        const studentSelect = document.getElementById('penaltyStudentSelect');
-        if (studentSelect) {
-            studentSelect.value = data.student_id || '';
-            const manualGroup = document.getElementById('manualEntryGroup');
-            if (manualGroup) manualGroup.style.display = 'none';
+        // Set offense level in hidden input
+        const offenseLevel = data.offense_level || '1st Offense';
+        const offenseLevelInput = document.getElementById('offenseLevel');
+        if (offenseLevelInput) offenseLevelInput.value = offenseLevel;
+        
+        // Trigger the offense level button to update UI
+        let offenseBtnClass = '';
+        if (offenseLevel === '1st Offense') offenseBtnClass = 'first-offense';
+        else if (offenseLevel === '2nd Offense') offenseBtnClass = 'second-offense';
+        else if (offenseLevel === '3rd Offense') offenseBtnClass = 'third-offense';
+        
+        const offenseBtn = document.querySelector(`.offense-btn.${offenseBtnClass}`);
+        if (offenseBtn) offenseBtn.click();
+        
+        if (data.student_id) {
+            document.getElementById('penaltyStudentId').value = data.student_id;
+            document.getElementById('penaltyStudentName').value = data.student_name || '';
+            
+            const selectedInfo = document.getElementById('selectedStudentInfo');
+            const selectedDetails = document.getElementById('selectedStudentDetails');
+            const searchInput = document.getElementById('studentSearchInput');
+            
+            if (selectedDetails && data.student_name) {
+                selectedDetails.innerHTML = `
+                    <strong>${escapeHtml(data.student_name)}</strong><br>
+                    <small>ID: ${escapeHtml(data.student_id)}</small>
+                `;
+                if (selectedInfo) selectedInfo.classList.add('show');
+            }
+            if (searchInput) searchInput.value = data.student_name || data.student_id;
         }
+        
+        const manualGroup = document.getElementById('manualEntryGroup');
+        if (manualGroup) manualGroup.style.display = 'none';
         
         openModal();
         
@@ -1098,12 +726,6 @@ async function deletePenalty(id) {
     if (!confirm('Are you sure you want to delete this penalty?')) return;
     
     try {
-        const { data: penaltyData, error: fetchError } = await supabase
-            .from('penalties')
-            .select('student_id, violation')
-            .eq('id', id)
-            .single();
-        
         const { error } = await supabase
             .from('penalties')
             .delete()
@@ -1111,61 +733,12 @@ async function deletePenalty(id) {
         
         if (error) throw error;
         
-        if (penaltyData) {
-            await createPenaltyNotification(penaltyData, 'delete');
-        }
-        
         showSuccessToast('Penalty deleted successfully!', 'Deleted');
         loadPenalties();
         
     } catch (error) {
         console.error('Error deleting penalty:', error);
         showErrorToast('Failed to delete penalty', 'Error');
-    }
-}
-
-async function createPenaltyNotification(penaltyData, action) {
-    if (!currentAdmin && !(await getCurrentAdminInfo())) return;
-    
-    let title = '';
-    let message = '';
-    let type = 'info';
-    
-    switch(action) {
-        case 'add':
-            title = 'Penalty Added';
-            message = `A new penalty has been issued to ${penaltyData.student_id} for ${penaltyData.violation}.`;
-            type = 'warning';
-            break;
-        case 'update':
-            title = 'Penalty Updated';
-            message = `Penalty for ${penaltyData.student_id} has been updated. Status: ${penaltyData.status}.`;
-            type = 'info';
-            break;
-        case 'delete':
-            title = 'Penalty Deleted';
-            message = `A penalty record has been removed from the system.`;
-            type = 'error';
-            break;
-        default:
-            return;
-    }
-    
-    const { error } = await supabase
-        .from('notifications')
-        .insert({
-            admin_id: currentAdmin?.admin_id,
-            title: title,
-            message: message,
-            type: type,
-            is_read: false,
-            created_at: new Date().toISOString()
-        });
-    
-    if (error) {
-        console.error('Error creating notification:', error);
-    } else {
-        fetchNotifications();
     }
 }
 
@@ -1182,8 +755,28 @@ function closeModal() {
         document.getElementById('penaltyForm').reset();
         document.getElementById('penaltyId').value = '';
         document.getElementById('modalTitle').textContent = 'Add New Penalty';
-        document.getElementById('selectedStudentName').style.display = 'none';
+        clearStudentSelection();
+        document.getElementById('manualEntryGroup').style.display = 'none';
+        const toggleManualBtn = document.getElementById('toggleManualEntry');
+        if (toggleManualBtn) toggleManualBtn.textContent = '📝 Enter Student ID Manually';
     }
+}
+
+// ============ SELECT ALL CHECKBOXES ============
+function initSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    if (!selectAll) return;
+    
+    selectAll.addEventListener('change', (e) => {
+        document.querySelectorAll('.penalty-checkbox').forEach(cb => {
+            cb.checked = e.target.checked;
+        });
+    });
+}
+
+function getSelectedPenaltyIds() {
+    return Array.from(document.querySelectorAll('.penalty-checkbox:checked'))
+        .map(cb => cb.dataset.id);
 }
 
 // ============ DARK MODE ============
@@ -1206,28 +799,11 @@ function initDarkMode() {
     }
 }
 
-// ============ SELECT ALL ============
-function initSelectAll() {
-    const selectAll = document.getElementById('selectAll');
-    if (!selectAll) return;
-    
-    selectAll.addEventListener('change', (e) => {
-        document.querySelectorAll('.penalty-checkbox').forEach(cb => {
-            cb.checked = e.target.checked;
-        });
-    });
-}
-
-function getSelectedPenaltyIds() {
-    return Array.from(document.querySelectorAll('.penalty-checkbox:checked'))
-        .map(cb => cb.dataset.id);
-}
-
 // ============ NOTIFICATION BUTTON ============
 const notifyBtn = document.getElementById('notifyBtn');
 if (notifyBtn) {
     notifyBtn.addEventListener('click', () => {
-        showNotificationPanel();
+        showInfoToast('You have ' + unreadNotifications.length + ' unread notifications', 'Notifications', 3000);
     });
 }
 
@@ -1401,14 +977,14 @@ async function init() {
     initDarkMode();
     await loadStudentsList();
     await loadPenalties();
-    setupStudentSelector();
+    setupStudentSearch();
+    setupQuickAddModal();
     initSelectAll();
     startNotificationPolling();
 
     const addPenaltyBtn = document.getElementById('addPenaltyBtn');
     const editPenaltyBtn = document.getElementById('editPenaltyBtn');
     const deletePenaltyBtn = document.getElementById('deletePenaltyBtn');
-    const communityServiceBtn = document.getElementById('communityServiceBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const penaltyModal = document.getElementById('penaltyModal');
     const penaltyForm = document.getElementById('penaltyForm');
@@ -1418,9 +994,10 @@ async function init() {
             document.getElementById('modalTitle').textContent = 'Add New Penalty';
             document.getElementById('penaltyId').value = '';
             document.getElementById('penaltyForm').reset();
-            document.getElementById('selectedStudentName').style.display = 'none';
-            document.getElementById('penaltyStudentSelect').value = '';
+            clearStudentSelection();
             document.getElementById('manualEntryGroup').style.display = 'none';
+            const toggleManualBtn = document.getElementById('toggleManualEntry');
+            if (toggleManualBtn) toggleManualBtn.textContent = '📝 Enter Student ID Manually';
             openModal();
         });
     }
@@ -1452,12 +1029,6 @@ async function init() {
         });
     }
 
-    if (communityServiceBtn) {
-        communityServiceBtn.addEventListener('click', () => {
-            window.location.href = 'community-service.html';
-        });
-    }
-
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     
     if (penaltyModal) {
@@ -1467,6 +1038,24 @@ async function init() {
     }
     
     if (penaltyForm) penaltyForm.addEventListener('submit', savePenalty);
+    
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    
+    if (hamburgerBtn && drawer && overlay) {
+        hamburgerBtn.addEventListener('click', () => {
+            drawer.classList.add('open');
+            overlay.classList.add('open');
+            document.body.classList.add('drawer-open');
+        });
+        
+        overlay.addEventListener('click', () => {
+            drawer.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.classList.remove('drawer-open');
+        });
+    }
     
     console.log('Penalties Page Initialized');
 }

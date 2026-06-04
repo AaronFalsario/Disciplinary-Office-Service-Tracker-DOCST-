@@ -54,7 +54,7 @@ html, body {
     z-index: 200;
     opacity: 0;
     pointer-events: none;
-    transition: none; /* Removed animation */
+    transition: none;
 }
 
 .drawer-overlay.open {
@@ -74,7 +74,7 @@ html, body {
     display: flex;
     flex-direction: column;
     transform: translateX(0);
-    transition: none; /* Removed animation */
+    transition: none;
     overflow-y: auto;
     box-shadow: 2px 0 12px rgba(0,0,0,0.08);
 }
@@ -82,7 +82,7 @@ html, body {
 @media (max-width: 768px) {
     .drawer {
         transform: translateX(-100%);
-        transition: none; /* Removed animation */
+        transition: none;
     }
     .drawer.open {
         transform: translateX(0);
@@ -107,7 +107,7 @@ html, body {
     padding: 6px;
     border-radius: 6px;
     display: none;
-    transition: none; /* Removed animation */
+    transition: none;
 }
 
 .drawer-close:hover {
@@ -195,7 +195,7 @@ html, body {
     width: 100%;
     text-align: left;
     cursor: pointer;
-    transition: none; /* Removed animation */
+    transition: none;
 }
 
 .drawer-item:hover {
@@ -239,7 +239,7 @@ html, body {
     padding: 10px 0;
     font-family: 'DM Sans', sans-serif;
     cursor: pointer;
-    transition: none; /* Removed animation */
+    transition: none;
 }
 
 .drawer-logout:hover {
@@ -571,7 +571,7 @@ html, body {
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* ============ TABLE ============ */
+/* ============ TABLE - FIXED AND ALIGNED ============ */
 .table-wrap {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -612,7 +612,7 @@ thead tr {
 
 th {
     text-align: left;
-    padding: 14px 16px;
+    padding: 16px 20px;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -623,9 +623,9 @@ th {
 }
 
 td {
-    padding: 14px 16px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+    font-size: 14px;
     vertical-align: middle;
     transition: border-color 0.3s ease;
 }
@@ -642,13 +642,23 @@ tbody tr:hover {
     background: var(--bg);
 }
 
-/* Column widths */
-th:first-child, td:first-child { width: 35%; }
-th:nth-child(2), td:nth-child(2) { width: 20%; }
-th:nth-child(3), td:nth-child(3) { width: 30%; }
-th:last-child, td:last-child { width: 15%; }
+/* ============ TABLE COLUMN WIDTHS (3 columns - Properly Aligned) ============ */
+th:first-child, td:first-child { 
+    width: 35%;
+    text-align: left;
+}
 
-/* ============ TABLE CELL STYLES ============ */
+th:nth-child(2), td:nth-child(2) { 
+    width: 45%;
+    text-align: left;
+}
+
+th:last-child, td:last-child { 
+    width: 20%;
+    text-align: center;
+}
+
+/* ============ TABLE CELL STYLES - PROPER ALIGNMENT ============ */
 .student-cell {
     display: flex;
     align-items: center;
@@ -656,8 +666,8 @@ th:last-child, td:last-child { width: 15%; }
 }
 
 .student-avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--blue-light);
     display: flex;
@@ -674,28 +684,14 @@ th:last-child, td:last-child { width: 15%; }
     font-weight: 600;
     color: var(--text);
     transition: color 0.3s ease;
-}
-
-.student-id-small {
-    font-size: 11px;
-    color: var(--text-3);
-    margin-top: 2px;
-}
-
-.id-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    background: var(--blue-light);
-    color: var(--blue);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 14px;
 }
 
 .email-cell {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .email-cell i {
@@ -706,14 +702,15 @@ th:last-child, td:last-child { width: 15%; }
 
 .email-badge {
     font-family: monospace;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-2);
     background: var(--bg);
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     display: inline-block;
-    white-space: nowrap;
     transition: all 0.2s;
+    word-break: break-all;
+    max-width: 100%;
 }
 
 .email-badge:hover {
@@ -721,18 +718,19 @@ th:last-child, td:last-child { width: 15%; }
     color: var(--blue);
 }
 
-/* ============ DELETE BUTTON STYLES ============ */
+/* ============ ACTION BUTTONS - CENTERED ============ */
 .action-btns {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
+    align-items: center;
 }
 
 .delete-student {
     background: linear-gradient(135deg, #fee2e2, #fecaca);
     border: none;
     cursor: pointer;
-    padding: 8px 16px;
+    padding: 8px 20px;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 500;
@@ -758,7 +756,7 @@ th:last-child, td:last-child { width: 15%; }
     transform: translateY(0);
 }
 
-/* Dark mode delete button */
+/* Dark mode action buttons */
 body.dark-mode .delete-student {
     background: linear-gradient(135deg, #7f1d1d, #991b1b);
     color: #fca5a5;
@@ -1173,15 +1171,6 @@ body.dark-mode .student-name {
     color: #F1F5F9;
 }
 
-body.dark-mode .student-id-small {
-    color: #64748B;
-}
-
-body.dark-mode .id-badge {
-    background: #1E3A5F;
-    color: #3B82F6;
-}
-
 body.dark-mode .email-badge {
     background: #0F172A;
     color: #94A3B8;
@@ -1585,11 +1574,29 @@ body.dark-mode .confirm-cancel-btn:hover {
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .toast-container { top: 16px; right: 16px; left: 16px; max-width: none; }
     .toast { padding: 12px 16px; }
     .notification-panel { top: 60px; right: 10px; left: 10px; width: auto; }
     .logout-modal-content { max-width: 300px; }
     .logout-toast { min-width: 260px; padding: 12px 16px; }
     .logout-toast-icon { font-size: 20px; }
+    
+    td {
+        padding: 12px 16px;
+    }
+    
+    th {
+        padding: 12px 16px;
+    }
+    
+    .email-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+    
+    .delete-student {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 }

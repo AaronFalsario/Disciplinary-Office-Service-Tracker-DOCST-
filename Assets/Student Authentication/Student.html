@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
@@ -9,151 +10,149 @@
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
     <base href="/">
 </head>
+
 <body>
-<div class="card">
-    <!-- Left Panel -->
-    <div class="left">
-        <div class="left-brand">
-            <div class="left-brand-icon">
-                <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo" onerror="this.style.backgroundColor='rgba(255,255,255,0.2)'">
-            </div>
-            <div class="left-brand-text">
-                <div class="top">Student Affair Office</div>
-                <div class="btm">Community Service Tracker</div>
-            </div>
-        </div>
-        <div class="left-headline">Maintain Integrity &amp;<br>Excellence.</div>
-        <div class="left-sub">The centralized disciplinary record tracking system for students. Secure, transparent and efficient.</div>
-        <div class="left-features">
-            <div class="left-feature">
-                <div class="lf-icon"><i class="fas fa-shield-halved"></i></div>
-                <div>
-                    <div class="lf-title">Student Access</div>
-                    <div class="lf-sub">View your records and status</div>
+    <div class="card">
+        <!-- Left Panel -->
+        <div class="left">
+            <div class="left-brand">
+                <div class="left-brand-icon">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo"
+                        onerror="this.style.backgroundColor='rgba(255,255,255,0.2)'">
+                </div>
+                <div class="left-brand-text">
+                    <div class="top">Student Affair Office</div>
+                    <div class="btm">Community Service Tracker</div>
                 </div>
             </div>
-            <div class="left-feature">
-                <div class="lf-icon"><i class="fas fa-graduation-cap"></i></div>
-                <div>
-                    <div class="lf-title">Community Service</div>
-                    <div class="lf-sub">Track your service hours</div>
+            <div class="left-headline">Maintain Integrity &amp;<br>Excellence.</div>
+            <div class="left-sub">The centralized disciplinary record tracking system for students. Secure, transparent
+                and efficient.</div>
+            <div class="left-features">
+                <div class="left-feature">
+                    <div class="lf-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <div class="lf-title">Student Access</div>
+                        <div class="lf-sub">View your records and status</div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Panel -->
-    <div class="right">
-        <!-- Student Login Panel -->
-        <div class="panel active" id="student-login">
-            <div class="panel-title">Student Login</div>
-            <div class="portal-badge"><i class="fas fa-graduation-cap"></i> Student Portal</div>
-            <div class="panel-desc">Enter your credentials to access your account</div>
-            
-            <div class="info-banner">
-                <div class="ib-title"><i class="fas fa-circle-info"></i> Student Portal Access</div>
-                <div class="ib-sub">Access your disciplinary records and community service status.</div>
-            </div>
-
-            <div class="field">
-                <label>Email Address</label>
-                <div class="input-wrap">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="student-email" placeholder="student@gordoncollege.edu.ph">
+                <div class="left-feature">
+                    <div class="lf-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div>
+                        <div class="lf-title">Community Service</div>
+                        <div class="lf-sub">Track your service hours</div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="field">
-                <label>Password</label>
-                <div class="input-wrap">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="student-password" placeholder="Enter your password">
-                    <button class="eye-btn" type="button" onclick="togglePw('student-password', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="row-check">
-                <label class="check-label">
-                    <input type="checkbox" id="rememberMe"> Remember Me
-                </label>
-                <a href="/Assets/Student Authentication/Admin Authentication/update-password.html" class="forgot-link">Forgot Password?</a>
-            </div>
-
-            <button class="btn-submit" id="loginBtn">Login</button>
-            
-            <div class="switch-text">
-                Don't have an account? <a id="showSignupLink" style="cursor:pointer">Sign up</a>
             </div>
         </div>
 
-        <!-- Student Signup Panel -->
-        <div class="panel" id="student-signup">
-            <div class="panel-title">Student Sign Up</div>
-            <div class="portal-badge"><i class="fas fa-user-plus"></i> Student Registration</div>
-            <div class="panel-desc">Create your account to get started</div>
-            
-            <div class="info-banner">
-                <div class="ib-title"><i class="fas fa-circle-info"></i> Registration Requirements</div>
-                <div class="ib-sub">Use your valid @gordoncollege.edu.ph email address.</div>
-            </div>
+        <!-- Right Panel -->
+        <div class="right">
+            <!-- Student Login Panel -->
+            <div class="panel active" id="student-login">
+                <div class="panel-title">Student Login</div>
+                <div class="portal-badge"><i class="fas fa-graduation-cap"></i> Student Portal</div>
+                <div class="panel-desc">Enter your credentials to access your account</div>
 
-            <div class="field">
-                <label>Full Name</label>
-                <div class="input-wrap">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                <div class="info-banner">
+                    <div class="ib-title"><i class="fas fa-circle-info"></i> Student Portal Access</div>
+                    <div class="ib-sub">Access your disciplinary records and community service status.</div>
+                </div>
+
+                <div class="field">
+                    <label>Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="student-email" placeholder="student@gmail.com">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="student-password" placeholder="Enter your password">
+                        <button class="eye-btn" type="button" onclick="togglePw('student-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row-check">
+                    <label class="check-label">
+                        <input type="checkbox" id="rememberMe"> Remember Me
+                    </label>
+                    <a href="/Assets/Student Authentication/Admin Authentication/update-password.html"
+                        class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <button class="btn-submit" id="loginBtn">Login</button>
+
+                <div class="switch-text">
+                    Don't have an account? <a id="showSignupLink" style="cursor:pointer">Sign up</a>
                 </div>
             </div>
 
-            <div class="field">
-                <label>Student ID</label>
-                <div class="input-wrap">
-                    <i class="fas fa-hashtag"></i>
-                    <input type="text" id="signup-studentid" placeholder="Enter your student ID">
-                </div>
-            </div>
+            <!-- Student Signup Panel - NO STUDENT ID FIELD -->
+            <div class="panel" id="student-signup">
+                <div class="panel-title">Student Sign Up</div>
+                <div class="portal-badge"><i class="fas fa-user-plus"></i> Student Registration</div>
+                <div class="panel-desc">Create your account to get started</div>
 
-            <div class="field">
-                <label>Email Address</label>
-                <div class="input-wrap">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="signup-email" placeholder="student@gordoncollege.edu.ph">
+                <div class="info-banner">
+                    <div class="ib-title"><i class="fas fa-circle-info"></i> Registration Requirements</div>
+                    <div class="ib-sub">Use any valid email address to register.</div>
                 </div>
-            </div>
 
-            <div class="field">
-                <label>Password</label>
-                <div class="input-wrap">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="signup-password" placeholder="Create a password (min. 6 characters)">
-                    <button class="eye-btn" type="button" onclick="togglePw('signup-password', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                <div class="field">
+                    <label>Full Name</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="signup-name" placeholder="Enter your full name" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="field">
-                <label>Confirm Password</label>
-                <div class="input-wrap">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="signup-confirm" placeholder="Confirm your password">
-                    <button class="eye-btn" type="button" onclick="togglePw('signup-confirm', this)">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                <div class="field">
+                    <label>Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="signup-email" placeholder="student@gmail.com" required>
+                    </div>
                 </div>
-            </div>
 
-            <button class="btn-submit" id="signupBtn">Sign Up</button>
-            
-            <div class="switch-text">
-                Already have an account? <a id="showLoginLink" style="cursor:pointer">Login</a>
+                <div class="field">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signup-password" placeholder="Create a password (min. 6 characters)"
+                            required>
+                        <button class="eye-btn" type="button" onclick="togglePw('signup-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Confirm Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
+                        <button class="eye-btn" type="button" onclick="togglePw('signup-confirm', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn-submit" id="signupBtn">Sign Up</button>
+
+                <div class="switch-text">
+                    Already have an account? <a id="showLoginLink" style="cursor:pointer">Login</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script type="module" src="/Assets/Student Authentication/student-login.js"></script>
+    <script type="module" src="/Assets/Student Authentication/student-login.js"></script>
 </body>
+
 </html>

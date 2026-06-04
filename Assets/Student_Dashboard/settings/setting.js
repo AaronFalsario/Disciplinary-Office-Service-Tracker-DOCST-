@@ -8,28 +8,51 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 let currentStudent = null
 let currentLanguage = localStorage.getItem('student_language') || 'English'
 
-// ============ AUTH CHECK ============
+// ============ FIXED AUTH CHECK - USES LOCALSTORAGE ONLY ============
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
+    console.log('Checking auth, stored student:', stored)
     
     if (!stored) {
+        console.log('No student session found, redirecting to login')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
     
     try {
         currentStudent = JSON.parse(stored)
+        console.log('Student authenticated:', currentStudent.name)
         
+        // Optional: Verify student still exists in database (comment out if causing issues)
+        /*
+        const { data: studentData, error: studentError } = await supabase
+            .from('students')
+            .select('*')
+            .eq('email', currentStudent.email)
+            .maybeSingle()
+        
+        if (studentError || !studentData) {
+            console.log('Student not found in database')
+            localStorage.removeItem('currentStudent')
+            window.location.href = '/Assets/Student Authentication/Student.html'
+            return false
+        }
+        */
+        
+        // COMMENTED OUT - This was causing the redirect
+        /*
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
             localStorage.removeItem('currentStudent')
             window.location.href = '/Assets/Student Authentication/Student.html'
             return false
         }
+        */
         
         return true
     } catch (e) {
         console.error('Auth check failed:', e)
+        localStorage.removeItem('currentStudent')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
@@ -51,40 +74,37 @@ function lockEmailField() {
 async function loadProfileData() {
     if (!currentStudent) return
     
+    // First, populate with currentStudent data
+    document.getElementById('fullName').value = currentStudent.name || ''
+    document.getElementById('studentId').value = currentStudent.studentId || ''
+    document.getElementById('email').value = currentStudent.email || ''
+    lockEmailField()
+    
+    // Try to get latest data from database
     try {
+        const studentIdValue = currentStudent.studentId || currentStudent.id
+        
         const { data, error } = await supabase
             .from('students')
             .select('*')
-            .eq('email', currentStudent.email)
+            .eq('id', studentIdValue)
             .maybeSingle()
         
-        if (error) {
-            console.error('Error:', error)
-            document.getElementById('fullName').value = currentStudent.name || ''
-            document.getElementById('studentId').value = currentStudent.studentId || ''
-            document.getElementById('email').value = currentStudent.email || ''
-            lockEmailField()
-            return
-        }
-        
-        if (data) {
+        if (!error && data) {
             document.getElementById('fullName').value = data.name || currentStudent.name || ''
-            document.getElementById('studentId').value = data.id_number || currentStudent.studentId || ''
+            document.getElementById('studentId').value = data.id_number || data.student_id_number || currentStudent.studentId || ''
             document.getElementById('email').value = data.email || currentStudent.email || ''
-        } else {
-            document.getElementById('fullName').value = currentStudent.name || ''
-            document.getElementById('studentId').value = currentStudent.studentId || ''
-            document.getElementById('email').value = currentStudent.email || ''
+            
+            // Update currentStudent with latest data
+            currentStudent.name = data.name || currentStudent.name
+            currentStudent.email = data.email || currentStudent.email
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent))
         }
         
-        // Lock email field after setting value
         lockEmailField()
         
     } catch (error) {
         console.error('Error loading profile:', error)
-        document.getElementById('fullName').value = currentStudent.name || ''
-        document.getElementById('studentId').value = currentStudent.studentId || ''
-        document.getElementById('email').value = currentStudent.email || ''
         lockEmailField()
     }
 }
@@ -99,14 +119,15 @@ async function saveProfile() {
     }
     
     try {
-        // Only update name, not email
+        const studentIdValue = currentStudent.studentId || currentStudent.id
+        
         const { error } = await supabase
             .from('students')
             .update({ 
                 name: fullName,
                 updated_at: new Date().toISOString()
             })
-            .eq('email', currentStudent.email)
+            .eq('id', studentIdValue)
         
         if (error) {
             showAlert('Error: ' + error.message, 'error')
@@ -148,19 +169,33 @@ async function changePassword() {
     }
     
     try {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: currentStudent.email,
-            password: currentPw
-        })
+        // First verify current password from students table
+        const studentIdValue = currentStudent.studentId || currentStudent.id
         
-        if (signInError) {
+        const { data: studentData, error: studentError } = await supabase
+            .from('students')
+            .select('password')
+            .eq('id', studentIdValue)
+            .maybeSingle()
+        
+        if (studentError) {
+            showAlert('Error verifying current password', 'error')
+            return
+        }
+        
+        if (studentData && studentData.password !== currentPw) {
             showAlert('Current password is incorrect', 'error')
             return
         }
         
-        const { error: updateError } = await supabase.auth.updateUser({
-            password: newPw
-        })
+        // Update password in students table
+        const { error: updateError } = await supabase
+            .from('students')
+            .update({ 
+                password: newPw,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', studentIdValue)
         
         if (updateError) throw updateError
         
@@ -180,10 +215,10 @@ async function changePassword() {
 // ============ NOTIFICATION SETTINGS ============
 function saveNotificationSettings() {
     const settings = {
-        email: document.getElementById('modalEmailNotif').checked,
-        penalty: document.getElementById('modalPenaltyNotif').checked,
-        appeal: document.getElementById('modalAppealNotif').checked,
-        deadline: document.getElementById('modalDeadlineNotif').checked
+        email: document.getElementById('modalEmailNotif')?.checked || false,
+        penalty: document.getElementById('modalPenaltyNotif')?.checked || false,
+        appeal: document.getElementById('modalAppealNotif')?.checked || false,
+        deadline: document.getElementById('modalDeadlineNotif')?.checked || false
     }
     
     localStorage.setItem('notificationSettings', JSON.stringify(settings))
@@ -199,6 +234,12 @@ function loadNotificationSettings() {
         if (document.getElementById('modalPenaltyNotif')) document.getElementById('modalPenaltyNotif').checked = settings.penalty !== false
         if (document.getElementById('modalAppealNotif')) document.getElementById('modalAppealNotif').checked = settings.appeal !== false
         if (document.getElementById('modalDeadlineNotif')) document.getElementById('modalDeadlineNotif').checked = settings.deadline !== false
+    } else {
+        // Default all to true
+        if (document.getElementById('modalEmailNotif')) document.getElementById('modalEmailNotif').checked = true
+        if (document.getElementById('modalPenaltyNotif')) document.getElementById('modalPenaltyNotif').checked = true
+        if (document.getElementById('modalAppealNotif')) document.getElementById('modalAppealNotif').checked = true
+        if (document.getElementById('modalDeadlineNotif')) document.getElementById('modalDeadlineNotif').checked = true
     }
 }
 
@@ -280,20 +321,24 @@ function initDarkMode() {
     
     // Topbar dark mode button listener
     if (topbarDarkBtn) {
-        topbarDarkBtn.addEventListener('click', () => {
+        // Remove any existing listeners by cloning
+        const newTopbarBtn = topbarDarkBtn.cloneNode(true)
+        topbarDarkBtn.parentNode.replaceChild(newTopbarBtn, topbarDarkBtn)
+        
+        newTopbarBtn.addEventListener('click', () => {
             const isDark = document.body.classList.contains('dark-mode')
             if (isDark) {
                 document.body.classList.remove('dark-mode')
                 localStorage.setItem('docst_dark_mode', 'disabled')
                 if (darkModeCheckbox) darkModeCheckbox.checked = false
-                updateDarkModeIcon(topbarDarkBtn, false)
+                updateDarkModeIcon(newTopbarBtn, false)
                 broadcastDarkModeChange('disabled')
                 showAlert('Light mode enabled', 'success')
             } else {
                 document.body.classList.add('dark-mode')
                 localStorage.setItem('docst_dark_mode', 'enabled')
                 if (darkModeCheckbox) darkModeCheckbox.checked = true
-                updateDarkModeIcon(topbarDarkBtn, true)
+                updateDarkModeIcon(newTopbarBtn, true)
                 broadcastDarkModeChange('enabled')
                 showAlert('Dark mode enabled', 'success')
             }
@@ -402,10 +447,10 @@ function openAboutUs() {
     showInfoModal('About DOCST', `
         <div style="text-align: center; margin-bottom: 16px;">
             <img src="/Assets/Images/DOCST LOGO.png" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 12px;">
-            <h3 style="color: var(--blue);">Disciplinary Office Service Tracker</h3>
+            <h3 style="color: var(--blue);">Student Affairs Office Community Service Tracker</h3>
             <p style="margin-top: 8px;">Version 1.0.0</p>
         </div>
-        <p style="line-height: 1.6;">DOCST is a platform designed to help students track their penalties, community service hours, and compliance status. It provides a transparent and efficient way to manage disciplinary records.</p>
+        <p style="line-height: 1.6;">SAOCST is a platform designed to help students track their penalties, community service hours, and compliance status. It provides a transparent and efficient way to manage disciplinary records.</p>
         <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 12px;">
             <p><strong>🏫 Gordon College</strong><br>City of Olongapo, Zambales</p>
         </div>
@@ -463,11 +508,9 @@ function showInfoModal(title, content) {
 // ============ CONFIRM MODAL ============
 function confirmLogout() {
     showConfirmModal('Logout', 'Are you sure you want to logout from your account?', () => {
-        supabase.auth.signOut().then(() => {
-            localStorage.removeItem('currentStudent')
-            localStorage.removeItem('currentAdmin')
-            window.location.href = '/Assets/Landing/index.html'
-        })
+        localStorage.removeItem('currentStudent')
+        localStorage.removeItem('currentAdmin')
+        window.location.href = '/Assets/Landing/index.html'
     })
 }
 
@@ -530,8 +573,12 @@ async function deleteAccount() {
     showAlert('Deleting account...', 'success')
     
     try {
-        await supabase.from('students').delete().eq('email', currentStudent.email)
-        await supabase.auth.signOut()
+        const studentIdValue = currentStudent.studentId || currentStudent.id
+        
+        // Delete from students table
+        await supabase.from('students').delete().eq('id', studentIdValue)
+        
+        // Clear local storage
         localStorage.clear()
         
         showAlert('Account deleted. Redirecting...', 'success')
@@ -541,7 +588,6 @@ async function deleteAccount() {
         
     } catch (error) {
         console.error('Error:', error)
-        await supabase.auth.signOut()
         localStorage.clear()
         window.location.href = '/Assets/Landing/index.html'
     }
@@ -563,6 +609,8 @@ function showAlert(message, type) {
 
 // ============ INITIALIZE ============
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Settings page initializing...')
+    
     const isAuth = await checkAuth()
     if (!isAuth) return
     
@@ -576,9 +624,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const langDisplay = document.getElementById('currentLanguageDisplay')
     if (langDisplay) langDisplay.textContent = currentLanguage
     
-    document.getElementById('saveProfileBtn')?.addEventListener('click', saveProfile)
-    document.getElementById('changePasswordBtn')?.addEventListener('click', changePassword)
-    document.getElementById('saveNotificationBtn')?.addEventListener('click', saveNotificationSettings)
+    const saveProfileBtn = document.getElementById('saveProfileBtn')
+    if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile)
     
     // Close modals when clicking outside
     document.querySelectorAll('.modal-overlay').forEach(modal => {
@@ -589,6 +636,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         })
     })
+    
+    console.log('Settings page initialized')
 })
 
 // Expose global functions

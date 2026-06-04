@@ -1,4 +1,6 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -43,7 +45,8 @@ body.dark-mode {
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-html, body {
+html,
+body {
     min-height: 100%;
     font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     background: var(--bg);
@@ -53,7 +56,7 @@ html, body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* DRAWER - UPDATED TO MATCH ADMIN */
+/* DRAWER */
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -102,10 +105,10 @@ body.dark-mode .drawer {
     position: absolute;
     top: 14px;
     right: 14px;
-    background: rgba(255,255,255,0.12);
+    background: rgba(255, 255, 255, 0.12);
     border: none;
     cursor: pointer;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.6);
     padding: 6px;
     border-radius: 6px;
     transition: all 0.15s;
@@ -113,7 +116,7 @@ body.dark-mode .drawer {
 }
 
 .drawer-close:hover {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     transform: rotate(90deg);
 }
 
@@ -128,8 +131,8 @@ body.dark-mode .drawer {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.12);
-    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,7 +158,7 @@ body.dark-mode .drawer {
 
 .drawer-role {
     font-size: 11px;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255, 255, 255, 0.55);
     margin-top: 3px;
 }
 
@@ -677,7 +680,7 @@ body.dark-mode .notification-icon.system {
 
 .page-sub {
     font-size: 13px;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255, 255, 255, 0.85);
     margin-top: 4px;
 }
 
@@ -922,45 +925,94 @@ body.dark-mode .warning-content {
     color: #FDE68A;
 }
 
-/* Recent Appeals Table */
+/* ============ FIXED TABLE STYLES - 6 COLUMNS ============ */
 .recent-appeals-card {
     margin-top: 0;
 }
 
 .table-wrap {
     overflow-x: auto;
+    border-radius: 12px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 700px;
+    min-width: 800px;
 }
 
 thead tr {
     background: var(--bg);
+    border-bottom: 2px solid var(--border);
 }
 
 th {
     text-align: left;
     padding: 14px 16px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--text-3);
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
+
+/* Column widths for 6 columns */
+th:nth-child(1),
+td:nth-child(1) {
+    width: 12%;
+}
+
+/* DATE SUBMITTED */
+th:nth-child(2),
+td:nth-child(2) {
+    width: 20%;
+}
+
+/* VIOLATION */
+th:nth-child(3),
+td:nth-child(3) {
+    width: 30%;
+}
+
+/* APPEAL REASON */
+th:nth-child(4),
+td:nth-child(4) {
+    width: 12%;
+}
+
+/* STATUS */
+th:nth-child(5),
+td:nth-child(5) {
+    width: 12%;
+}
+
+/* RESPONSE DATE */
+th:nth-child(6),
+td:nth-child(6) {
+    width: 14%;
+}
+
+/* ACTION */
 
 td {
     padding: 14px 16px;
     font-size: 13px;
     color: var(--text-2);
     border-bottom: 1px solid var(--border);
+    vertical-align: middle;
 }
 
 tbody tr:hover td {
     background: var(--bg);
 }
 
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Empty State */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -984,6 +1036,69 @@ tbody tr:hover td {
     color: var(--text-3);
 }
 
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: var(--amber-light);
+    color: var(--amber-dark);
+}
+
+.status-approved {
+    background: var(--green-light);
+    color: var(--green-dark);
+}
+
+.status-rejected {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+/* View Reason Button */
+.view-reason-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.view-reason-btn.rejected {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.view-reason-btn.rejected:hover {
+    background: var(--red);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.view-reason-btn.approved {
+    background: var(--green-light);
+    color: var(--green-dark);
+}
+
+.view-reason-btn.approved:hover {
+    background: var(--green);
+    color: white;
+    transform: translateY(-1px);
+}
+
 /* Toast Notification */
 .toast-notification {
     position: fixed;
@@ -994,13 +1109,13 @@ tbody tr:hover td {
     padding: 14px 20px;
     border-radius: 12px;
     background: white;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     gap: 12px;
     z-index: 10000;
     transform: translateX(450px);
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     font-size: 13px;
     font-weight: 500;
     pointer-events: none;
@@ -1026,7 +1141,384 @@ tbody tr:hover td {
     color: white;
 }
 
-/* ============ BOTTOM NAVIGATION FOR MOBILE ============ */
+/* ============ REASON MODAL ============ */
+.reason-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 20000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.reason-modal-overlay.show {
+    display: flex;
+}
+
+.reason-modal-content {
+    background: var(--surface);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.reason-modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.reason-modal-content::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.reason-modal-content::-webkit-scrollbar-thumb {
+    background: var(--blue);
+    border-radius: 10px;
+}
+
+.reason-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    position: relative;
+    border-radius: 24px 24px 0 0;
+}
+
+.reason-modal-header.rejected {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+}
+
+.reason-modal-header.approved {
+    background: linear-gradient(135deg, #10B981, #065F46);
+}
+
+.reason-modal-header.pending {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+}
+
+.modal-header-icon i {
+    font-size: 32px;
+    color: white;
+}
+
+.modal-header-text h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.modal-header-text p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: rotate(90deg);
+}
+
+.reason-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-info-grid {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.modal-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-info-row:last-child {
+    border-bottom: none;
+}
+
+.modal-info-label {
+    width: 130px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.modal-info-label i {
+    width: 16px;
+    color: var(--blue);
+}
+
+.modal-info-value {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.modal-reason-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-reason-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-reason-label i {
+    color: var(--blue);
+    font-size: 12px;
+}
+
+.modal-reason-text {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.modal-reason-text.secondary {
+    color: var(--text-2);
+    font-style: italic;
+}
+
+.reason-modal-footer {
+    padding: 16px 24px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-close-modal {
+    background: var(--blue);
+    border: none;
+    color: white;
+    padding: 10px 28px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-close-modal:hover {
+    background: var(--blue-dark);
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============ VIEW ACTION BUTTON STYLES ============ */
+.view-appeal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    width: 100%;
+    max-width: 100px;
+}
+
+.view-appeal-btn i {
+    font-size: 12px;
+}
+
+.view-appeal-btn:hover {
+    background: var(--blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.view-appeal-btn:active {
+    transform: translateY(0);
+}
+
+/* Different variants based on status */
+.view-appeal-btn.pending {
+    background: #F59E0B;
+}
+
+.view-appeal-btn.pending:hover {
+    background: #D97706;
+}
+
+.view-appeal-btn.approved {
+    background: #10B981;
+}
+
+.view-appeal-btn.approved:hover {
+    background: #059669;
+}
+
+.view-appeal-btn.rejected {
+    background: #EF4444;
+}
+
+.view-appeal-btn.rejected:hover {
+    background: #DC2626;
+}
+
+/* Dark mode */
+body.dark-mode .view-appeal-btn {
+    background: #3B82F6;
+}
+
+body.dark-mode .view-appeal-btn:hover {
+    background: #2563EB;
+}
+
+body.dark-mode .view-appeal-btn.pending {
+    background: #F59E0B;
+}
+
+body.dark-mode .view-appeal-btn.approved {
+    background: #10B981;
+}
+
+body.dark-mode .view-appeal-btn.rejected {
+    background: #EF4444;
+}
+
+/* Dark mode modal */
+body.dark-mode .reason-modal-content {
+    background: #1E293B;
+}
+
+body.dark-mode .modal-info-grid {
+    background: #0F172A;
+    border-color: #334155;
+}
+
+body.dark-mode .modal-info-row {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .modal-info-value {
+    color: #F1F5F9;
+}
+
+body.dark-mode .modal-reason-text {
+    background: #0F172A;
+    border-color: #334155;
+    color: #E2E8F0;
+}
+
+body.dark-mode .btn-close-modal {
+    background: #3B82F6;
+}
+
+body.dark-mode .btn-close-modal:hover {
+    background: #2563EB;
+}
+
+/* Dark mode status badges */
+body.dark-mode .status-pending {
+    background: #451A03;
+    color: #FDE68A;
+}
+
+body.dark-mode .status-approved {
+    background: #064E3B;
+    color: #6EE7B7;
+}
+
+body.dark-mode .status-rejected {
+    background: #7F1D1D;
+    color: #FCA5A5;
+}
+
+body.dark-mode .view-reason-btn.rejected {
+    background: #7F1D1D;
+    color: #FCA5A5;
+}
+
+body.dark-mode .view-reason-btn.approved {
+    background: #064E3B;
+    color: #6EE7B7;
+}
+
+/* BOTTOM NAVIGATION FOR MOBILE */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -1097,61 +1589,6 @@ body.dark-mode .bottom-nav {
     transform: scale(1.05);
 }
 
-html:not(.transitions-ready) .drawer,
-html:not(.transitions-ready) * {
-    transition: none !important;
-}
-/* Hide drawer on mobile, show bottom nav */
-@media (max-width: 768px) {
-    .drawer {
-        transform: translateX(-100%);
-        display: flex;
-    }
-    
-    .drawer.open {
-        transform: translateX(0);
-    }
-    
-    .topbar {
-        margin-left: 0;
-        width: 100%;
-        padding: 0 16px;
-    }
-    
-    .dashboard-main,
-    .users-section,
-    .appeal-main,
-    .history-main {
-        margin-left: 0;
-        padding: 16px 16px 80px;
-    }
-    
-    .hamburger {
-        display: flex;
-    }
-    
-    .bottom-nav {
-        display: flex;
-    }
-}
-
-/* Show drawer on desktop, hide bottom nav */
-@media (min-width: 769px) {
-    .bottom-nav {
-        display: none;
-    }
-    
-    .drawer {
-        transform: translateX(0);
-    }
-}
-
-/* For tablets */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .bottom-nav {
-        display: none;
-    }
-}
 /* Responsive */
 @media (max-width: 1024px) {
     .appeal-container {
@@ -1163,52 +1600,81 @@ html:not(.transitions-ready) * {
     .drawer {
         transform: translateX(-100%);
     }
+
     .drawer.open {
         transform: translateX(0);
     }
+
     .drawer-close {
         display: flex;
     }
+
     .topbar {
         margin-left: 0;
         width: 100%;
         padding: 0 16px;
     }
+
     .appeal-main {
         margin-left: 0;
         padding: 16px;
     }
+
     .hamburger {
         display: flex;
     }
+
     .brand-tagline {
         display: none;
     }
+
     .page-title {
         font-size: 20px;
     }
+
     .page-header {
         padding: 20px;
     }
+
     .card-header {
         padding: 16px 20px;
     }
+
     .card-body {
         padding: 20px;
     }
+
     .form-actions {
         flex-direction: column;
     }
-    .btn-primary, .btn-secondary {
+
+    .btn-primary,
+    .btn-secondary {
         width: 100%;
         justify-content: center;
     }
+
     .info-row {
         flex-direction: column;
     }
+
     .info-label {
         width: 100%;
         margin-bottom: 4px;
+    }
+
+    .bottom-nav {
+        display: flex;
+    }
+
+    th,
+    td {
+        padding: 10px 12px;
+    }
+
+    .view-reason-btn {
+        padding: 4px 8px;
+        font-size: 10px;
     }
 }
 
@@ -1217,323 +1683,3 @@ html:not(.transitions-ready) * {
         grid-template-columns: 1fr;
     }
 }
-
-body.dark-mode .drawer,
-body.dark-mode .drawer-header { background: #0F172A; }
-body.dark-mode .drawer-item:hover,
-body.dark-mode .drawer-item.active { background: #1E293B; }
-body.dark-mode .topbar { background: #1E293B; border-bottom-color: #334155; }
-body.dark-mode .brand-name { color: #F1F5F9; }
-body.dark-mode .brand-tagline { color: #94A3B8; border-left-color: #334155; }
-body.dark-mode .admin-pill { background: #3B82F6; }
-body.dark-mode .icon-btn { color: #94A3B8; }
-body.dark-mode .icon-btn:hover { background: #334155; color: #3B82F6; }
-body.dark-mode .dashboard-main { background: #0F172A; }
-body.dark-mode .stat-card,
-body.dark-mode .chart-card,
-body.dark-mode .violations-list,
-body.dark-mode .recent-table,
-body.dark-mode .activity-feed {
-    background: #1E293B;
-    border-color: #334155;
-}
-body.dark-mode .violation-name,
-body.dark-mode .card-title,
-body.dark-mode .welcome-title,
-body.dark-mode .stat-value,
-body.dark-mode .activity-text { color: #F1F5F9; }
-body.dark-mode .welcome-date,
-body.dark-mode .stat-label,
-body.dark-mode .activity-time { color: #94A3B8; }
-body.dark-mode .violation-count { background: #0F172A; color: #60A5FA; }
-body.dark-mode .recent-table th { background: #0F172A; color: #94A3B8; border-bottom-color: #334155; }
-body.dark-mode .recent-table td { border-bottom-color: #334155; color: #CBD5E1; }
-body.dark-mode .recent-table tr:hover { background: #0F172A; }
-body.dark-mode .status-pending { background: #451A03; color: #F59E0B; }
-body.dark-mode .status-progress { background: #1E3A5F; color: #3B82F6; }
-body.dark-mode .status-completed { background: #064E3B; color: #10B981; }
-body.dark-mode .stat-icon.blue { background: #1E3A5F; color: #3B82F6; }
-body.dark-mode .stat-icon.amber { background: #451A03; color: #F59E0B; }
-body.dark-mode .stat-icon.green { background: #064E3B; color: #10B981; }
-body.dark-mode .stat-icon.purple { background: #2E1065; color: #8B5CF6; }
-body.dark-mode .action-btn { background: #1E293B; border-color: #334155; color: #94A3B8; }
-body.dark-mode .action-btn:hover { background: #3B82F6; color: white; }
-body.dark-mode .activity-icon { background: #1E3A5F; color: #3B82F6; }
-body.dark-mode .hamburger span { background: #94A3B8; }
-body.dark-mode .bottom-nav { background: rgba(30,41,59,0.95); border-top-color: #334155; }
-body.dark-mode .bottom-nav-item { color: #94A3B8; }
-body.dark-mode .bottom-nav-item.active { color: #3B82F6; }
-body.dark-mode .bottom-nav-item:hover { background: #0F172A; }
-body.dark-mode .notification-panel { background: #1f2937; }
-body.dark-mode .notification-item { border-bottom-color: #374151; }
-body.dark-mode .notification-item:hover { background: #374151; }
-body.dark-mode .notification-title { color: #f3f4f6; }
-body.dark-mode .notification-message { color: #9ca3af; }
-body.dark-mode .logout-modal-content,
-body.dark-mode .logout-toast { background: #1E293B; }
-body.dark-mode .logout-modal-cancel { background: #334155; color: #E2E8F0; border-color: #475569; }
-
-/* View Reason Button */
-.view-reason-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.view-reason-btn.rejected {
-    background: var(--red-light);
-    color: var(--red);
-}
-
-.view-reason-btn.rejected:hover {
-    background: var(--red);
-    color: white;
-    transform: translateY(-1px);
-}
-
-.view-reason-btn.approved {
-    background: var(--green-light);
-    color: var(--green-dark);
-}
-
-.view-reason-btn.approved:hover {
-    background: var(--green);
-    color: white;
-    transform: translateY(-1px);
-}
-
-/* Reason Modal */
-.reason-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 9000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.25s ease;
-}
-
-.reason-modal-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-.reason-modal-content {
-    background: var(--surface);
-    border-radius: 20px;
-    width: 100%;
-    max-width: 520px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    overflow: hidden;
-    transform: translateY(20px) scale(0.97);
-    transition: transform 0.25s ease;
-}
-
-.reason-modal-overlay.show .reason-modal-content {
-    transform: translateY(0) scale(1);
-}
-
-.reason-modal-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 20px 24px;
-    position: relative;
-}
-
-.reason-modal-header.rejected {
-    background: linear-gradient(135deg, #DC2626, #B91C1C);
-}
-
-.reason-modal-header.approved {
-    background: linear-gradient(135deg, #10B981, #065F46);
-}
-
-.modal-header-icon i {
-    font-size: 28px;
-    color: rgba(255,255,255,0.9);
-}
-
-.modal-header-text h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 2px;
-}
-
-.modal-header-text p {
-    font-size: 12px;
-    color: rgba(255,255,255,0.75);
-}
-
-.modal-close-btn {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.modal-close-btn:hover {
-    background: rgba(255,255,255,0.35);
-}
-
-.reason-modal-body {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.modal-info-grid {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.modal-info-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-}
-
-.modal-info-row:last-child {
-    border-bottom: none;
-}
-
-.modal-info-label {
-    width: 140px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-3);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.modal-info-label i {
-    width: 14px;
-    color: var(--blue);
-}
-
-.modal-info-value {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-.modal-reason-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.modal-reason-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.modal-reason-label i {
-    color: var(--blue);
-}
-
-.modal-reason-text {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.6;
-}
-
-.modal-reason-text.secondary {
-    color: var(--text-2);
-    font-style: italic;
-}
-
-.reason-modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: flex-end;
-}
-
-.btn-close-modal {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-2);
-    padding: 10px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-close-modal:hover {
-    background: var(--border);
-}
-
-/* Status badges */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.status-pending {
-    background: var(--amber-light);
-    color: var(--amber-dark);
-}
-
-.status-approved {
-    background: var(--green-light);
-    color: var(--green-dark);
-}
-
-.status-rejected {
-    background: var(--red-light);
-    color: var(--red);
-}
-
-body.dark-mode .status-pending { background: #451A03; color: #FDE68A; }
-body.dark-mode .status-approved { background: #064E3B; color: #6EE7B7; }
-body.dark-mode .status-rejected { background: #7F1D1D; color: #FCA5A5; }
-body.dark-mode .modal-reason-text { border-color: #334155; }
-body.dark-mode .view-reason-btn.rejected { background: #7F1D1D; color: #FCA5A5; }
-body.dark-mode .view-reason-btn.approved { background: #064E3B; color: #6EE7B7; }

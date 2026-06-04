@@ -1,5 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { initAdminDrawer, getCurrentAdmin, showLogoutToast } from '/Assets/drawer-admin.js';
+import { createClient } from '@supabase/supabase-js'
+import { initAdminDrawer as initDrawer, getCurrentAdmin, showLogoutConfirmation } from '/Assets/drawer-admin.js';
+
 // ============ REMOVE DRAWER LOADING ANIMATIONS ============
 const removeDrawerAnimations = document.createElement('style');
 removeDrawerAnimations.textContent = `
@@ -13,7 +14,7 @@ removeDrawerAnimations.textContent = `
         transition: none !important;
     }
     
-    .drawer-item,
+    .drawer-nav-item,
     .drawer-logout,
     .drawer-close {
         transition: none !important;
@@ -30,7 +31,7 @@ removeDrawerAnimations.textContent = `
     }
     
     /* Remove hover transform animations */
-    .drawer-item:hover,
+    .drawer-nav-item:hover,
     .drawer-logout:hover {
         transform: none !important;
         transition: none !important;
@@ -62,9 +63,9 @@ removeDrawerAnimations.textContent = `
 `;
 document.head.appendChild(removeDrawerAnimations);
 
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // ============ TOAST NOTIFICATION SYSTEM ============
 let toastContainer = null;
@@ -143,40 +144,65 @@ function showInfoToast(message, title = 'Information', duration = 3000) { return
 
 // ============ SYNCHRONIZED NOTIFICATION SYSTEM WITH REAL-TIME ============
 async function getCurrentAdminInfo() {
-    currentAdmin = getCurrentAdmin();
-    if (currentAdmin) {
+    const storedAdmin = localStorage.getItem('currentAdmin');
+    if (storedAdmin) {
+        try {
+            currentAdmin = JSON.parse(storedAdmin);
+            console.log('Admin loaded from localStorage:', currentAdmin);
+        } catch(e) {
+            console.error('Error parsing admin:', e);
+        }
+    }
+    
+    if (!currentAdmin) {
+        currentAdmin = getCurrentAdmin();
+    }
+    
+    if (currentAdmin && currentAdmin.admin_id) {
+        // Check if admin_id is valid UUID format to avoid 400 error
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const isValidUuid = uuidRegex.test(currentAdmin.admin_id);
+        
         if (notificationChannel) {
-            notificationChannel.unsubscribe();
+            try {
+                notificationChannel.unsubscribe();
+            } catch(e) {
+                console.warn('Error unsubscribing:', e);
+            }
         }
         
-        // Subscribe only to admin notifications
-        notificationChannel = supabase
-            .channel('notifications-channel')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `admin_id=eq.${currentAdmin.admin_id}`  // Only admin_id matches
-                },
-                (payload) => {
-                    console.log('🔔 New admin notification received:', payload);
-                    const newNotification = payload.new;
-                    
-                    unreadNotifications.unshift(newNotification);
-                    updateNotificationBadge();
-                    showNotificationToast(newNotification);
-                    
-                    const panel = document.getElementById('notificationPanel');
-                    if (panel && panel.classList.contains('show')) {
-                        renderNotificationList();
+        // Only subscribe if admin_id is valid UUID
+        if (isValidUuid) {
+            notificationChannel = supabase
+                .channel('notifications-channel')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `admin_id=eq.${currentAdmin.admin_id}`
+                    },
+                    (payload) => {
+                        console.log('🔔 New admin notification received:', payload);
+                        const newNotification = payload.new;
+                        
+                        unreadNotifications.unshift(newNotification);
+                        updateNotificationBadge();
+                        showNotificationToast(newNotification);
+                        
+                        const panel = document.getElementById('notificationPanel');
+                        if (panel && panel.classList.contains('show')) {
+                            renderNotificationList();
+                        }
                     }
-                }
-            )
-            .subscribe((status) => {
-                console.log('Notification subscription status:', status);
-            });
+                )
+                .subscribe((status) => {
+                    console.log('Notification subscription status:', status);
+                });
+        } else {
+            console.log('Admin ID is not UUID format, skipping real-time subscription:', currentAdmin.admin_id);
+        }
     }
     return currentAdmin;
 }
@@ -184,6 +210,15 @@ async function getCurrentAdminInfo() {
 async function fetchNotifications() {
     try {
         if (!currentAdmin && !(await getCurrentAdminInfo())) return [];
+
+        // Check if admin_id is valid UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const isValidUuid = uuidRegex.test(currentAdmin?.admin_id);
+        
+        if (!isValidUuid) {
+            console.log('Admin ID is not UUID format, skipping notification fetch');
+            return [];
+        }
 
         const { data, error } = await supabase
             .from('notifications')
@@ -227,7 +262,6 @@ function updateNotificationBadge() {
                 align-items: center;
                 justify-content: center;
                 font-family: monospace;
-                animation: badgePulse 0.3s ease;
             `;
             notifyBtn.style.position = 'relative';
             notifyBtn.appendChild(notificationBadge);
@@ -239,10 +273,6 @@ function updateNotificationBadge() {
         if (count > 0) {
             notificationBadge.textContent = count > 99 ? '99+' : count;
             notificationBadge.style.display = 'flex';
-            notificationBadge.style.animation = 'badgePulse 0.3s ease';
-            setTimeout(() => {
-                if (notificationBadge) notificationBadge.style.animation = '';
-            }, 300);
         } else {
             notificationBadge.style.display = 'none';
         }
@@ -260,10 +290,8 @@ function showNotificationToast(notification) {
 function startNotificationPolling() {
     if (notificationInterval) clearInterval(notificationInterval);
     
-    // Only fetch existing notifications, real-time handles new ones
     fetchNotifications();
     
-    // Poll every 60 seconds to catch any missed notifications (fallback)
     notificationInterval = setInterval(() => {
         fetchNotifications();
     }, 60000);
@@ -282,6 +310,7 @@ async function markNotificationAsRead(notificationId) {
         updateNotificationBadge();
         
         showSuccessToast('Notification marked as read', 'Updated');
+        renderNotificationList();
     } catch (error) {
         console.error('Error marking notification as read:', error);
     }
@@ -294,7 +323,7 @@ async function markAllNotificationsAsRead() {
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
-            .or(`admin_id.eq.${currentAdmin?.admin_id},admin_id.is.null`)
+            .eq('admin_id', currentAdmin?.admin_id)
             .eq('is_read', false);
         
         if (error) throw error;
@@ -302,6 +331,7 @@ async function markAllNotificationsAsRead() {
         unreadNotifications = [];
         updateNotificationBadge();
         showSuccessToast('All notifications marked as read', 'Cleared');
+        renderNotificationList();
     } catch (error) {
         console.error('Error marking all as read:', error);
         showErrorToast('Failed to clear notifications', 'Error');
@@ -394,13 +424,14 @@ function showNotificationPanel() {
                 right: 20px;
                 width: 380px;
                 max-width: calc(100vw - 40px);
-                background: white;
+                background: var(--surface, white);
                 border-radius: 20px;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
                 z-index: 10001;
                 transform: translateX(120%);
                 transition: transform 0.3s ease;
                 overflow: hidden;
+                border: 1px solid var(--border, #e2e8f0);
             }
             .notification-panel.show {
                 transform: translateX(0);
@@ -428,7 +459,6 @@ function showNotificationPanel() {
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 12px;
-                transition: background 0.2s;
             }
             .clear-all-btn:hover {
                 background: rgba(255, 255, 255, 0.3);
@@ -446,7 +476,6 @@ function showNotificationPanel() {
                 align-items: center;
                 justify-content: center;
                 border-radius: 8px;
-                transition: background 0.2s;
             }
             .close-panel-btn:hover {
                 background: rgba(255, 255, 255, 0.2);
@@ -460,25 +489,17 @@ function showNotificationPanel() {
                 align-items: flex-start;
                 gap: 12px;
                 padding: 16px;
-                border-bottom: 1px solid #e5e7eb;
+                border-bottom: 1px solid var(--border, #e2e8f0);
                 cursor: pointer;
                 transition: background 0.2s;
             }
             .notification-item:hover {
-                background: #f9fafb;
+                background: var(--bg, #f8fafc);
             }
-            .notification-item.success {
-                border-left: 3px solid #10b981;
-            }
-            .notification-item.error {
-                border-left: 3px solid #ef4444;
-            }
-            .notification-item.warning {
-                border-left: 3px solid #f59e0b;
-            }
-            .notification-item.info {
-                border-left: 3px solid #3b82f6;
-            }
+            .notification-item.success { border-left: 3px solid #10b981; }
+            .notification-item.error { border-left: 3px solid #ef4444; }
+            .notification-item.warning { border-left: 3px solid #f59e0b; }
+            .notification-item.info { border-left: 3px solid #3b82f6; }
             .notification-icon {
                 width: 36px;
                 height: 36px;
@@ -510,68 +531,54 @@ function showNotificationPanel() {
             .notification-title {
                 font-weight: 600;
                 font-size: 14px;
-                color: #1f2937;
+                color: var(--text, #0f172a);
                 margin-bottom: 4px;
             }
             .notification-message {
                 font-size: 13px;
-                color: #6b7280;
+                color: var(--text-2, #334155);
                 margin-bottom: 4px;
             }
             .notification-time {
                 font-size: 11px;
-                color: #9ca3af;
+                color: var(--text-3, #64748b);
             }
             .mark-read-btn {
                 background: none;
                 border: none;
-                color: #9ca3af;
+                color: var(--text-3, #64748b);
                 cursor: pointer;
                 padding: 6px;
                 border-radius: 8px;
-                transition: all 0.2s;
                 flex-shrink: 0;
             }
             .mark-read-btn:hover {
-                background: #e5e7eb;
+                background: var(--border, #e2e8f0);
                 color: #10b981;
             }
             .empty-notifications {
                 text-align: center;
                 padding: 40px 20px;
-                color: #9ca3af;
+                color: var(--text-3, #64748b);
             }
             .empty-notifications i {
                 font-size: 48px;
                 margin-bottom: 12px;
             }
-            .loading-notifications {
-                text-align: center;
-                padding: 40px;
-                color: #9ca3af;
-            }
             body.dark-mode .notification-panel {
-                background: #1f2937;
+                background: #1e293b;
             }
             body.dark-mode .notification-item {
-                border-bottom-color: #374151;
+                border-bottom-color: #334155;
             }
             body.dark-mode .notification-item:hover {
-                background: #374151;
+                background: #334155;
             }
             body.dark-mode .notification-title {
-                color: #f3f4f6;
+                color: #f1f5f9;
             }
             body.dark-mode .notification-message {
-                color: #9ca3af;
-            }
-            body.dark-mode .empty-notifications {
-                color: #6b7280;
-            }
-            @keyframes badgePulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.2); }
-                100% { transform: scale(1); }
+                color: #94a3b8;
             }
             @media (max-width: 480px) {
                 .notification-panel {
@@ -607,7 +614,6 @@ function showNotificationPanel() {
         
         document.getElementById('clearAllNotifications')?.addEventListener('click', () => {
             markAllNotificationsAsRead();
-            renderNotificationList();
         });
         
         document.addEventListener('click', (e) => {
@@ -631,15 +637,15 @@ let currentFilter = 'all';
 let currentSearch = '';
 let currentPenaltyFilter = '';
 
-// ============ LOAD DATA ============
+// ============ FIXED LOAD DATA - Better student matching ============
 async function loadData() {
     try {
         showInfoToast('Loading appeals...', 'Please Wait', 1000);
         
         const [appealsRes, penaltiesRes, studentsRes] = await Promise.all([
             supabase.from('appeals').select('*').order('created_at', { ascending: false }),
-            supabase.from('penalties').select('id, student_id, violation'),
-            supabase.from('students').select('id, name, email')
+            supabase.from('penalties').select('id, student_id, violation, student_email, student_name'),
+            supabase.from('students').select('*')
         ]);
         
         if (appealsRes.error) throw appealsRes.error;
@@ -650,18 +656,56 @@ async function loadData() {
         penaltiesData = penaltiesRes.data || [];
         studentsData = studentsRes.data || [];
         
-        // Create student lookup map
-        const studentMap = {};
-        studentsData.forEach(s => { studentMap[s.id] = s; });
+        // Create multiple lookup maps for different matching scenarios
+        const studentByIdMap = {};
+        const studentByEmailMap = {};
+        const studentByIdNumberMap = {};
+        
+        studentsData.forEach(s => { 
+            studentByIdMap[s.id] = s;
+            if (s.email) studentByEmailMap[s.email.toLowerCase()] = s;
+            if (s.student_id_number) studentByIdNumberMap[s.student_id_number] = s;
+            if (s.student_id) studentByIdNumberMap[s.student_id] = s;
+        });
         
         // Enhance appeals with student and penalty data
         appealsData = appealsData.map(appeal => {
             const penalty = penaltiesData.find(p => p.id === appeal.penalty_id);
-            const student = studentMap[appeal.student_id] || { name: 'Unknown', email: 'N/A' };
+            
+            // Try multiple ways to find the student
+            let student = null;
+            
+            // Method 1: Try by student_id (UUID)
+            if (appeal.student_id && studentByIdMap[appeal.student_id]) {
+                student = studentByIdMap[appeal.student_id];
+            }
+            // Method 2: Try by student_email
+            else if (appeal.student_email && studentByEmailMap[appeal.student_email.toLowerCase()]) {
+                student = studentByEmailMap[appeal.student_email.toLowerCase()];
+            }
+            // Method 3: Try by student_id from penalty
+            else if (penalty?.student_id && studentByIdNumberMap[penalty.student_id]) {
+                student = studentByIdNumberMap[penalty.student_id];
+            }
+            // Method 4: Try by student_name from penalty
+            else if (penalty?.student_name) {
+                const nameMatch = studentsData.find(s => 
+                    s.name?.toLowerCase().includes(penalty.student_name.toLowerCase()) ||
+                    penalty.student_name.toLowerCase().includes(s.name?.toLowerCase())
+                );
+                if (nameMatch) student = nameMatch;
+            }
+            
+            // Use penalty student info as fallback if student not found
+            const studentName = student?.name || penalty?.student_name || appeal.student_name || 'Unknown Student';
+            const studentEmail = student?.email || penalty?.student_email || appeal.student_email || 'N/A';
+            const studentId = student?.id || penalty?.student_id || appeal.student_id || 'N/A';
+            
             return {
                 ...appeal,
-                student_name: student.name,
-                student_email: student.email,
+                student_id: studentId,
+                student_name: studentName,
+                student_email: studentEmail,
                 violation: penalty?.violation || appeal.penalty_violation || 'Unknown Violation'
             };
         });
@@ -674,7 +718,7 @@ async function loadData() {
         
     } catch (error) {
         console.error('Error loading data:', error);
-        showErrorToast('Failed to load appeals', 'Error');
+        showErrorToast('Failed to load appeals: ' + error.message, 'Error');
     }
 }
 
@@ -714,7 +758,6 @@ function filterAppeals() {
     if (currentSearch) {
         const search = currentSearch.toLowerCase();
         filtered = filtered.filter(a => 
-            a.student_id?.toLowerCase().includes(search) ||
             a.student_name?.toLowerCase().includes(search) ||
             a.violation?.toLowerCase().includes(search) ||
             a.appeal_reason?.toLowerCase().includes(search)
@@ -753,6 +796,7 @@ function getPriorityIcon(priority) {
     }
 }
 
+// ============ RENDER APPEALS - 6 COLUMNS ============
 function renderAppeals() {
     const tbody = document.getElementById('appealsTableBody');
     if (!tbody) return;
@@ -760,23 +804,32 @@ function renderAppeals() {
     const filtered = filterAppeals();
     
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">📭</div><div>No appeals found</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-icon">📭</div><div>No appeals found</div></td></tr>`;
         return;
     }
     
-    tbody.innerHTML = filtered.map(appeal => `
-        <tr data-id="${appeal.id}">
-            <td><strong>${escapeHtml(appeal.student_id)}</strong></td>
-            <td>${escapeHtml(appeal.student_name)}</span></td>
-            <td>${escapeHtml(appeal.violation)}</span></td>
-            <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}
-              </span></td>
-            <td><span class="status-badge status-${appeal.status}">${getStatusText(appeal.status)}</span></td>
-            <td>${formatDate(appeal.created_at)}</span></td>
-            <td><button class="view-appeal-btn" data-id="${appeal.id}"> View</button></span></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = filtered.map(appeal => {
+        let statusClass = 'status-pending';
+        if (appeal.status === 'approved') statusClass = 'status-approved';
+        if (appeal.status === 'rejected') statusClass = 'status-rejected';
+        
+        return `
+            <tr data-id="${appeal.id}">
+                <td class="student-name-cell"><strong>${escapeHtml(appeal.student_name)}</strong></td>
+                <td>${escapeHtml(appeal.violation)}</td>
+                <td class="appeal-reason-cell" title="${escapeHtml(appeal.appeal_reason || '')}">
+                    ${escapeHtml(appeal.appeal_reason?.substring(0, 80))}${appeal.appeal_reason?.length > 80 ? '...' : ''}
+                </td>
+                <td><span class="status-badge ${statusClass}">${getStatusText(appeal.status)}</span></td>
+                <td>${formatDate(appeal.created_at)}</td>
+                <td class="action-cell">
+                    <button class="view-appeal-btn" data-id="${appeal.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
     
     document.querySelectorAll('.view-appeal-btn').forEach(btn => {
         btn.removeEventListener('click', handleViewClick);
@@ -814,115 +867,44 @@ async function viewAppealDetails(appealId) {
             </div>
             <div class="appeal-detail-body">
                 <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-user-graduate"></i> Student Information
-                    </div>
+                    <div class="appeal-detail-label"><i class="fas fa-user-graduate"></i> Student Information</div>
                     <div class="appeal-detail-value">
                         <div><strong>Student ID:</strong> ${escapeHtml(appeal.student_id)}</div>
                         <div><strong>Name:</strong> ${escapeHtml(appeal.student_name)}</div>
                         <div><strong>Email:</strong> ${escapeHtml(appeal.student_email)}</div>
-                        ${appeal.ip_address ? `<div><strong>IP Address:</strong> ${escapeHtml(appeal.ip_address)}</div>` : ''}
                     </div>
                 </div>
                 
                 <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-exclamation-triangle"></i> Penalty Information
-                    </div>
+                    <div class="appeal-detail-label"><i class="fas fa-exclamation-triangle"></i> Penalty Information</div>
                     <div class="appeal-detail-value">
                         <div><strong>Violation:</strong> ${escapeHtml(appeal.violation)}</div>
-                        <div><strong>Original Hours:</strong> ${appeal.penalty_hours || 0} hours</div>
-                        ${appeal.penalty_deadline ? `<div><strong>Original Deadline:</strong> ${new Date(appeal.penalty_deadline).toLocaleDateString()}</div>` : ''}
                         <div><strong>Submitted:</strong> ${formatDate(appeal.submitted_at || appeal.created_at)}</div>
                     </div>
                 </div>
                 
                 <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-comment-dots"></i> Appeal Details
-                    </div>
+                    <div class="appeal-detail-label"><i class="fas fa-comment-dots"></i> Appeal Details</div>
                     <div class="appeal-message">
                         <strong>Reason for Appeal:</strong><br>
                         ${escapeHtml(appeal.appeal_reason || 'No reason provided')}
                     </div>
-                    ${appeal.supporting_statement && appeal.supporting_statement.trim() !== '' ? `
-                    <div class="appeal-message supporting-message" style="margin-top: 12px;">
-                        <strong>Supporting Statement:</strong><br>
-                        ${escapeHtml(appeal.supporting_statement)}
-                    </div>
-                    ` : `
-                    <div class="appeal-message supporting-message" style="margin-top: 12px; opacity: 0.7;">
-                        <strong>Supporting Statement:</strong><br>
-                        <em>No supporting statement provided</em>
-                    </div>
-                    `}
                 </div>
                 
                 <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-flag"></i> Priority & Status
-                    </div>
+                    <div class="appeal-detail-label"><i class="fas fa-flag"></i> Status</div>
                     <div class="appeal-detail-value">
                         <div><strong>Priority:</strong> ${getPriorityIcon(appeal.priority)}</div>
                         <div><strong>Current Status:</strong> <span class="status-badge status-${appeal.status}">${getStatusText(appeal.status)}</span></div>
-                        ${appeal.reviewed_by ? `<div><strong>Reviewed By:</strong> ${escapeHtml(appeal.reviewed_by)}</div>` : ''}
-                        ${appeal.reviewed_at ? `<div><strong>Reviewed At:</strong> ${formatDate(appeal.reviewed_at)}</div>` : ''}
                     </div>
                 </div>
-                
-                ${appeal.admin_notes ? `
-                <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-sticky-note"></i> Admin Notes
-                    </div>
-                    <div class="appeal-message admin-message">
-                        ${escapeHtml(appeal.admin_notes)}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${appeal.review_comment ? `
-                <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-comment"></i> Review Comment
-                    </div>
-                    <div class="appeal-message admin-message">
-                        ${escapeHtml(appeal.review_comment)}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${appeal.decision_reason ? `
-                <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-gavel"></i> Decision Reason
-                    </div>
-                    <div class="appeal-message admin-message">
-                        ${escapeHtml(appeal.decision_reason)}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${appeal.adjusted_hours !== null && appeal.adjusted_hours !== undefined ? `
-                <div class="appeal-detail-section">
-                    <div class="appeal-detail-label">
-                        <i class="fas fa-clock"></i> Adjustments
-                    </div>
-                    <div class="appeal-detail-value">
-                        <div><strong>Adjusted Hours:</strong> ${appeal.adjusted_hours} hours (was ${appeal.penalty_hours || 0})</div>
-                        ${appeal.new_deadline ? `<div><strong>New Deadline:</strong> ${new Date(appeal.new_deadline).toLocaleDateString()}</div>` : ''}
-                    </div>
-                </div>
-                ` : ''}
                 
                 <div class="action-buttons">
                     ${appeal.status === 'pending' ? `
                         <button class="btn-approve" data-id="${appeal.id}"><i class="fas fa-check"></i> Approve</button>
                         <button class="btn-reject" data-id="${appeal.id}"><i class="fas fa-times"></i> Reject</button>
-                        <button class="btn-close-detail"><i class="fas fa-times"></i> Close</button>
-                    ` : `
-                        <button class="btn-close-detail"><i class="fas fa-check"></i> Close</button>
-                    `}
+                    ` : ''}
+                    <button class="btn-close-detail"><i class="fas fa-times"></i> Close</button>
                 </div>
             </div>
         </div>
@@ -947,246 +929,45 @@ async function viewAppealDetails(appealId) {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                animation: fadeIn 0.2s ease;
             }
             .appeal-detail-content {
-                background: var(--surface);
+                background: var(--surface, white);
                 border-radius: 24px;
                 width: 90%;
-                max-width: 600px;
+                max-width: 550px;
                 max-height: 85vh;
                 overflow-y: auto;
-                animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            }
-            .appeal-detail-content::-webkit-scrollbar {
-                width: 6px;
-            }
-            .appeal-detail-content::-webkit-scrollbar-track {
-                background: var(--border);
-                border-radius: 10px;
-            }
-            .appeal-detail-content::-webkit-scrollbar-thumb {
-                background: var(--blue);
-                border-radius: 10px;
             }
             .appeal-detail-header {
                 padding: 20px 24px;
-                background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
                 color: white;
                 position: sticky;
                 top: 0;
-                z-index: 1;
             }
-            .appeal-detail-header h3 {
-                margin: 0;
-                font-size: 20px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .appeal-detail-header p {
-                margin: 8px 0 0 0;
-                font-size: 12px;
-                opacity: 0.8;
-            }
-            .appeal-detail-body {
-                padding: 24px;
-            }
-            .appeal-detail-section {
-                margin-bottom: 20px;
-                padding: 0 0 16px 0;
-                border-bottom: 1px solid var(--border);
-            }
-            .appeal-detail-section:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .appeal-detail-label {
-                font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                color: var(--text-3);
-                margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .appeal-detail-label i {
-                font-size: 14px;
-            }
-            .appeal-detail-value {
-                font-size: 14px;
-                color: var(--text);
-                line-height: 1.6;
-                background: var(--bg);
-                padding: 14px 18px;
-                border-radius: 12px;
-            }
-            .appeal-detail-value div {
-                margin-bottom: 6px;
-            }
-            .appeal-detail-value div:last-child {
-                margin-bottom: 0;
-            }
-            .appeal-message {
-                background: var(--bg);
-                padding: 16px;
-                border-radius: 12px;
-                margin-top: 4px;
-                font-size: 14px;
-                line-height: 1.6;
-                color: var(--text);
-                border-left: 3px solid var(--blue);
-            }
-            .supporting-message {
-                background: var(--blue-light);
-                border-left-color: var(--green);
-            }
-            .admin-message {
-                background: var(--amber-light);
-                border-left-color: var(--amber);
-            }
-            .action-buttons {
-                display: flex;
-                gap: 12px;
-                margin-top: 24px;
-                padding-top: 20px;
-                border-top: 1px solid var(--border);
-                flex-wrap: wrap;
-            }
-            .btn-approve {
-                flex: 1;
-                padding: 12px 20px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                border: none;
-                border-radius: 12px;
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                min-width: 120px;
-            }
-            .btn-approve:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            }
-            .btn-reject {
-                flex: 1;
-                padding: 12px 20px;
-                background: linear-gradient(135deg, #ef4444, #dc2626);
-                border: none;
-                border-radius: 12px;
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                min-width: 120px;
-            }
-            .btn-reject:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-            }
-            .btn-close-detail {
-                flex: 1;
-                padding: 12px 20px;
-                background: var(--bg);
-                border: 1px solid var(--border);
-                border-radius: 12px;
-                color: var(--text);
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                min-width: 120px;
-            }
-            .btn-close-detail:hover {
-                background: var(--border);
-            }
-            @media (max-width: 640px) {
-                .action-buttons {
-                    flex-direction: column;
-                }
-                .btn-approve, .btn-reject, .btn-close-detail {
-                    width: 100%;
-                }
-                .appeal-detail-content {
-                    width: 95%;
-                }
-                .appeal-detail-body {
-                    padding: 16px;
-                }
-                .appeal-detail-header {
-                    padding: 16px;
-                }
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes modalSlideIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.95) translateY(-20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
-            }
-            body.dark-mode .appeal-detail-content {
-                background: #1E293B;
-            }
-            body.dark-mode .appeal-detail-section {
-                border-bottom-color: #334155;
-            }
-            body.dark-mode .appeal-detail-value {
-                background: #0F172A;
-                color: #E2E8F0;
-            }
-            body.dark-mode .appeal-message {
-                background: #0F172A;
-                color: #E2E8F0;
-                border-left-color: #3B82F6;
-            }
-            body.dark-mode .supporting-message {
-                background: #064E3B;
-                border-left-color: #10B981;
-            }
-            body.dark-mode .admin-message {
-                background: #78350F;
-                border-left-color: #F59E0B;
-            }
-            body.dark-mode .btn-close-detail {
-                background: #334155;
-                border-color: #475569;
-                color: #E2E8F0;
-            }
-            body.dark-mode .btn-close-detail:hover {
-                background: #475569;
-            }
+            .appeal-detail-header h3 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+            .appeal-detail-header p { margin: 8px 0 0 0; font-size: 12px; opacity: 0.8; }
+            .appeal-detail-body { padding: 24px; }
+            .appeal-detail-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border, #e2e8f0); }
+            .appeal-detail-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .appeal-detail-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-3, #64748b); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+            .appeal-detail-value { font-size: 14px; color: var(--text, #0f172a); background: var(--bg, #f8fafc); padding: 14px 18px; border-radius: 12px; }
+            .appeal-message { background: var(--bg, #f8fafc); padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; color: var(--text, #0f172a); border-left: 3px solid #3b82f6; }
+            .action-buttons { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+            .btn-approve, .btn-reject, .btn-close-detail { flex: 1; padding: 12px 20px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .btn-approve { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+            .btn-reject { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+            .btn-close-detail { background: var(--bg, #f8fafc); border: 1px solid var(--border, #e2e8f0); color: var(--text, #0f172a); }
+            @media (max-width: 640px) { .action-buttons { flex-direction: column; } }
+            body.dark-mode .appeal-detail-content { background: #1e293b; }
+            body.dark-mode .appeal-detail-section { border-bottom-color: #334155; }
+            body.dark-mode .appeal-detail-value { background: #0f172a; color: #e2e8f0; }
+            body.dark-mode .appeal-message { background: #0f172a; color: #e2e8f0; }
         `;
         document.head.appendChild(style);
     }
     
-    // Add event listeners for buttons
     if (appeal.status === 'pending') {
         const approveBtn = modal.querySelector('.btn-approve');
         const rejectBtn = modal.querySelector('.btn-reject');
@@ -1222,7 +1003,7 @@ async function updateAppealStatus(appealId, newStatus, adminNotes) {
         const updateData = {
             status: newStatus,
             reviewed_at: new Date().toISOString(),
-            reviewed_by: currentAdmin?.admin_id || currentAdmin?.email || 'admin'
+            reviewed_by: currentAdmin?.admin_id || currentAdmin?.full_name || 'Admin'
         };
         if (adminNotes) updateData.admin_notes = adminNotes;
         
@@ -1239,10 +1020,8 @@ async function updateAppealStatus(appealId, newStatus, adminNotes) {
             appealsData[appealIndex].status = newStatus;
             appealsData[appealIndex].admin_notes = adminNotes;
             appealsData[appealIndex].reviewed_at = new Date().toISOString();
+            appealsData[appealIndex].reviewed_by = currentAdmin?.full_name || 'Admin';
         }
-        
-        // Create notification for student
-        await createStudentNotification(appealId, newStatus);
         
         updateStats();
         renderAppeals();
@@ -1250,60 +1029,8 @@ async function updateAppealStatus(appealId, newStatus, adminNotes) {
         
     } catch (error) {
         console.error('Error updating appeal:', error);
-        showErrorToast('Failed to update appeal status', 'Error');
+        showErrorToast('Failed to update appeal status: ' + error.message, 'Error');
     }
-}
-
-async function createStudentNotification(appealId, status) {
-    const appeal = appealsData.find(a => String(a.id) === String(appealId));
-    if (!appeal) return;
-    
-    const title = status === 'approved' ? 'Appeal Approved ✓' : 'Appeal Rejected ✗';
-    const message = status === 'approved' 
-        ? `Your appeal for ${appeal.violation} has been approved. The penalty has been reviewed.`
-        : `Your appeal for ${appeal.violation} has been reviewed. ${appeal.admin_notes ? `Note: ${appeal.admin_notes}` : 'Please contact the disciplinary office for more information.'}`;
-    const type = status === 'approved' ? 'success' : 'error';
-    
-    // Insert notification for student ONLY - admin_id should be NULL
-    const { error } = await supabase
-        .from('notifications')
-        .insert({
-            student_id: appeal.student_id,
-            title: title,
-            message: message,
-            type: type,
-            is_read: false,
-            created_at: new Date().toISOString(),
-            is_admin_notification: false  // Add this field to distinguish
-            // OR just don't set admin_id at all
-        });
-    
-    if (error) console.error('Error creating student notification:', error);
-    
-    // Also create an admin notification (optional)
-    await createAdminNotification(appeal, status);
-}
-
-// Optional: Create notification for admin
-async function createAdminNotification(appeal, status) {
-    const admin = getCurrentAdmin();
-    if (!admin) return;
-    
-    const title = `Appeal ${status}`;
-    const message = `Appeal from ${appeal.student_name} (${appeal.student_id}) for ${appeal.violation} has been ${status}.`;
-    
-    const { error } = await supabase
-        .from('notifications')
-        .insert({
-            admin_id: admin.admin_id,
-            title: title,
-            message: message,
-            type: 'info',
-            is_read: false,
-            created_at: new Date().toISOString()
-        });
-    
-    if (error) console.error('Error creating admin notification:', error);
 }
 
 // ============ DARK MODE ============
@@ -1324,14 +1051,17 @@ function initDarkMode() {
 
 // ============ EVENT LISTENERS ============
 function setupEventListeners() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = btn.dataset.status;
-            renderAppeals();
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    if (tabBtns.length > 0) {
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.status;
+                renderAppeals();
+            });
         });
-    });
+    }
     
     const searchInput = document.getElementById('searchAppeals');
     if (searchInput) {
@@ -1349,10 +1079,9 @@ function setupEventListeners() {
         });
     }
     
-    // Notification button - ensure it works
+    // Notification button
     const notifyBtn = document.getElementById('notifyBtn');
     if (notifyBtn) {
-        // Remove any existing listeners to avoid duplicates
         const newNotifyBtn = notifyBtn.cloneNode(true);
         notifyBtn.parentNode.replaceChild(newNotifyBtn, notifyBtn);
         
@@ -1449,7 +1178,9 @@ if (!document.querySelector('#toast-styles')) {
 // ============ CLEANUP ON PAGE UNLOAD ============
 window.addEventListener('beforeunload', () => {
     if (notificationChannel) {
-        notificationChannel.unsubscribe();
+        try {
+            notificationChannel.unsubscribe();
+        } catch(e) {}
     }
     if (notificationInterval) {
         clearInterval(notificationInterval);
@@ -1467,8 +1198,19 @@ async function init() {
     // Start notification system (real-time + fallback polling)
     startNotificationPolling();
     
-    // Initialize admin drawer
-    initAdminDrawer();
+    // Initialize admin drawer - FIXED: Use the imported function correctly
+    if (typeof initDrawer === 'function') {
+        console.log('Calling initDrawer from drawer-admin.js');
+        initDrawer();
+    } else {
+        console.log('initDrawer not found, trying alternative...');
+        // Fallback: try to call initAdminDrawer if that's what's exported
+        import('/Assets/drawer-admin.js').then(module => {
+            if (module.initAdminDrawer) {
+                module.initAdminDrawer();
+            }
+        }).catch(err => console.error('Failed to load drawer module:', err));
+    }
 }
 
 init();

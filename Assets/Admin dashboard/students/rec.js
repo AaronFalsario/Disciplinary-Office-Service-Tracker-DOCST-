@@ -610,7 +610,7 @@ async function loadAdminProfile() {
     }
 }
 
-// ============ LOAD STUDENTS ============
+// ============ LOAD STUDENTS - NO STATUS ============
 async function loadStudents() {
     try {
         const { data, error } = await supabase
@@ -623,9 +623,7 @@ async function loadStudents() {
         students = data?.map(s => ({
             id: s.id,
             name: s.name,
-            idNumber: s.id_number || s.id,
             email: s.email,
-            status: s.status || 'active',
             created_at: s.created_at
         })) || [];
         
@@ -641,12 +639,13 @@ async function loadStudents() {
     }
 }
 
+// ============ RENDER STUDENTS - NO STATUS COLUMN ============
 function renderStudents() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
     
     if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div></td></td>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">No students yet</div><div>Click "Add Student" to enroll</div></td></tr>`;
         return;
     }
     
@@ -655,7 +654,6 @@ function renderStudents() {
         const term = searchTerm.toLowerCase();
         filtered = students.filter(s => 
             s.name?.toLowerCase().includes(term) ||
-            s.idNumber?.toLowerCase().includes(term) ||
             s.email?.toLowerCase().includes(term)
         );
     }
@@ -671,11 +669,9 @@ function renderStudents() {
                     <div class="student-avatar">${initials}</div>
                     <div>
                         <div class="student-name">${escapeHtml(fullName)}</div>
-                        <div class="student-id-small">${escapeHtml(student.idNumber)}</div>
                     </div>
                 </div>
             </td>
-            <td><span class="id-badge">${escapeHtml(student.idNumber)}</span></td>
             <td>
                 <div class="email-cell">
                     <i class="fas fa-envelope"></i>
@@ -704,20 +700,19 @@ function getInitials(fullName) {
     return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
 
+// ============ UPDATE STATS - NO STATUS ============
 function updateStats() {
     const total = students.length;
-    const active = students.filter(s => s.status === 'active').length;
-    const verified = students.filter(s => s.email?.endsWith('@gordoncollege.edu.ph')).length;
-    
     const totalEl = document.getElementById('totalStudents');
     const activeEl = document.getElementById('activeStudents');
     const verifiedEl = document.getElementById('verifiedEmails');
     
     if (totalEl) totalEl.textContent = total;
-    if (activeEl) activeEl.textContent = active;
-    if (verifiedEl) verifiedEl.textContent = verified;
+    if (activeEl) activeEl.textContent = total;
+    if (verifiedEl) verifiedEl.textContent = students.filter(s => s.email).length;
 }
 
+// ============ DELETE STUDENT ============
 async function deleteStudent(id, studentName) {
     const confirmed = confirm(`Are you sure you want to delete "${studentName}"? This action cannot be undone.`);
     
@@ -748,6 +743,7 @@ async function deleteStudent(id, studentName) {
     }
 }
 
+// ============ SAVE STUDENT - NO STATUS ============
 async function saveStudent(studentData, isEdit = false) {
     try {
         if (isEdit && editingStudentId) {
@@ -756,7 +752,6 @@ async function saveStudent(studentData, isEdit = false) {
                 .update({
                     name: studentData.name,
                     email: studentData.email,
-                    status: studentData.status,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', editingStudentId);
@@ -767,10 +762,8 @@ async function saveStudent(studentData, isEdit = false) {
             const { error } = await supabase
                 .from('students')
                 .insert([{
-                    id: studentData.idNumber,
                     name: studentData.name,
                     email: studentData.email,
-                    status: studentData.status,
                     created_at: new Date().toISOString()
                 }]);
             
@@ -787,6 +780,7 @@ async function saveStudent(studentData, isEdit = false) {
     }
 }
 
+// ============ FORM SUBMIT - NO STATUS ============
 const studentForm = document.getElementById('studentForm');
 if (studentForm) {
     studentForm.addEventListener('submit', async (e) => {
@@ -794,18 +788,11 @@ if (studentForm) {
         
         const studentData = {
             name: document.getElementById('studentName')?.value.trim() || '',
-            idNumber: document.getElementById('studentIdNumber')?.value.trim() || '',
-            email: document.getElementById('studentEmail')?.value.trim() || '',
-            status: document.getElementById('studentStatus')?.value || 'active'
+            email: document.getElementById('studentEmail')?.value.trim() || ''
         };
         
-        if (!studentData.name || !studentData.idNumber || !studentData.email) {
+        if (!studentData.name || !studentData.email) {
             showErrorToast('Please fill in all fields');
-            return;
-        }
-        
-        if (!studentData.email.endsWith('@gordoncollege.edu.ph')) {
-            showErrorToast('Email must end with @gordoncollege.edu.ph');
             return;
         }
         
@@ -837,6 +824,7 @@ function closeModal() {
     document.body.style.overflow = '';
 }
 
+// ============ SEARCH ============
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -845,6 +833,7 @@ if (searchInput) {
     });
 }
 
+// ============ NOTIFICATION BUTTON ============
 const notifyBtn = document.getElementById('notifyBtn');
 if (notifyBtn) {
     notifyBtn.addEventListener('click', () => {
@@ -852,7 +841,7 @@ if (notifyBtn) {
     });
 }
 
-// ============ ADD BUTTON ============
+// ============ MODAL BUTTONS ============
 const addBtn = document.getElementById('addStudentBtn');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const studentModal = document.getElementById('studentModal');

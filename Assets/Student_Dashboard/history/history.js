@@ -45,87 +45,180 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.classList.remove('show'), 4000)
 }
 
-// Auth check
+// ============ FIXED AUTH CHECK - USES LOCALSTORAGE ONLY ============
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
+    console.log('Checking auth, stored student:', stored)
+    
     if (!stored) {
+        console.log('No student session found, redirecting to login')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
     
     try {
         currentStudent = JSON.parse(stored)
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-            localStorage.removeItem('currentStudent')
-            window.location.href = '/Assets/Student Authentication/Student.html'
-            return false
+        console.log('Student authenticated:', currentStudent.name)
+        console.log('Student email:', currentStudent.email)
+        
+        // Ensure studentId exists for DB queries (internal use only)
+        if (!currentStudent.studentId && currentStudent.id) {
+            currentStudent.studentId = currentStudent.id
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent))
         }
+        
         return true
     } catch (e) {
         console.error('Auth check failed:', e)
+        localStorage.removeItem('currentStudent')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
 }
 
-// Load completed penalties
+// ============ FIXED LOAD COMPLETED PENALTIES ============
 async function loadCompletedPenalties() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
+    console.log('Loading completed penalties for student:', currentStudent.name)
+    
     try {
-        const { data, error } = await supabase
+        // Try by student_id first
+        let { data, error } = await supabase
             .from('penalties')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .eq('status', 'completed')
             .order('updated_at', { ascending: false })
         
+        // If no results, try by email
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('No completed penalties by ID, trying by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('penalties')
+                .select('*')
+                .eq('student_email', currentStudent.email)
+                .eq('status', 'completed')
+                .order('updated_at', { ascending: false })
+            
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+        
+        // If still no results, try by name
+        if ((!data || data.length === 0) && currentStudent.name) {
+            console.log('No completed penalties by email, trying by name...')
+            const { data: nameData, error: nameError } = await supabase
+                .from('penalties')
+                .select('*')
+                .ilike('student_name', `%${currentStudent.name}%`)
+                .eq('status', 'completed')
+                .order('updated_at', { ascending: false })
+            
+            if (!nameError && nameData && nameData.length > 0) {
+                data = nameData
+                error = null
+            }
+        }
+        
         if (error) throw error
+        
         completedPenalties = data || []
+        console.log('Completed penalties found:', completedPenalties.length)
         return completedPenalties
     } catch (error) {
         console.error('Error loading completed penalties:', error)
+        completedPenalties = []
         return []
     }
 }
 
-// Load appeals history
+// ============ FIXED LOAD APPEALS HISTORY ============
 async function loadAppealsHistory() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
+    console.log('Loading appeals for student:', currentStudent.name)
+    
     try {
-        const { data, error } = await supabase
+        // Try by student_id first
+        let { data, error } = await supabase
             .from('appeals')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
         
+        // If no results, try by email
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('No appeals by ID, trying by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('appeals')
+                .select('*')
+                .eq('student_email', currentStudent.email)
+                .order('created_at', { ascending: false })
+            
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+        
         if (error) throw error
+        
         appealsHistory = data || []
+        console.log('Appeals found:', appealsHistory.length)
         return appealsHistory
     } catch (error) {
         console.error('Error loading appeals history:', error)
+        appealsHistory = []
         return []
     }
 }
 
-// Load reports history
+// ============ FIXED LOAD REPORTS HISTORY ============
 async function loadReportsHistory() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
+    console.log('Loading reports for student:', currentStudent.name)
+    
     try {
-        const { data, error } = await supabase
+        // Try by student_id_number
+        let { data, error } = await supabase
             .from('incident')
             .select('*')
-            .eq('student_id_number', currentStudent.studentId)
+            .eq('student_id_number', studentId)
             .order('created_at', { ascending: false })
         
+        // If no results, try by email
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('No reports by ID, trying by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('incident')
+                .select('*')
+                .eq('email', currentStudent.email)
+                .order('created_at', { ascending: false })
+            
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+        
         if (error) throw error
+        
         reportsHistory = data || []
+        console.log('Reports found:', reportsHistory.length)
         return reportsHistory
     } catch (error) {
         console.error('Error loading reports history:', error)
+        reportsHistory = []
         return []
     }
 }
@@ -134,11 +227,13 @@ async function loadReportsHistory() {
 async function loadNotifications() {
     if (!currentStudent) return []
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
     try {
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
             .limit(10)
         
@@ -191,11 +286,13 @@ async function markAsRead(notificationId) {
 async function markAllAsRead() {
     if (unreadCount === 0) return
     
+    const studentId = currentStudent.studentId || currentStudent.id
+    
     try {
         await supabase
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .eq('is_read', false)
         
         notifications.forEach(n => n.is_read = true)
@@ -329,10 +426,17 @@ function updateStats() {
     const totalViolations = completedPenalties.length
     const totalReports = reportsHistory.length
     
-    document.getElementById('completedPenalties').textContent = totalCompleted
-    document.getElementById('totalHours').textContent = totalHours
-    document.getElementById('totalViolations').textContent = totalViolations
-    document.getElementById('totalReports').textContent = totalReports
+    const completedEl = document.getElementById('completedPenalties')
+    const hoursEl = document.getElementById('totalHours')
+    const violationsEl = document.getElementById('totalViolations')
+    const reportsEl = document.getElementById('totalReports')
+    
+    if (completedEl) completedEl.textContent = totalCompleted
+    if (hoursEl) hoursEl.textContent = totalHours
+    if (violationsEl) violationsEl.textContent = totalViolations
+    if (reportsEl) reportsEl.textContent = totalReports
+    
+    console.log('Stats updated:', { totalCompleted, totalHours, totalViolations, totalReports })
 }
 
 // Render penalties history
@@ -346,8 +450,8 @@ function renderPenaltiesHistory() {
                 <div class="empty-icon">✅</div>
                 <div class="empty-title">No Completed Penalties</div>
                 <div class="empty-sub">Complete your community service to see it here</div>
-            </td
-        </tr>
+            </div>
+        </table>
         `
         return
     }
@@ -366,7 +470,6 @@ function renderPenaltiesHistory() {
         </tr>
     `).join('')
     
-    // Add certificate click handlers
     document.querySelectorAll('.certificate-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault()
@@ -386,7 +489,7 @@ function renderAppealsHistory() {
                 <div class="empty-icon">📋</div>
                 <div class="empty-title">No Appeals Found</div>
                 <div class="empty-sub">Submit an appeal to see it here</div>
-            </td
+              </div>
         </tr>
         `
         return
@@ -408,7 +511,7 @@ function renderAppealsHistory() {
             <tr>
                 <td>${formatDate(appeal.created_at)}</span>
                 <td><strong>${escapeHtml(appeal.penalty_violation)}</strong></span>
-                <td>${escapeHtml(appeal.appeal_reason.substring(0, 60))}${appeal.appeal_reason.length > 60 ? '...' : ''}</span>
+                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60) || '')}${appeal.appeal_reason?.length > 60 ? '...' : ''}</span>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></span>
                 <td>${appeal.decision_reason ? escapeHtml(appeal.decision_reason.substring(0, 50)) : '—'}</span>
             </tr>
@@ -427,7 +530,7 @@ function renderReportsHistory() {
                 <div class="empty-icon">📝</div>
                 <div class="empty-title">No Reports Found</div>
                 <div class="empty-sub">Submit a report to see it here</div>
-            </td
+              </div>
         </tr>
         `
         return
@@ -452,7 +555,7 @@ function renderReportsHistory() {
                 <td>${escapeHtml(report.category || 'General')}</span>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></span>
                 <td>${report.resolution_notes ? escapeHtml(report.resolution_notes.substring(0, 50)) : '—'}</span>
-            </tr>
+            <tr>
         `
     }).join('')
 }
@@ -464,16 +567,13 @@ function initTabs() {
         tab.addEventListener('click', () => {
             const tabId = tab.dataset.tab
             
-            // Remove active class from all tabs and contents
             tabs.forEach(t => t.classList.remove('active'))
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active')
             })
             
-            // Add active class to clicked tab
             tab.classList.add('active')
             
-            // Show corresponding content
             const targetContent = document.getElementById(`${tabId}-tab`)
             if (targetContent) {
                 targetContent.classList.add('active')
@@ -538,6 +638,8 @@ function initDarkMode() {
 
 // Initialize
 async function init() {
+    console.log('Initializing History page...')
+    
     const isAuth = await checkAuth()
     if (!isAuth) return
     
@@ -555,8 +657,11 @@ async function init() {
     renderAppealsHistory()
     renderReportsHistory()
     
-    setupDrawer(currentStudent.name, currentStudent.studentId)
+    // Setup drawer with student name only (no ID)
+    setupDrawer(currentStudent.name, 'Student')
     setupLogout('logoutBtn')
+    
+    console.log('History page initialized')
 }
 
 init()

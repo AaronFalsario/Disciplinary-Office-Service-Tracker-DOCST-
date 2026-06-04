@@ -425,15 +425,6 @@ async function checkExistingSession() {
             return false;
         }
         
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-            console.log('No valid Supabase session, clearing local storage');
-            localStorage.removeItem('currentAdmin');
-            localStorage.removeItem('adminSessionExpiry');
-            return false;
-        }
-        
         const admin = JSON.parse(storedAdmin);
         const { data: adminData, error: adminError } = await supabase
             .from('admins')
@@ -509,7 +500,7 @@ async function ensureAuthUserExists(admin) {
     }
 }
 
-// step 1 ng otp verification
+// ============ UPDATED LOGIN FUNCTION - NO OTP ============
 async function handleLogin() {
 
     const usernameInput = qs('admin-username')
@@ -535,7 +526,7 @@ async function handleLogin() {
     disable(loginBtn, 'Checking...')
 
     try {
-
+        // Direct login without OTP
         const { data: admin, error } = await supabase
             .from('admins')
             .select('*')
@@ -546,164 +537,49 @@ async function handleLogin() {
 
         if (error || !admin) {
             showErrorToast('Admin not found. Please check your credentials.', 'Login Failed');
-            enable(loginBtn, 'Continue')
+            enable(loginBtn, 'Login')
             return
         }
 
+        // Check password
         if (admin.password_hash !== password) {
             showErrorToast('Wrong password. Please try again.', 'Authentication Failed');
-            enable(loginBtn, 'Continue')
+            enable(loginBtn, 'Login')
             return
         }
 
-        currentAdmin = admin
-
-        showInfoToast('Setting up secure access...', 'Please Wait', 2000);
-        
-        const authReady = await ensureAuthUserExists(admin)
-        
-        if (!authReady) {
-            showErrorToast('Failed to setup secure access. Please try again.', 'Setup Failed');
-            enable(loginBtn, 'Continue')
-            return
-        }
-
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-            email: admin.email,
-            options: {
-                shouldCreateUser: false
-            }
-        })
-
-        if (otpError) {
-            console.error('OTP Error:', otpError)
-            
-            if (otpError.message.includes('User not found') || otpError.message.includes('Invalid email')) {
-                showWarningToast('Finalizing account setup. Please wait...', 'Setting Up');
-                
-                const { error: signUpError } = await supabase.auth.signUp({
-                    email: admin.email,
-                    password: admin.password_hash,
-                    options: {
-                        data: {
-                            full_name: admin.full_name,
-                            admin_id: admin.admin_id
-                        }
-                    }
-                })
-                
-                if (signUpError) {
-                    showErrorToast('Failed to send OTP. Please contact support.', 'Setup Failed');
-                    enable(loginBtn, 'Continue')
-                    return
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 3000))
-                
-                const { error: retryError } = await supabase.auth.signInWithOtp({
-                    email: admin.email,
-                    options: {
-                        shouldCreateUser: false
-                    }
-                })
-                
-                if (retryError) {
-                    showErrorToast('Failed to send OTP. Please try again.', 'OTP Failed');
-                    enable(loginBtn, 'Continue')
-                    return
-                }
-            } else {
-                showErrorToast(`Failed to send OTP: ${otpError.message}`, 'OTP Error');
-                enable(loginBtn, 'Continue')
-                return
-            }
-        }
-
-        document.querySelectorAll('.otp-input').forEach(i => i.value = '')
-        showSuccessToast(`OTP sent to ${admin.email}. Check your email inbox.`, 'Verification Code Sent', 4000);
-
-        goToStep(2)
-        startCountdown(300)
-        startResendCooldown(30)
-
-    } catch (err) {
-        console.error(err)
-        showErrorToast('Login failed. Please try again.', 'Error');
-    }
-
-    enable(loginBtn, 'Continue')
-}
-
-// 2 step verification ng otp
-async function handleVerifyOTP() {
-
-    const btn = qs('verifyBtn')
-    const inputs = document.querySelectorAll('.otp-input')
-
-    const otp = Array.from(inputs).map(i => i.value).join('')
-
-    if (otp.length < 6) {
-        showErrorToast('Please enter the complete 6-digit OTP code.', 'Incomplete OTP');
-        return
-    }
-
-    disable(btn, 'Verifying...')
-
-    try {
-
-        const { data, error } = await supabase.auth.verifyOtp({
-            email: currentAdmin.email,
-            token: otp,
-            type: 'email'
-        })
-
-        if (error) {
-            attempts++
-
-            if (attempts >= maxAttempts) {
-                showErrorToast('Too many failed attempts. Please login again.', 'Account Locked');
-                setTimeout(() => location.reload(), 1500)
-                return
-            }
-
-            showErrorToast(`Invalid OTP (${attempts}/${maxAttempts}). Please try again.`, 'Verification Failed');
-            enable(btn, 'Verify & Login')
-            return
-        }
-
-        clearInterval(countdownInterval)
-
+        // Update last login
         await supabase
             .from('admins')
             .update({
                 last_login: new Date().toISOString()
             })
-            .eq('id', currentAdmin.id)
+            .eq('id', admin.id)
 
+        // Store session
         const sessionExpiry = new Date();
         sessionExpiry.setHours(sessionExpiry.getHours() + 24);
         
         localStorage.setItem('currentAdmin', JSON.stringify({
-            id: currentAdmin.id,
-            admin_id: currentAdmin.admin_id,
-            full_name: currentAdmin.full_name,
-            email: currentAdmin.email,
-            role: currentAdmin.role,
-            status: currentAdmin.status,
+            id: admin.id,
+            admin_id: admin.admin_id,
+            full_name: admin.full_name,
+            email: admin.email,
+            role: admin.role,
+            status: admin.status,
             login_time: new Date().toISOString()
         }))
         
         localStorage.setItem('adminSessionExpiry', sessionExpiry.toISOString());
 
         const remember = qs('rememberMe')
-
         if (remember?.checked) {
-            localStorage.setItem('rememberedAdmin', currentAdmin.admin_id)
+            localStorage.setItem('rememberedAdmin', admin.admin_id)
         } else {
             localStorage.removeItem('rememberedAdmin')
         }
 
-        showSuccessToast(`Welcome back, ${currentAdmin.full_name || currentAdmin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
+        showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
         
         setTimeout(() => {
             window.location.href = '/Assets/Admin dashboard/Admin.html'
@@ -711,68 +587,29 @@ async function handleVerifyOTP() {
 
     } catch (err) {
         console.error(err)
-        showErrorToast('OTP verification failed. Please try again.', 'Verification Error');
-        enable(btn, 'Verify & Login')
+        showErrorToast('Login failed. Please try again.', 'Error');
+        enable(loginBtn, 'Login')
     }
+}
+
+// ============ COMMENTED OUT OTP FUNCTIONS ============
+/*
+// 2 step verification ng otp
+async function handleVerifyOTP() {
+    // OTP verification is now disabled for direct login
+    console.log('OTP verification disabled - direct login only');
 }
 
 // resend otp
 async function resendOTP() {
-
-    if (!currentAdmin) return
-
-    const btn = qs('resendBtn')
-
-    try {
-
-        btn.disabled = true
-
-        await ensureAuthUserExists(currentAdmin)
-
-        const { error } = await supabase.auth.signInWithOtp({
-            email: currentAdmin.email,
-            options: {
-                shouldCreateUser: false
-            }
-        })
-
-        if (error) {
-            console.error('Resend error:', error)
-            showErrorToast('Failed to resend OTP. Please try again.', 'Resend Failed');
-            btn.disabled = false
-            return
-        }
-
-        showSuccessToast('OTP resent successfully! Check your email.', 'OTP Sent', 4000);
-        startCountdown(300)
-        startResendCooldown(30)
-
-    } catch (err) {
-        console.error(err)
-        btn.disabled = false
-        showErrorToast('Failed to resend OTP', 'Error');
-    }
+    console.log('OTP resend disabled - direct login only');
 }
 
 // Auto-create auth users for all existing admins on page load (optional)
 async function syncExistingAdmins() {
-    console.log('Checking for admins that need auth accounts...')
-    
-    const { data: admins, error } = await supabase
-        .from('admins')
-        .select('*')
-    
-    if (error) {
-        console.error('Error fetching admins:', error)
-        return
-    }
-    
-    for (const admin of admins) {
-        await ensureAuthUserExists(admin)
-    }
-    
-    console.log('Auth sync complete')
+    console.log('Auth sync disabled - direct login only');
 }
+*/
 
 // ============ INITIALIZE LOGIN PAGE ============
 (async function initLoginPage() {
@@ -791,13 +628,13 @@ async function syncExistingAdmins() {
         }
     }
     
-    console.log('Login page ready - waiting for credentials');
+    console.log('Login page ready - OTP disabled, direct login only');
 })();
 
 // events 
 qs('loginBtn')?.addEventListener('click', handleLogin)
-qs('verifyBtn')?.addEventListener('click', handleVerifyOTP)
-qs('resendBtn')?.addEventListener('click', resendOTP)
+// qs('verifyBtn')?.addEventListener('click', handleVerifyOTP) // DISABLED
+// qs('resendBtn')?.addEventListener('click', resendOTP) // DISABLED
 
 const forgotLink = qs('forgot-link');
 if (forgotLink) {
@@ -823,9 +660,9 @@ setupOTPInputs()
 
 // exports 
 window.handleLogin = handleLogin
-window.handleVerifyOTP = handleVerifyOTP
-window.resendOTP = resendOTP
+// window.handleVerifyOTP = handleVerifyOTP // DISABLED
+// window.resendOTP = resendOTP // DISABLED
 window.openForgotPasswordModal = openForgotPasswordModal
 window.handleForgotPassword = handleForgotPassword
 
-console.log('Login page loaded - Auto-auth creation enabled')
+console.log('Login page loaded - OTP DISABLED for direct admin access')

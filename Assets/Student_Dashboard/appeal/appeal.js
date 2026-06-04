@@ -10,6 +10,7 @@ let myPenalties = []
 let myAppeals = []
 let notifications = []
 let unreadCount = 0
+let studentOffenseCount = 0  // Track total offenses
 
 // Helper functions
 function escapeHtml(text) {
@@ -39,6 +40,10 @@ function formatRelativeTime(date) {
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toastNotification')
+    if (!toast) {
+        console.log('Toast:', message)
+        return
+    }
     toast.textContent = message
     toast.className = `toast-notification show ${type}`
     setTimeout(() => {
@@ -49,43 +54,225 @@ function showToast(message, type = 'success') {
 // Auth check
 async function checkAuth() {
     const stored = localStorage.getItem('currentStudent')
+    console.log('Checking auth, stored student:', stored)
+
     if (!stored) {
+        console.log('No student session found, redirecting to login')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
-    
+
     try {
         currentStudent = JSON.parse(stored)
+        console.log('Student authenticated:', currentStudent.name)
         
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-            localStorage.removeItem('currentStudent')
-            window.location.href = '/Assets/Student Authentication/Student.html'
-            return false
+        if (!currentStudent.studentId && currentStudent.id) {
+            currentStudent.studentId = currentStudent.id
+            localStorage.setItem('currentStudent', JSON.stringify(currentStudent))
         }
         
         return true
     } catch (e) {
         console.error('Auth check failed:', e)
+        localStorage.removeItem('currentStudent')
         window.location.href = '/Assets/Student Authentication/Student.html'
         return false
     }
 }
 
-// Load penalties for dropdown
-async function loadPenalties() {
-    if (!currentStudent) return []
-    
+// ============ GET TOTAL OFFENSE COUNT (ALL PENALTIES, ANY STATUS) ============
+async function getStudentOffenseCount() {
+    if (!currentStudent) return 0
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
     try {
-        const { data, error } = await supabase
+        // Get ALL penalties for this student (not just pending)
+        let { data, error } = await supabase
+            .from('penalties')
+            .select('id', { count: 'exact', head: false })
+            .eq('student_id', studentId)
+
+        if (error) throw error
+
+        // Try by email if no results
+        let count = data?.length || 0
+        if (count === 0 && currentStudent.email) {
+            const { data: emailData, error: emailError } = await supabase
+                .from('penalties')
+                .select('id', { count: 'exact', head: false })
+                .eq('student_email', currentStudent.email)
+            
+            if (!emailError && emailData) {
+                count = emailData.length
+            }
+        }
+        
+        studentOffenseCount = count
+        console.log(`Total offense count for ${currentStudent.name}: ${studentOffenseCount}`)
+        return studentOffenseCount
+        
+    } catch (error) {
+        console.error('Error getting offense count:', error)
+        return 0
+    }
+}
+
+// ============ CHECK IF STUDENT CAN APPEAL A SPECIFIC PENALTY ============
+async function canAppealPenalty(penaltyId) {
+    if (!currentStudent) return false
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
+    try {
+        // First, get the specific penalty details to check hours
+        let { data: penaltyData, error: penaltyError } = await supabase
             .from('penalties')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false })
-        
+            .eq('id', penaltyId)
+            .single()
+
+        if (penaltyError) {
+            console.error('Error fetching penalty details:', penaltyError)
+            return false
+        }
+
+        // ============ BLOCK 0-HOUR VIOLATIONS (WARNINGS) ============
+        if (penaltyData && (penaltyData.hours === 0 || penaltyData.hours === null || penaltyData.hours === undefined)) {
+            console.log(`❌ Penalty ${penaltyId} has ${penaltyData.hours} hours - CANNOT APPEAL (warning only)`)
+            return false
+        }
+
+        // ============ BLOCK ALREADY COMPLETED PENALTIES ============
+        if (penaltyData && penaltyData.status === 'completed') {
+            console.log(`❌ Penalty ${penaltyId} is already completed - CANNOT APPEAL`)
+            return false
+        }
+
+        // Get ALL penalties ordered by creation date
+        let { data, error } = await supabase
+            .from('penalties')
+            .select('id, violation, status, hours, created_at')
+            .eq('student_id', studentId)
+            .order('created_at', { ascending: true })
+
         if (error) throw error
-        myPenalties = data || []
+
+        // Try by email if no results
+        if ((!data || data.length === 0) && currentStudent.email) {
+            const { data: emailData } = await supabase
+                .from('penalties')
+                .select('id, violation, status, hours, created_at')
+                .eq('student_email', currentStudent.email)
+                .order('created_at', { ascending: true })
+            
+            if (emailData) data = emailData
+        }
+
+        const allPenalties = data || []
+        const totalOffenses = allPenalties.length
+        
+        console.log(`Total offenses for student: ${totalOffenses}`)
+        console.log(`Penalty hours: ${penaltyData?.hours}`)
+        
+        // If student has NO offenses (shouldn't happen) - can appeal
+        if (totalOffenses === 0) {
+            console.log('No offenses found - can appeal')
+            return true
+        }
+        
+        // If student has ONLY ONE offense TOTAL and it has hours > 0
+        if (totalOffenses === 1 && penaltyData && penaltyData.hours > 0) {
+            console.log('Student has only 1 offense total with hours - CANNOT APPEAL (first offense)')
+            return false  // FIRST OFFENSE - CANNOT APPEAL
+        }
+        
+        // If student has ONLY ONE offense TOTAL (already blocked above for 0 hours)
+        if (totalOffenses === 1) {
+            console.log('Student has only 1 offense total - CANNOT APPEAL')
+            return false
+        }
+        
+        // If student has MULTIPLE offenses (2 or more)
+        // Check if this penalty is the oldest (first offense)
+        const oldestPenalty = allPenalties[0]
+        const isFirstOffense = String(oldestPenalty.id) === String(penaltyId)
+        
+        if (isFirstOffense && penaltyData && penaltyData.hours > 0) {
+            console.log('This is the first offense but student has multiple offenses - CAN APPEAL')
+            return true  // First offense but has other offenses - can appeal
+        }
+        
+        // This is a subsequent offense (2nd, 3rd, etc.) - can appeal
+        console.log('This is a subsequent offense - CAN APPEAL')
+        return true
+        
+    } catch (error) {
+        console.error('Error checking appeal eligibility:', error)
+        return false
+    }
+}
+
+// Load penalties for dropdown - ONLY SHOW APPEALABLE PENALTIES
+async function loadPenalties() {
+    if (!currentStudent) return []
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
+    console.log('Loading penalties for student:', currentStudent.name)
+
+    try {
+        // Get ALL pending penalties with hours > 0
+        let { data, error } = await supabase
+            .from('penalties')
+            .select('*')
+            .eq('student_id', studentId)
+            .eq('status', 'pending')
+            .gt('hours', 0)  // ONLY get penalties with hours > 0
+            .order('created_at', { ascending: true })
+
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('Trying by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('penalties')
+                .select('*')
+                .eq('student_email', currentStudent.email)
+                .eq('status', 'pending')
+                .gt('hours', 0)  // ONLY get penalties with hours > 0
+                .order('created_at', { ascending: true })
+
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+
+        if (error) throw error
+
+        const allPendingPenalties = data || []
+        
+        // Get total offense count first
+        await getStudentOffenseCount()
+        
+        // Filter penalties that can be appealed
+        const appealablePenalties = []
+        
+        for (const penalty of allPendingPenalties) {
+            const canAppeal = await canAppealPenalty(penalty.id)
+            
+            if (canAppeal) {
+                appealablePenalties.push(penalty)
+                console.log(`✅ Penalty ${penalty.id} (${penalty.violation}, ${penalty.hours} hours) - CAN appeal`)
+            } else {
+                console.log(`❌ Penalty ${penalty.id} (${penalty.violation}, ${penalty.hours} hours) - CANNOT appeal`)
+            }
+        }
+        
+        myPenalties = appealablePenalties
+        
+        console.log(`Total pending penalties with hours: ${allPendingPenalties.length}`)
+        console.log(`Appealable penalties: ${myPenalties.length}`)
+        
         return myPenalties
     } catch (error) {
         console.error('Error loading penalties:', error)
@@ -96,16 +283,36 @@ async function loadPenalties() {
 // Load appeals
 async function loadAppeals() {
     if (!currentStudent) return []
-    
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
+    console.log('Loading appeals for student:', currentStudent.name)
+
     try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from('appeals')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
-        
+
+        if ((!data || data.length === 0) && currentStudent.email) {
+            console.log('Trying appeals by email...')
+            const { data: emailData, error: emailError } = await supabase
+                .from('appeals')
+                .select('*')
+                .eq('student_email', currentStudent.email)
+                .order('created_at', { ascending: false })
+
+            if (!emailError && emailData && emailData.length > 0) {
+                data = emailData
+                error = null
+            }
+        }
+
         if (error) throw error
+
         myAppeals = data || []
+        console.log('Appeals loaded:', myAppeals.length)
         return myAppeals
     } catch (error) {
         console.error('Error loading appeals:', error)
@@ -116,17 +323,19 @@ async function loadAppeals() {
 // Load notifications
 async function loadNotifications() {
     if (!currentStudent) return []
-    
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
     try {
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .order('created_at', { ascending: false })
             .limit(10)
-        
+
         if (error) throw error
-        
+
         notifications = data || []
         unreadCount = notifications.filter(n => !n.is_read).length
         updateNotificationBadge()
@@ -141,10 +350,10 @@ async function loadNotifications() {
 function updateNotificationBadge() {
     const notifyBtn = document.getElementById('notifyBtn')
     if (!notifyBtn) return
-    
+
     const existingBadge = notifyBtn.querySelector('.notification-badge')
     if (existingBadge) existingBadge.remove()
-    
+
     if (unreadCount > 0) {
         const badge = document.createElement('span')
         badge.className = 'notification-badge'
@@ -159,9 +368,9 @@ async function markAsRead(notificationId) {
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
             .eq('id', notificationId)
-        
+
         if (error) throw error
-        
+
         const notification = notifications.find(n => n.id === notificationId)
         if (notification && !notification.is_read) {
             notification.is_read = true
@@ -176,16 +385,18 @@ async function markAsRead(notificationId) {
 
 async function markAllAsRead() {
     if (unreadCount === 0) return
-    
+
+    const studentId = currentStudent.studentId || currentStudent.id
+
     try {
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('student_id', currentStudent.studentId)
+            .eq('student_id', studentId)
             .eq('is_read', false)
-        
+
         if (error) throw error
-        
+
         notifications.forEach(n => n.is_read = true)
         unreadCount = 0
         updateNotificationBadge()
@@ -196,7 +407,7 @@ async function markAllAsRead() {
 }
 
 function getNotificationIcon(type) {
-    switch(type) {
+    switch (type) {
         case 'penalty': return 'fa-gavel'
         case 'appeal': return 'fa-gavel'
         case 'report': return 'fa-file-alt'
@@ -210,7 +421,7 @@ function getNotificationIcon(type) {
 function renderNotificationList() {
     const container = document.getElementById('notificationList')
     if (!container) return
-    
+
     if (notifications.length === 0) {
         container.innerHTML = `
             <div class="empty-notifications">
@@ -221,7 +432,7 @@ function renderNotificationList() {
         `
         return
     }
-    
+
     container.innerHTML = notifications.map(notification => `
         <div class="notification-item ${!notification.is_read ? 'unread' : ''}" data-id="${notification.id}">
             <div class="notification-icon ${notification.type || 'system'}">
@@ -235,7 +446,7 @@ function renderNotificationList() {
             ${!notification.is_read ? '<div class="notification-unread-dot"></div>' : ''}
         </div>
     `).join('')
-    
+
     document.querySelectorAll('.notification-item').forEach(item => {
         item.addEventListener('click', async () => {
             const id = parseInt(item.dataset.id)
@@ -243,7 +454,7 @@ function renderNotificationList() {
             if (notification && !notification.is_read) {
                 await markAsRead(id)
             }
-            
+
             const dropdown = document.getElementById('notificationDropdown')
             const overlay = document.getElementById('notificationOverlay')
             if (dropdown) dropdown.classList.remove('show')
@@ -256,33 +467,33 @@ function setupNotificationClickOutside() {
     const overlay = document.getElementById('notificationOverlay')
     const dropdown = document.getElementById('notificationDropdown')
     const notifyBtn = document.getElementById('notifyBtn')
-    
+
     if (!overlay || !dropdown || !notifyBtn) return
-    
+
     function closeDropdown() {
         dropdown.classList.remove('show')
         overlay.classList.remove('active')
     }
-    
+
     function openDropdown() {
         dropdown.classList.add('show')
         overlay.classList.add('active')
     }
-    
+
     notifyBtn.addEventListener('click', async (e) => {
         e.stopPropagation()
         await loadNotifications()
         renderNotificationList()
-        
+
         if (dropdown.classList.contains('show')) {
             closeDropdown()
         } else {
             openDropdown()
         }
     })
-    
+
     overlay.addEventListener('click', closeDropdown)
-    
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && dropdown.classList.contains('show')) {
             closeDropdown()
@@ -292,7 +503,7 @@ function setupNotificationClickOutside() {
 
 function initNotification() {
     setupNotificationClickOutside()
-    
+
     const markAllBtn = document.getElementById('markAllReadBtn')
     if (markAllBtn) {
         markAllBtn.addEventListener('click', async (e) => {
@@ -300,7 +511,7 @@ function initNotification() {
             await markAllAsRead()
         })
     }
-    
+
     const viewAllLink = document.getElementById('viewAllLink')
     if (viewAllLink) {
         viewAllLink.addEventListener('click', (e) => {
@@ -314,121 +525,167 @@ function initNotification() {
     }
 }
 
-// ============ CREATE ADMIN NOTIFICATION WHEN STUDENT SUBMITS APPEAL ============
+// Create admin notification
 async function createAdminNotifications(appealData) {
     try {
-        // Get all admins
         const { data: admins, error: adminsError } = await supabase
             .from('admins')
             .select('admin_id')
-        
+
         if (adminsError) throw adminsError
-        
+
         if (!admins || admins.length === 0) {
             console.log('No admins found to notify')
             return
         }
-        
-        // Create notification for each admin
+
         for (const admin of admins) {
-            const { error } = await supabase
+            await supabase
                 .from('notifications')
                 .insert([{
                     admin_id: admin.admin_id,
                     title: 'New Appeal Submitted',
-                    message: `${appealData.student_name} (${appealData.student_id}) has submitted an appeal for ${appealData.violation}`,
+                    message: `${appealData.student_name} has submitted an appeal for ${appealData.violation}`,
                     type: 'appeal',
                     is_read: false,
                     created_at: new Date().toISOString()
                 }])
-            
-            if (error) console.error('Error creating admin notification:', error)
         }
-        
-        console.log(`Admin notifications created for new appeal from ${appealData.student_name}`)
+
+        console.log(`Admin notifications created`)
     } catch (error) {
         console.error('Error creating admin notifications:', error)
     }
 }
 
-// Populate penalty dropdown
+// Populate penalty dropdown - ONLY SHOW APPEALABLE PENALTIES
 function populatePenaltyDropdown() {
     const select = document.getElementById('penaltySelect')
     if (!select) return
-    
+
     if (myPenalties.length === 0) {
-        select.innerHTML = '<option value="">No pending penalties to appeal</option>'
-        select.disabled = true
+        if (studentOffenseCount === 1) {
+            select.innerHTML = '<option value="">No penalties available for appeal</option>'
+            select.disabled = true
+            
+            const infoMsg = document.getElementById('appealRestrictionInfo')
+            if (infoMsg) {
+                infoMsg.style.display = 'block'
+                infoMsg.innerHTML = `
+                    <div class="info-message info-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span><strong>First Offense Restriction:</strong> You cannot appeal your first violation. Please complete the assigned community service hours. If you have concerns, please contact the disciplinary office.</span>
+                    </div>
+                `
+            }
+        } else if (studentOffenseCount === 0) {
+            select.innerHTML = '<option value="">No penalties found</option>'
+            select.disabled = true
+        } else {
+            select.innerHTML = '<option value="">No penalties available for appeal</option>'
+            select.disabled = true
+            
+            const infoMsg = document.getElementById('appealRestrictionInfo')
+            if (infoMsg) {
+                infoMsg.style.display = 'block'
+                infoMsg.innerHTML = `
+                    <div class="info-message info-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span><strong>No Appealable Penalties:</strong> You only have warning violations (0 hours) which cannot be appealed. Appeals are only for penalties with assigned community service hours (1+ hours).</span>
+                    </div>
+                `
+            }
+        }
         return
     }
-    
-    select.innerHTML = '<option value="">Select a penalty to appeal</option>' + 
+
+    select.innerHTML = '<option value="">Select a penalty to appeal</option>' +
         myPenalties.map(penalty => `
             <option value="${penalty.id}" data-violation="${escapeHtml(penalty.violation)}" data-hours="${penalty.hours}" data-deadline="${penalty.deadline}">
                 ${escapeHtml(penalty.violation)} - ${penalty.hours} hours
             </option>
         `).join('')
-    
+
     select.disabled = false
+    
+    const infoMsg = document.getElementById('appealRestrictionInfo')
+    if (infoMsg) {
+        infoMsg.style.display = 'block'
+        infoMsg.innerHTML = `
+            <div class="info-message info-success">
+                <i class="fas fa-check-circle"></i>
+                <span>You have ${myPenalties.length} penalty/penalties eligible for appeal. Note: Warnings (0 hours) and first offenses cannot be appealed.</span>
+            </div>
+        `
+    }
 }
 
-// Show violation details when penalty selected
+// Setup penalty select listener
 function setupPenaltySelectListener() {
     const select = document.getElementById('penaltySelect')
     if (!select) return
-    
+
     select.addEventListener('change', () => {
         const selectedOption = select.options[select.selectedIndex]
         const violationName = document.getElementById('violationName')
         const violationHours = document.getElementById('violationHours')
         const violationDeadline = document.getElementById('violationDeadline')
-        
+
         if (select.value && selectedOption && selectedOption.dataset) {
-            violationName.textContent = selectedOption.dataset.violation || '—'
-            violationHours.textContent = selectedOption.dataset.hours ? `${selectedOption.dataset.hours} hours` : '—'
-            violationDeadline.textContent = formatDate(selectedOption.dataset.deadline) || '—'
+            if (violationName) violationName.textContent = selectedOption.dataset.violation || '—'
+            if (violationHours) violationHours.textContent = selectedOption.dataset.hours ? `${selectedOption.dataset.hours} hours` : '—'
+            if (violationDeadline) violationDeadline.textContent = formatDate(selectedOption.dataset.deadline) || '—'
         } else {
-            violationName.textContent = '—'
-            violationHours.textContent = '—'
-            violationDeadline.textContent = '—'
+            if (violationName) violationName.textContent = '—'
+            if (violationHours) violationHours.textContent = '—'
+            if (violationDeadline) violationDeadline.textContent = '—'
         }
     })
 }
 
-// Submit appeal with admin notification
+// Submit appeal with strict first offense check
 async function submitAppeal() {
     const penaltySelect = document.getElementById('penaltySelect')
     const appealReason = document.getElementById('appealReason')
     const supportingStatement = document.getElementById('supportingStatement')
-    
+
     if (!penaltySelect.value) {
         showToast('Please select a penalty to appeal', 'error')
         return
     }
-    
+
     if (!appealReason.value.trim()) {
         showToast('Please provide a reason for your appeal', 'error')
         return
     }
-    
+
     const selectedPenalty = myPenalties.find(p => p.id == penaltySelect.value)
-    
+
     if (!selectedPenalty) {
         showToast('Invalid penalty selected', 'error')
         return
     }
+
+    // CRITICAL: Double-check eligibility before submitting
+    const canAppeal = await canAppealPenalty(selectedPenalty.id)
     
-    // Show loading state
+    if (!canAppeal) {
+        showToast('This penalty cannot be appealed. First offenses and warnings (0 hours) are not eligible for appeal.', 'error')
+        // Refresh penalties to update the dropdown
+        await loadPenalties()
+        populatePenaltyDropdown()
+        return
+    }
+
     const submitBtn = document.getElementById('submitAppealBtn')
     const originalText = submitBtn?.innerHTML
     if (submitBtn) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'
         submitBtn.disabled = true
     }
-    
+
     try {
-        // Insert appeal into database
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('appeals')
             .insert([{
                 student_id: currentStudent.studentId,
@@ -444,18 +701,15 @@ async function submitAppeal() {
                 created_at: new Date().toISOString(),
                 submitted_at: new Date().toISOString()
             }])
-            .select()
-        
+
         if (error) throw error
-        
-        // Create notification for admins
+
         await createAdminNotifications({
             student_name: currentStudent.name,
             student_id: currentStudent.studentId,
             violation: selectedPenalty.violation
         })
-        
-        // Create confirmation notification for student
+
         await supabase
             .from('notifications')
             .insert([{
@@ -466,30 +720,29 @@ async function submitAppeal() {
                 is_read: false,
                 created_at: new Date().toISOString()
             }])
-        
+
         showToast('Appeal submitted successfully!', 'success')
-        
+
         // Clear form
         penaltySelect.value = ''
         appealReason.value = ''
         supportingStatement.value = ''
-        document.getElementById('violationName').textContent = '—'
-        document.getElementById('violationHours').textContent = '—'
-        document.getElementById('violationDeadline').textContent = '—'
-        
+        if (document.getElementById('violationName')) document.getElementById('violationName').textContent = '—'
+        if (document.getElementById('violationHours')) document.getElementById('violationHours').textContent = '—'
+        if (document.getElementById('violationDeadline')) document.getElementById('violationDeadline').textContent = '—'
+
         // Refresh data
         await loadPenalties()
         await loadAppeals()
         await loadNotifications()
-        
+
         populatePenaltyDropdown()
         renderAppealsTable()
-        
+
     } catch (error) {
         console.error('Error submitting appeal:', error)
         showToast('Failed to submit appeal. Please try again.', 'error')
     } finally {
-        // Reset button state
         if (submitBtn) {
             submitBtn.innerHTML = originalText
             submitBtn.disabled = false
@@ -497,129 +750,147 @@ async function submitAppeal() {
     }
 }
 
-// ============ UPDATED: Render appeals table WITH admin notes column ============
 function renderAppealsTable() {
     const tbody = document.getElementById('appealsTableBody')
-    if (!tbody) return
-    
-    if (myAppeals.length === 0) {
-        tbody.innerHTML = `
-            <tr><td colspan="6" class="empty-state">
-                <div class="empty-icon">📋</div>
-                <div class="empty-title">No Appeals Found</div>
-                <div class="empty-sub">Submit an appeal to see it here</div>
-            </td></tr>
-        `
+    if (!tbody) {
+        console.error('Appeals table body not found')
         return
     }
-    
+
+    console.log('Rendering appeals table, appeals found:', myAppeals.length)
+
+    if (myAppeals.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <div class="empty-title">No Appeals Found</div>
+                    <div class="empty-sub">Submit an appeal to see it here</div>
+                </div>
+            `
+        return
+    }
+
     tbody.innerHTML = myAppeals.map(appeal => {
         let statusClass = 'status-pending'
-        let statusText = 'Pending Review'
-        let actionBtn = ''
+        let statusText = 'Pending'
 
         if (appeal.status === 'approved') {
             statusClass = 'status-approved'
-            statusText = 'Approved ✓'
-            actionBtn = `<button class="view-reason-btn approved" onclick="openReasonModal(${appeal.id})">
-                <i class="fas fa-check-circle"></i> View Decision
-            </button>`
+            statusText = 'Approved'
         } else if (appeal.status === 'rejected') {
             statusClass = 'status-rejected'
-            statusText = 'Rejected ✗'
-            actionBtn = `<button class="view-reason-btn rejected" onclick="openReasonModal(${appeal.id})">
-                <i class="fas fa-exclamation-circle"></i> View Reason
-            </button>`
+            statusText = 'Rejected'
         }
-
-        // ADDED: Show admin notes indicator if present
-        const hasAdminNotes = appeal.admin_notes && appeal.admin_notes.trim() !== ''
-        const notesIndicator = hasAdminNotes ? '<span class="admin-notes-indicator" title="Has admin notes"><i class="fas fa-comment-dots"></i></span>' : ''
 
         return `
             <tr>
-                <td>${formatDate(appeal.created_at)} ${notesIndicator}</td>
-                <td><strong>${escapeHtml(appeal.penalty_violation)}</strong></td>
-                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'}</td>
-                <td>${actionBtn}</td>
-            </tr>
-        `
+                <td>${formatDate(appeal.created_at)}</span>
+                <td><strong>${escapeHtml(appeal.penalty_violation)}</strong></span>
+                <td>${escapeHtml(appeal.appeal_reason?.substring(0, 60))}${appeal.appeal_reason?.length > 60 ? '...' : ''}</span>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></span>
+                <td>${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'}</span>
+                <td>
+                    <button class="view-appeal-btn" data-id="${appeal.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </span>
+            `
     }).join('')
+
+    document.querySelectorAll('.view-appeal-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault()
+            const appealId = btn.dataset.id
+            const appeal = myAppeals.find(a => a.id == appealId)
+            if (appeal) {
+                showAppealDetails(appeal)
+            }
+        })
+    })
 }
 
-// ============ UPDATED: Open reason modal to show admin notes ============
-window.openReasonModal = function(appealId) {
-    const appeal = myAppeals.find(a => a.id === appealId)
-    if (!appeal) return
+function showAppealDetails(appeal) {
+    const modal = document.getElementById('reasonModal')
+    if (!modal) {
+        alert(`Appeal Details:\n\nViolation: ${appeal.penalty_violation}\nReason: ${appeal.appeal_reason}\nStatus: ${appeal.status}\nSubmitted: ${formatDate(appeal.created_at)}\nReviewed: ${appeal.reviewed_at ? formatDate(appeal.reviewed_at) : 'Not yet reviewed'}\nDecision: ${appeal.decision_reason || 'Pending'}`)
+        return
+    }
 
-    const isRejected = appeal.status === 'rejected'
-    const isApproved = appeal.status === 'approved'
+    const modalViolation = document.getElementById('modalViolation')
+    const modalSubmitted = document.getElementById('modalSubmitted')
+    const modalReviewed = document.getElementById('modalReviewed')
+    const modalReviewedBy = document.getElementById('modalReviewedBy')
+    const modalDecisionReason = document.getElementById('modalDecisionReason')
+    const modalReviewComments = document.getElementById('modalReviewComments')
+    const modalAdjustedHours = document.getElementById('modalAdjustedHours')
+    const modalNewDeadline = document.getElementById('modalNewDeadline')
+    const modalAdminNotes = document.getElementById('modalAdminNotes')
+    const modalHeader = document.getElementById('modalHeader')
+    const modalIcon = document.getElementById('modalIcon')
+    const modalTitle = document.getElementById('modalTitle')
 
-    document.getElementById('modalViolation').textContent = appeal.penalty_violation || '—'
-    document.getElementById('modalSubmitted').textContent = formatDate(appeal.created_at)
-    document.getElementById('modalReviewed').textContent = appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'
-    document.getElementById('modalReviewedBy').textContent = appeal.reviewed_by_name || appeal.reviewed_by || '—'
-    document.getElementById('modalDecisionReason').textContent = appeal.decision_reason || 'No reason provided.'
-    document.getElementById('modalReviewComments').textContent = appeal.review_comment || 'No additional comments.'
-    document.getElementById('modalAdjustedHours').textContent = appeal.adjusted_hours ? `${appeal.adjusted_hours} hours` : '—'
-    document.getElementById('modalNewDeadline').textContent = appeal.new_deadline ? formatDate(appeal.new_deadline) : '—'
-    
-    // ADDED: Display admin notes from the database
-    const adminNotesElement = document.getElementById('modalAdminNotes')
+    if (modalViolation) modalViolation.textContent = appeal.penalty_violation || '—'
+    if (modalSubmitted) modalSubmitted.textContent = formatDate(appeal.created_at)
+    if (modalReviewed) modalReviewed.textContent = appeal.reviewed_at ? formatDate(appeal.reviewed_at) : '—'
+    if (modalReviewedBy) modalReviewedBy.textContent = appeal.reviewed_by || '—'
+    if (modalDecisionReason) modalDecisionReason.textContent = appeal.decision_reason || 'No reason provided.'
+    if (modalReviewComments) modalReviewComments.textContent = appeal.review_comment || 'No additional comments.'
+    if (modalAdjustedHours) modalAdjustedHours.textContent = appeal.adjusted_hours ? `${appeal.adjusted_hours} hours` : '—'
+    if (modalNewDeadline) modalNewDeadline.textContent = appeal.new_deadline ? formatDate(appeal.new_deadline) : '—'
+    if (modalAdminNotes) modalAdminNotes.textContent = appeal.admin_notes || 'No admin notes available.'
+
+    if (modalHeader && modalIcon && modalTitle) {
+        if (appeal.status === 'approved') {
+            modalHeader.className = 'reason-modal-header approved'
+            modalIcon.className = 'fas fa-check-circle'
+            modalTitle.textContent = 'Appeal Approved'
+        } else if (appeal.status === 'rejected') {
+            modalHeader.className = 'reason-modal-header rejected'
+            modalIcon.className = 'fas fa-times-circle'
+            modalTitle.textContent = 'Appeal Rejected'
+        } else {
+            modalHeader.className = 'reason-modal-header pending'
+            modalIcon.className = 'fas fa-clock'
+            modalTitle.textContent = 'Appeal Pending'
+        }
+    }
+
+    const adjustedRow = document.getElementById('adjustedRow')
+    const deadlineRow = document.getElementById('deadlineRow')
     const adminNotesRow = document.getElementById('adminNotesModalRow')
-    
-    if (appeal.admin_notes && appeal.admin_notes.trim() !== '') {
-        if (adminNotesElement) adminNotesElement.textContent = appeal.admin_notes
-        if (adminNotesRow) adminNotesRow.style.display = 'flex'
-    } else {
-        if (adminNotesElement) adminNotesElement.textContent = 'No admin notes available.'
-        if (adminNotesRow) adminNotesRow.style.display = 'flex'
-    }
 
-    const header = document.getElementById('modalHeader')
-    const icon = document.getElementById('modalIcon')
-    const title = document.getElementById('modalTitle')
+    if (adjustedRow) adjustedRow.style.display = appeal.status === 'approved' ? 'flex' : 'none'
+    if (deadlineRow) deadlineRow.style.display = appeal.status === 'approved' ? 'flex' : 'none'
+    if (adminNotesRow) adminNotesRow.style.display = appeal.admin_notes ? 'flex' : 'none'
 
-    if (isRejected) {
-        header.className = 'reason-modal-header rejected'
-        icon.className = 'fas fa-times-circle'
-        title.textContent = 'Appeal Rejected'
-    } else if (isApproved) {
-        header.className = 'reason-modal-header approved'
-        icon.className = 'fas fa-check-circle'
-        title.textContent = 'Appeal Approved'
-    }
-
-    // Show/hide adjusted hours row only for approved
-    document.getElementById('adjustedRow').style.display = isApproved ? 'flex' : 'none'
-    document.getElementById('deadlineRow').style.display = isApproved ? 'flex' : 'none'
-
-    document.getElementById('reasonModal').classList.add('show')
+    modal.classList.add('show')
     document.body.style.overflow = 'hidden'
 }
 
-function closeReasonModal() {
-    document.getElementById('reasonModal').classList.remove('show')
+window.closeReasonModal = function () {
+    const modal = document.getElementById('reasonModal')
+    if (modal) modal.classList.remove('show')
     document.body.style.overflow = ''
 }
 
 function initReasonModal() {
-    document.getElementById('modalCloseBtn')?.addEventListener('click', closeReasonModal)
-    document.getElementById('modalOverlay')?.addEventListener('click', closeReasonModal)
+    const closeBtn = document.getElementById('modalCloseBtn')
+    const overlay = document.getElementById('modalOverlayBg')
+
+    if (closeBtn) closeBtn.addEventListener('click', closeReasonModal)
+    if (overlay) overlay.addEventListener('click', closeReasonModal)
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeReasonModal()
     })
 }
 
-// Dark mode
 function initDarkMode() {
     const savedMode = localStorage.getItem('docst_dark_mode')
     if (savedMode === 'enabled') {
         document.body.classList.add('dark-mode')
     }
-    
+
     const darkModeBtn = document.getElementById('darkModeToggle')
     if (darkModeBtn) {
         const isDark = document.body.classList.contains('dark-mode')
@@ -638,12 +909,12 @@ function initDarkMode() {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
         `
-        
+
         darkModeBtn.onclick = () => {
             document.body.classList.toggle('dark-mode')
             const nowDark = document.body.classList.contains('dark-mode')
             localStorage.setItem('docst_dark_mode', nowDark ? 'enabled' : 'disabled')
-            
+
             if (nowDark) {
                 darkModeBtn.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -667,38 +938,53 @@ function initDarkMode() {
     }
 }
 
-// Initialize
 async function init() {
+    console.log('Initializing appeal page...')
+
     const isAuth = await checkAuth()
     if (!isAuth) return
-    
+
     initDarkMode()
     initNotification()
     initReasonModal()
+
+    // Get offense count first
+    await getStudentOffenseCount()
     
     await loadPenalties()
     await loadAppeals()
     await loadNotifications()
-    
+
     populatePenaltyDropdown()
     setupPenaltySelectListener()
     renderAppealsTable()
-    
-    // Setup drawer
-    setupDrawer(currentStudent.name, currentStudent.studentId)
+
+    setupDrawer(currentStudent.name, 'Student')
     setupLogout('logoutBtn')
-    
-    // Submit button
-    document.getElementById('submitAppealBtn')?.addEventListener('click', submitAppeal)
-    document.getElementById('cancelBtn')?.addEventListener('click', () => {
-        document.getElementById('penaltySelect').value = ''
-        document.getElementById('appealReason').value = ''
-        document.getElementById('supportingStatement').value = ''
-        document.getElementById('violationName').textContent = '—'
-        document.getElementById('violationHours').textContent = '—'
-        document.getElementById('violationDeadline').textContent = '—'
-        document.getElementById('modalCloseFooterBtn')?.addEventListener('click', closeReasonModal)
-    })
+
+    const submitBtn = document.getElementById('submitAppealBtn')
+    const cancelBtn = document.getElementById('cancelBtn')
+
+    if (submitBtn) submitBtn.addEventListener('click', submitAppeal)
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            const select = document.getElementById('penaltySelect')
+            const reason = document.getElementById('appealReason')
+            const statement = document.getElementById('supportingStatement')
+            const violationName = document.getElementById('violationName')
+            const violationHours = document.getElementById('violationHours')
+            const violationDeadline = document.getElementById('violationDeadline')
+
+            if (select) select.value = ''
+            if (reason) reason.value = ''
+            if (statement) statement.value = ''
+            if (violationName) violationName.textContent = '—'
+            if (violationHours) violationHours.textContent = '—'
+            if (violationDeadline) violationDeadline.textContent = '—'
+        })
+    }
+
+    console.log('Appeal page initialized')
 }
 
 init()

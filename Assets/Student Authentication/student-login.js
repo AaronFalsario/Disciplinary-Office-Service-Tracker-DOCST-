@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
@@ -21,74 +20,68 @@ if (localStorage.getItem('rememberedEmail')) {
     rememberMe.checked = true
 }
 
+// Check if already logged in
+if (localStorage.getItem('currentStudent')) {
+    window.location.href = '/Assets/Student_Dashboard/stud.html'
+}
+
 // Login function
 async function loginStudent(email, password) {
     try {
-        // Show loading state
         loginBtn.disabled = true
         loginBtn.textContent = 'Logging in...'
         
-        // Sign in with Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        })
-        
-        if (authError) throw authError
-        
-        // Fetch student data from 'students' table
         const { data: studentData, error: studentError } = await supabase
             .from('students')
             .select('*')
             .eq('email', email)
             .single()
 
-        if (studentError) throw studentError
+        if (studentError || !studentData) {
+            throw new Error('Invalid email or password')
+        }
         
-        console.log('=== STUDENT DATA FROM DB ===')
-        console.log('Full studentData:', studentData)
-        console.log('id_number value:', studentData.id_number)
-        console.log('All keys:', Object.keys(studentData))
-
-        // Store student info for dashboard
+        if (studentData.password !== password) {
+            throw new Error('Invalid email or password')
+        }
+        
+        if (studentData.status === 'inactive') {
+            throw new Error('Your account is inactive. Please contact the administrator.')
+        }
+        
+        // Update last login
+        await supabase
+            .from('students')
+            .update({ last_login: new Date().toISOString() })
+            .eq('email', email)
+        
+        // Store student info
         const studentInfo = {
-            userId: authData.user.id,
+            id: studentData.id,
             email: studentData.email,
             name: studentData.name,
-            studentId: studentData.id_number || null,  // Will be null if no id_number
-            role: 'student',
-            course: studentData.course,
-            yearLevel: studentData.year_level,
-            status: studentData.status
+            role: 'student'
         }
 
-        console.log('Student info being stored:', studentInfo)
-        console.log('Student ID being saved:', studentInfo.studentId)
-
-        // Save to localStorage (ONLY ONCE)
         localStorage.setItem('currentStudent', JSON.stringify(studentInfo))
         
-        // Handle remember me
         if (rememberMe.checked) {
             localStorage.setItem('rememberedEmail', email)
         } else {
             localStorage.removeItem('rememberedEmail')
         }
         
-        // Redirect to student dashboard
         window.location.href = '/Assets/Student_Dashboard/stud.html' 
         
     } catch (error) {
-        console.error('Login error:', error)
-        alert('Login failed: ' + (error.message || 'Invalid credentials'))
+        alert(error.message)
         loginBtn.disabled = false
         loginBtn.textContent = 'Login'
     }
 }
 
 // Signup function
-async function signupStudent(name, studentId, email, password, confirmPassword) {
-    // Validation
+async function signupStudent(name, email, password, confirmPassword) {
     if (password !== confirmPassword) {
         alert('Passwords do not match!')
         return
@@ -99,8 +92,13 @@ async function signupStudent(name, studentId, email, password, confirmPassword) 
         return
     }
     
-    if (!email.endsWith('@gordoncollege.edu.ph')) {
-        alert('Please use your @gordoncollege.edu.ph email address')
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address')
+        return
+    }
+    
+    if (!name || name.length < 2) {
+        alert('Please enter your full name')
         return
     }
     
@@ -109,50 +107,42 @@ async function signupStudent(name, studentId, email, password, confirmPassword) 
         signupBtn.disabled = true
         signupBtn.textContent = 'Creating account...'
         
-        // Create user in Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: {
-                    full_name: name,
-                    student_id: studentId
-                }
-            }
-        })
+        const { data: existing } = await supabase
+            .from('students')
+            .select('email')
+            .eq('email', email)
+            .single()
         
-        if (authError) throw authError
+        if (existing) {
+            throw new Error('Email already registered')
+        }
         
-        // Insert student record
         const { error: insertError } = await supabase
             .from('students')
-            .insert([
-                {
-                    email: email,
-                    name: name,
-                    id_number: studentId,
-                    user_id: authData.user.id
-                }
-            ])
+            .insert([{
+                email: email,
+                name: name,
+                password: password,
+                status: 'active',
+                created_at: new Date().toISOString()
+            }])
         
         if (insertError) throw insertError
         
-        alert('Account created successfully! Please login with your credentials.')
+        alert('Account created successfully! You can now login.')
         
-        // Switch to login panel
         studentSignupPanel.classList.remove('active')
         studentLoginPanel.classList.add('active')
         
-        // Clear signup form
+        document.getElementById('student-email').value = email
+        
         document.getElementById('signup-name').value = ''
-        document.getElementById('signup-studentid').value = ''
         document.getElementById('signup-email').value = ''
         document.getElementById('signup-password').value = ''
         document.getElementById('signup-confirm').value = ''
         
     } catch (error) {
-        console.error('Signup error:', error)
-        alert('Signup failed: ' + error.message)
+        alert(error.message)
     } finally {
         const signupBtn = document.getElementById('signupBtn')
         signupBtn.disabled = false
@@ -173,14 +163,12 @@ loginBtn.addEventListener('click', () => {
     loginStudent(email, password)
 })
 
-// Enter key press
 studentPassword.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         loginBtn.click()
     }
 })
 
-// Switch between login and signup
 showSignupLink.addEventListener('click', () => {
     studentLoginPanel.classList.remove('active')
     studentSignupPanel.classList.add('active')
@@ -191,23 +179,20 @@ showLoginLink.addEventListener('click', () => {
     studentLoginPanel.classList.add('active')
 })
 
-// Signup button
 document.getElementById('signupBtn').addEventListener('click', () => {
     const name = document.getElementById('signup-name').value.trim()
-    const studentId = document.getElementById('signup-studentid').value.trim()
     const email = document.getElementById('signup-email').value.trim()
     const password = document.getElementById('signup-password').value
     const confirmPassword = document.getElementById('signup-confirm').value
     
-    if (!name || !studentId || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
         alert('Please fill in all fields')
         return
     }
     
-    signupStudent(name, studentId, email, password, confirmPassword)
+    signupStudent(name, email, password, confirmPassword)
 })
 
-// Password toggle function (make it global)
 window.togglePw = function(inputId, button) {
     const input = document.getElementById(inputId)
     const icon = button.querySelector('i')
