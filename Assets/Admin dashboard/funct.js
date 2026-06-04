@@ -1056,80 +1056,7 @@ async function createSampleNotification() {
     }
 }
 
-// ============ FIXED ADMIN AUTH CHECK - ORIGINAL CODE COMMENTED, NEW WORKING CODE BELOW ============
-
-/* ===== ORIGINAL CODE COMMENTED OUT - KEPT FOR REFERENCE =====
-async function checkAdminAuth() {
-    try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-            console.log('No session found - unauthorized access');
-            showErrorToast('No active session. Please login again.', 'Unauthorized');
-            redirectToUnauthorized();
-            return false;
-        }
-        
-        const userEmail = session.user.email;
-        console.log('Checking admin access for:', userEmail);
-        
-        const { data: adminData, error: adminError } = await supabase
-            .from('admins')
-            .select('id, admin_id, full_name, email, role, status')
-            .eq('email', userEmail)
-            .maybeSingle();
-        
-        if (adminError || !adminData) {
-            console.log('User is not an admin - access denied');
-            showErrorToast('Access denied. Admin privileges required.', 'Access Denied');
-            redirectToUnauthorized();
-            return false;
-        }
-        
-        if (adminData.status !== 'active') {
-            console.log('Admin account is inactive');
-            showErrorToast('Your account is inactive. Please contact support.', 'Account Inactive');
-            redirectToUnauthorized();
-            return false;
-        }
-        
-        console.log('Admin authorized:', adminData.full_name);
-        
-        const currentSessionId = session.access_token;
-        const lastSessionId = sessionStorage.getItem('lastSessionId');
-        const isNewSession = (lastSessionId !== currentSessionId);
-        
-        if (isNewSession) {
-            showSuccessToast(`Welcome back, ${adminData.full_name}!`, 'Login Successful', 3000);
-            sessionStorage.setItem('lastSessionId', currentSessionId);
-        }
-        
-        localStorage.setItem('currentAdmin', JSON.stringify({
-            id: adminData.id,
-            admin_id: adminData.admin_id,
-            email: adminData.email,
-            name: adminData.full_name,
-            full_name: adminData.full_name,
-            role: adminData.role,
-            status: adminData.status
-        }));
-        
-        setupAdminDrawer(adminData.full_name, adminData.admin_id);
-        setupAdminLogout('logoutBtn');
-        setupAdminDrawerControls();
-        
-        return true;
-        
-    } catch (error) {
-        console.error('Auth check error:', error);
-        showErrorToast('Authentication error. Please try again.', 'Error');
-        redirectToUnauthorized();
-        return false;
-    }
-}
-===== END OF ORIGINAL CODE ===== */
-
-// ===== NEW WORKING CODE - USES LOCALSTORAGE ONLY =====
+// ============ FIXED ADMIN AUTH CHECK ============
 async function checkAdminAuth() {
     try {
         const storedAdmin = localStorage.getItem('currentAdmin');
@@ -1176,41 +1103,6 @@ async function checkAdminAuth() {
             return false;
         }
 
-        // Optional: Verify admin still exists in database (comment out if causing issues)
-        /*
-        try {
-            const { data: dbAdmin, error: dbError } = await supabase
-                .from('admins')
-                .select('id, status, role, full_name')
-                .eq('id', adminData.id)
-                .maybeSingle();
-            
-            if (dbError || !dbAdmin) {
-                console.log('Admin not found in database');
-                localStorage.removeItem('currentAdmin');
-                localStorage.removeItem('adminSessionExpiry');
-                redirectToUnauthorized();
-                return false;
-            }
-            
-            if (dbAdmin.status !== 'active') {
-                console.log('Admin account is inactive');
-                showErrorToast('Your account is inactive. Please contact support.', 'Account Inactive');
-                localStorage.removeItem('currentAdmin');
-                localStorage.removeItem('adminSessionExpiry');
-                redirectToUnauthorized();
-                return false;
-            }
-            
-            adminData.full_name = dbAdmin.full_name;
-            adminData.status = dbAdmin.status;
-            localStorage.setItem('currentAdmin', JSON.stringify(adminData));
-            
-        } catch (dbError) {
-            console.warn('Database verification failed, but continuing with session:', dbError);
-        }
-        */
-
         console.log('✅ Admin authorized:', adminData.full_name);
 
         setupAdminDrawer(adminData.full_name, adminData.admin_id);
@@ -1226,7 +1118,6 @@ async function checkAdminAuth() {
         return false;
     }
 }
-// ===== END OF NEW WORKING CODE =====
 
 function redirectToUnauthorized() {
     showUnauthorizedNotification();
@@ -1291,66 +1182,7 @@ function updateGreeting() {
     }
 }
 
-// ============ LOAD ADMIN NAME - ORIGINAL COMMENTED, NEW WORKING BELOW ==========
-
-/* ===== ORIGINAL LOAD ADMIN NAME COMMENTED =====
-async function loadAdminName() {
-    try {
-        console.log('Loading admin name...');
-        
-        const storedAdmin = localStorage.getItem('currentAdmin');
-        if (storedAdmin) {
-            try {
-                const admin = JSON.parse(storedAdmin);
-                const adminName = admin.full_name || admin.name;
-                if (adminName) {
-                    updateGreeting();
-                    console.log('Admin name loaded from localStorage:', adminName);
-                    return;
-                }
-            } catch(e) {}
-        }
-        
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            console.log('No user logged in');
-            return;
-        }
-        
-        console.log('User found:', user.email);
-        
-        const { data: adminData, error: adminError } = await supabase
-            .from('admins')
-            .select('full_name, email, role, status, admin_id')
-            .eq('email', user.email)
-            .maybeSingle();
-        
-        if (adminError || !adminData) {
-            console.log('No admin record found');
-            return;
-        }
-        
-        const adminName = adminData.full_name || user.email.split('@')[0];
-        console.log('Admin name found:', adminName);
-        
-        localStorage.setItem('currentAdmin', JSON.stringify({ 
-            full_name: adminName, 
-            email: user.email,
-            role: adminData.role,
-            admin_id: adminData.admin_id,
-            status: adminData.status
-        }));
-        
-        updateGreeting();
-        
-    } catch (error) {
-        console.error('Error loading admin name:', error);
-    }
-}
-===== END OF ORIGINAL ===== */
-
-// ===== NEW WORKING LOAD ADMIN NAME =====
+// ============ LOAD ADMIN NAME ============
 async function loadAdminName() {
     try {
         console.log('Loading admin name...');
@@ -1368,7 +1200,6 @@ async function loadAdminName() {
             } catch (e) { }
         }
 
-        // Fallback: try to get from database directly
         const { data: adminData, error: adminError } = await supabase
             .from('admins')
             .select('full_name')
@@ -1396,11 +1227,29 @@ async function loadAdminName() {
         updateGreeting();
     }
 }
-// ===== END OF NEW LOAD ADMIN NAME =====
 
 // ============ DATA STORES ============
 let students = [];
 let penalties = [];
+
+// ============ HELPER: GET STUDENT NAME BY ID ============
+function getStudentNameById(studentId) {
+    if (!studentId) return 'Unknown Student';
+    
+    const student = students.find(s => 
+        s.id === studentId || 
+        s.id?.toString() === studentId ||
+        s.student_id === studentId ||
+        s.student_id?.toString() === studentId ||
+        s.email === studentId
+    );
+    
+    if (student) {
+        return student.full_name || student.name || student.student_name || 'Unknown';
+    }
+    
+    return studentId;
+}
 
 // ============ LOAD STUDENTS FROM SUPABASE ============
 async function loadStudents() {
@@ -1423,13 +1272,31 @@ async function loadStudents() {
 // ============ LOAD PENALTIES FROM SUPABASE ============
 async function loadPenalties() {
     try {
+        if (students.length === 0) {
+            await loadStudents();
+        }
+
         const { data, error } = await supabase
             .from('penalties')
             .select('*')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        penalties = data || [];
+        
+        penalties = (data || []).map(penalty => {
+            const student = students.find(s => 
+                s.id === penalty.student_id || 
+                s.id?.toString() === penalty.student_id ||
+                s.student_id === penalty.student_id
+            );
+            
+            if (student && !penalty.student_name) {
+                penalty.student_name = student.full_name || student.name;
+            }
+            
+            return penalty;
+        });
+        
         console.log('Penalties loaded:', penalties.length);
         return penalties;
     } catch (error) {
@@ -1476,22 +1343,24 @@ function updateRecentPenalties() {
                         ${getWarningIconSvg()}
                     </div>
                     <div>No penalty records found</div>
-                  </div>
-                 </td>
-             </tr>
+                </td>
+            </tr>
         `;
         return;
     }
 
-    tbody.innerHTML = recentPenalties.map(p => `
-        <tr>
-            <td><strong>${escapeHtml(p.student_id || 'N/A')}</strong></td>
-            <td>${escapeHtml(p.violation)}</span></td>
-            <td>${p.hours || 0} hrs</span></td>
-            <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status || 'pending'}</span></td>
-            <td>${formatDate(p.deadline)}</span></td>
-         </tr>
-    `).join('');
+    tbody.innerHTML = recentPenalties.map(p => {
+        const studentName = getStudentNameById(p.student_id);
+        return `
+            <tr>
+                <td><strong>${escapeHtml(studentName)}</strong></td>
+                <td>${escapeHtml(p.violation)}</td>
+                <td>${p.hours || 0} hrs</td>
+                <td><span class="status-badge status-${p.status === 'in-progress' ? 'progress' : p.status}">${p.status === 'in-progress' ? 'In Progress' : p.status || 'pending'}</span></td>
+                <td>${formatDate(p.deadline)}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ============ UPDATE TOP VIOLATIONS ============
@@ -1531,7 +1400,7 @@ function updateTopViolations() {
 }
 
 // ============ UPDATE ACTIVITY FEED ============
-function updateActivityFeed() {
+async function updateActivityFeed() {
     const container = document.getElementById('activityContainer');
     if (!container) return;
 
@@ -1540,22 +1409,23 @@ function updateActivityFeed() {
     students.forEach(student => {
         if (student.created_at) {
             activities.push({
-                text: `New student registered: ${student.name}`,
+                text: `New student registered: ${student.full_name || student.name || 'Unknown'}`,
                 time: new Date(student.created_at),
                 icon: getCalendarActivitySvg()
             });
         }
     });
 
-    penalties.forEach(penalty => {
+    for (const penalty of penalties) {
         if (penalty.created_at) {
+            const studentName = getStudentNameById(penalty.student_id);
             activities.push({
-                text: `Penalty issued to ${penalty.student_id} for ${penalty.violation}`,
+                text: `Penalty issued to ${studentName} for ${penalty.violation}`,
                 time: new Date(penalty.created_at),
                 icon: getCalendarActivitySvg()
             });
         }
-    });
+    }
 
     activities.sort((a, b) => b.time - a.time);
     const recentActivities = activities.slice(0, 5);
@@ -1674,7 +1544,7 @@ async function refreshDashboard() {
     updateStats();
     updateRecentPenalties();
     updateTopViolations();
-    updateActivityFeed();
+    await updateActivityFeed();
     updateChart();
     console.log(`Dashboard updated: ${students.length} students, ${penalties.length} penalties`);
 }
@@ -1758,6 +1628,171 @@ function setupSendNotificationButton() {
         });
         console.log('Send notification button initialized');
     }
+}
+
+// ============ SEND NOTIFICATION MODAL ============
+function showSendNotificationModal() {
+    const existingModal = document.querySelector('.notification-modal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'notification-modal';
+    modal.innerHTML = `
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h3><i class="fas fa-bell"></i> Send Notification</h3>
+            </div>
+            <div class="notification-modal-body">
+                <div class="form-group">
+                    <label>Recipient Type</label>
+                    <select id="recipientType">
+                        <option value="all">All Students</option>
+                        <option value="single">Single Student</option>
+                    </select>
+                </div>
+                <div class="form-group" id="studentSearchGroup" style="display: none;">
+                    <label>Search Student</label>
+                    <input type="text" id="studentSearch" placeholder="Type student name or email...">
+                    <div id="studentResults" style="margin-top: 8px; max-height: 150px; overflow-y: auto;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="notificationTitle" placeholder="Enter notification title">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="notificationMessage" placeholder="Enter notification message"></textarea>
+                </div>
+            </div>
+            <div class="notification-modal-footer">
+                <button class="modal-cancel">Cancel</button>
+                <button class="modal-send">Send Notification</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const recipientType = modal.querySelector('#recipientType');
+    const studentSearchGroup = modal.querySelector('#studentSearchGroup');
+    const studentSearch = modal.querySelector('#studentSearch');
+    const studentResults = modal.querySelector('#studentResults');
+    let selectedStudent = null;
+
+    recipientType.addEventListener('change', () => {
+        if (recipientType.value === 'single') {
+            studentSearchGroup.style.display = 'block';
+        } else {
+            studentSearchGroup.style.display = 'none';
+            selectedStudent = null;
+        }
+    });
+
+    studentSearch.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        if (searchTerm.length < 2) {
+            studentResults.innerHTML = '';
+            return;
+        }
+
+        const filtered = students.filter(s => 
+            (s.full_name || s.name || '').toLowerCase().includes(searchTerm) ||
+            (s.email || '').toLowerCase().includes(searchTerm)
+        ).slice(0, 10);
+
+        if (filtered.length === 0) {
+            studentResults.innerHTML = '<div style="padding: 8px; color: #666;">No students found</div>';
+        } else {
+            studentResults.innerHTML = filtered.map(s => `
+                <div class="student-result-item" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;" data-id="${s.id}" data-name="${s.full_name || s.name}">
+                    <strong>${escapeHtml(s.full_name || s.name)}</strong><br>
+                    <small>${escapeHtml(s.email)}</small>
+                </div>
+            `).join('');
+
+            modal.querySelectorAll('.student-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectedStudent = {
+                        id: item.dataset.id,
+                        name: item.dataset.name
+                    };
+                    studentSearch.value = selectedStudent.name;
+                    studentResults.innerHTML = '';
+                });
+            });
+        }
+    });
+
+    const cancelBtn = modal.querySelector('.modal-cancel');
+    const sendBtn = modal.querySelector('.modal-send');
+    const titleInput = modal.querySelector('#notificationTitle');
+    const messageInput = modal.querySelector('#notificationMessage');
+
+    cancelBtn.addEventListener('click', () => modal.remove());
+
+    sendBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+        const message = messageInput.value.trim();
+        
+        if (!title || !message) {
+            showErrorToast('Please fill in both title and message', 'Missing Fields');
+            return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const admin = getCurrentAdmin();
+            let notificationsToInsert = [];
+
+            if (recipientType.value === 'all') {
+                for (const student of students) {
+                    notificationsToInsert.push({
+                        admin_id: admin.admin_id,
+                        student_id: student.id,
+                        title: title,
+                        message: message,
+                        type: 'info',
+                        is_read: false,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            } else if (recipientType.value === 'single' && selectedStudent) {
+                notificationsToInsert.push({
+                    admin_id: admin.admin_id,
+                    student_id: selectedStudent.id,
+                    title: title,
+                    message: message,
+                    type: 'info',
+                    is_read: false,
+                    created_at: new Date().toISOString()
+                });
+            } else {
+                showErrorToast('Please select a student', 'No Recipient');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'Send Notification';
+                return;
+            }
+
+            if (notificationsToInsert.length > 0) {
+                const { error } = await supabase
+                    .from('notifications')
+                    .insert(notificationsToInsert);
+
+                if (error) throw error;
+
+                showSuccessToast(`Notification sent to ${notificationsToInsert.length} student(s)`, 'Sent');
+                modal.remove();
+            }
+        } catch (error) {
+            console.error('Error sending notifications:', error);
+            showErrorToast('Failed to send notification', 'Error');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = 'Send Notification';
+        }
+    });
 }
 
 // ============ INITIALIZE ============
