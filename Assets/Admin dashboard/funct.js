@@ -1123,9 +1123,10 @@ function redirectToUnauthorized() {
     showUnauthorizedNotification();
     localStorage.removeItem('currentAdmin');
     localStorage.removeItem('adminSessionExpiry');
+    localStorage.removeItem('hasSeenWelcomeNotification');
 
     setTimeout(() => {
-        window.location.href = '/index.html';
+        window.location.href = '/';
     }, 2000);
 }
 

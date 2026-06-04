@@ -317,9 +317,8 @@ function showLogoutConfirmation() {
 async function performLogout() {
     try {
         const admin = getCurrentAdmin();
-        const adminName = admin?.full_name || admin?.name || admin?.fullName || 'User';
+        const adminName = admin?.full_name || admin?.name || admin?.fullName || admin?.username || 'User';
         
-        // Show loading state on logout button if it exists
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
@@ -330,30 +329,34 @@ async function performLogout() {
         localStorage.removeItem('currentAdmin');
         localStorage.removeItem('currentStudent');
         localStorage.removeItem('hasSeenWelcomeNotification');
+        localStorage.removeItem('adminSessionExpiry');
         sessionStorage.removeItem('lastSessionId');
         sessionStorage.removeItem('supabase.auth.token');
         
-        // Show beautiful logout toast
-        showLogoutToast(
-            `See you next time, ${adminName}! 👋`,
-            'warning',
-            'Logged Out Successfully'
-        );
+        // Show logout toast
+        if (typeof showLogoutToast === 'function') {
+            showLogoutToast(
+                `See you next time, ${adminName}! 👋`,
+                'warning',
+                'Logged Out Successfully'
+            );
+        }
         
-        // Redirect after toast is visible
+        // Redirect to root - NOT to /Assets/Landing/index.html
         setTimeout(() => {
-            window.location.href = '/Assets/Landing/index.html';
+            window.location.href = '/';
         }, 1500);
         
     } catch (error) {
         console.error('Logout error:', error);
-        showLogoutToast(
-            'Failed to logout. Please try again.',
-            'error',
-            'Logout Failed'
-        );
+        if (typeof showLogoutToast === 'function') {
+            showLogoutToast(
+                'Failed to logout. Please try again.',
+                'error',
+                'Logout Failed'
+            );
+        }
         
-        // Reset button state
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
@@ -361,7 +364,6 @@ async function performLogout() {
         }
     }
 }
-
 // ============ LOGOUT SETUP ============
 function setupAdminLogout(logoutBtnId) {
     const logoutBtn = document.getElementById(logoutBtnId);
