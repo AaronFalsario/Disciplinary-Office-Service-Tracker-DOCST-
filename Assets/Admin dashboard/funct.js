@@ -821,10 +821,14 @@ async function fetchNotifications() {
         const admin = getCurrentAdmin();
         if (!admin) return [];
 
+        // Use admin.id (UUID) instead of admin.admin_id (text)
+        const adminIdToUse = admin.id;
+        console.log('Fetching notifications for admin ID:', adminIdToUse);
+
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
-            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('admin_id', adminIdToUse)
             .eq('is_read', false)
             .order('created_at', { ascending: false })
             .limit(10);
@@ -914,10 +918,12 @@ async function markAllNotificationsAsRead() {
 
     try {
         const admin = getCurrentAdmin();
+        const adminIdToUse = admin.id;
+        
         const { error } = await supabase
             .from('notifications')
             .update({ is_read: true, read_at: new Date().toISOString() })
-            .or(`admin_id.eq.${admin.admin_id},admin_id.is.null`)
+            .eq('admin_id', adminIdToUse)
             .eq('is_read', false);
 
         if (error) throw error;
@@ -1037,10 +1043,12 @@ async function createSampleNotification() {
     const admin = getCurrentAdmin();
     if (!admin) return;
 
+    const adminIdToUse = admin.id;
+
     const { error } = await supabase
         .from('notifications')
         .insert({
-            admin_id: admin.admin_id,
+            admin_id: adminIdToUse,
             title: 'Welcome to Dashboard',
             message: 'Your admin dashboard is ready. Start managing student records!',
             type: 'success',
@@ -1647,22 +1655,34 @@ function showSendNotificationModal() {
                 <div class="form-group">
                     <label>Recipient Type</label>
                     <select id="recipientType">
-                        <option value="all">All Students</option>
-                        <option value="single">Single Student</option>
+                        <option value="all">📢 All Students</option>
+                        <option value="single">👤 Single Student</option>
                     </select>
                 </div>
                 <div class="form-group" id="studentSearchGroup" style="display: none;">
-                    <label>Search Student</label>
+                    <label>🔍 Search Student</label>
                     <input type="text" id="studentSearch" placeholder="Type student name or email...">
                     <div id="studentResults" style="margin-top: 8px; max-height: 150px; overflow-y: auto;"></div>
                 </div>
                 <div class="form-group">
-                    <label>Title</label>
+                    <label>📝 Title</label>
                     <input type="text" id="notificationTitle" placeholder="Enter notification title">
                 </div>
                 <div class="form-group">
-                    <label>Message</label>
+                    <label>💬 Message</label>
                     <textarea id="notificationMessage" placeholder="Enter notification message"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>🎨 Notification Type</label>
+                    <select id="notificationType">
+                        <option value="info">📘 Information</option>
+                        <option value="success">✅ Success</option>
+                        <option value="warning">⚠️ Warning</option>
+                        <option value="error">❌ Error</option>
+                        <option value="appeal">⚖️ Appeal</option>
+                        <option value="deadline">⏰ Deadline Reminder</option>
+                        <option value="penalty">🔨 Penalty</option>
+                    </select>
                 </div>
             </div>
             <div class="notification-modal-footer">
@@ -1728,12 +1748,14 @@ function showSendNotificationModal() {
     const sendBtn = modal.querySelector('.modal-send');
     const titleInput = modal.querySelector('#notificationTitle');
     const messageInput = modal.querySelector('#notificationMessage');
+    const typeSelect = modal.querySelector('#notificationType');
 
     cancelBtn.addEventListener('click', () => modal.remove());
 
     sendBtn.addEventListener('click', async () => {
         const title = titleInput.value.trim();
         const message = messageInput.value.trim();
+        const notificationType = typeSelect.value;
         
         if (!title || !message) {
             showErrorToast('Please fill in both title and message', 'Missing Fields');
@@ -1745,30 +1767,49 @@ function showSendNotificationModal() {
 
         try {
             const admin = getCurrentAdmin();
+            console.log('Admin:', admin);
+            
+            if (!admin || !admin.id) {
+                throw new Error('Admin not found. Please login again.');
+            }
+            
+            // Use admin.id (UUID) instead of admin.admin_id
+            const adminIdToUse = admin.id;
+            
+            if (students.length === 0) {
+                throw new Error('No students found in the database.');
+            }
+
             let notificationsToInsert = [];
 
             if (recipientType.value === 'all') {
+                // Send to ALL students
                 for (const student of students) {
-                    notificationsToInsert.push({
-                        admin_id: admin.admin_id,
-                        student_id: student.id,
-                        title: title,
-                        message: message,
-                        type: 'info',
-                        is_read: false,
-                        created_at: new Date().toISOString()
-                    });
+                    if (student.id) {
+                        notificationsToInsert.push({
+                            admin_id: adminIdToUse,
+                            student_id: student.id,
+                            title: title,
+                            message: message,
+                            type: notificationType,
+                            is_read: false,
+                            created_at: new Date().toISOString()
+                        });
+                    }
                 }
+                console.log(`Prepared ${notificationsToInsert.length} notifications for all students`);
             } else if (recipientType.value === 'single' && selectedStudent) {
+                // Send to single student
                 notificationsToInsert.push({
-                    admin_id: admin.admin_id,
+                    admin_id: adminIdToUse,
                     student_id: selectedStudent.id,
                     title: title,
                     message: message,
-                    type: 'info',
+                    type: notificationType,
                     is_read: false,
                     created_at: new Date().toISOString()
                 });
+                console.log(`Prepared notification for single student: ${selectedStudent.name}`);
             } else {
                 showErrorToast('Please select a student', 'No Recipient');
                 sendBtn.disabled = false;
@@ -1776,19 +1817,34 @@ function showSendNotificationModal() {
                 return;
             }
 
-            if (notificationsToInsert.length > 0) {
+            if (notificationsToInsert.length === 0) {
+                throw new Error('No valid notifications to send');
+            }
+
+            // Insert notifications in batches to avoid rate limits
+            const batchSize = 50;
+            let successCount = 0;
+            
+            for (let i = 0; i < notificationsToInsert.length; i += batchSize) {
+                const batch = notificationsToInsert.slice(i, i + batchSize);
                 const { error } = await supabase
                     .from('notifications')
-                    .insert(notificationsToInsert);
-
+                    .insert(batch);
+                
                 if (error) throw error;
-
-                showSuccessToast(`Notification sent to ${notificationsToInsert.length} student(s)`, 'Sent');
-                modal.remove();
+                successCount += batch.length;
             }
+
+            console.log(`Notifications sent successfully: ${successCount}`);
+            showSuccessToast(`✅ Notification sent to ${successCount} student(s)`, 'Sent Successfully');
+            modal.remove();
+            
+            // Refresh notifications for admin
+            fetchNotifications();
+            
         } catch (error) {
             console.error('Error sending notifications:', error);
-            showErrorToast('Failed to send notification', 'Error');
+            showErrorToast('Failed to send notification: ' + error.message, 'Error');
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerHTML = 'Send Notification';

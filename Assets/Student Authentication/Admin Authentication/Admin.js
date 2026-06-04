@@ -5,13 +5,6 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 
-let currentAdmin = null
-let countdownInterval = null
-let resendCooldown = null
-let attempts = 0
-const maxAttempts = 3
-
-
 function qs(id) {
     return document.getElementById(id)
 }
@@ -43,7 +36,7 @@ function clearError(inputElement) {
     if (old) old.remove()
 }
 
-// ============ ENHANCED TOAST SYSTEM ============
+// ============ TOAST SYSTEM ============
 let toastContainer = null;
 
 function getToastContainer() {
@@ -166,13 +159,6 @@ function enable(btn, text) {
     btn.innerHTML = text
 }
 
-// step switching
-window.goToStep = function(step) {
-    qs('step1')?.classList.remove('active')
-    qs('step2')?.classList.remove('active')
-    qs(`step${step}`)?.classList.add('active')
-}
-
 // see password toggle
 window.togglePassword = function(inputId, btn) {
     const input = qs(inputId)
@@ -184,140 +170,6 @@ window.togglePassword = function(inputId, btn) {
     btn.innerHTML = hidden
         ? '<i class="fas fa-eye-slash"></i>'
         : '<i class="fas fa-eye"></i>'
-}
-
-// OTP input setup
-function setupOTPInputs() {
-    const inputs = document.querySelectorAll('.otp-input')
-
-    inputs.forEach((input, index) => {
-
-        input.addEventListener('input', e => {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1)
-
-            if (e.target.value && index < inputs.length - 1) {
-                inputs[index + 1].focus()
-            }
-            
-            // Auto-submit when all digits are entered
-            const allFilled = Array.from(inputs).every(inp => inp.value.length === 1);
-            if (allFilled && typeof window.handleVerifyOTP === 'function') {
-                setTimeout(() => window.handleVerifyOTP(), 100);
-            }
-        })
-
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Backspace' && !input.value && index > 0) {
-                inputs[index - 1].focus()
-            }
-        })
-
-    })
-}
-
-// OTP countdown timer
-function startCountdown(seconds = 300) {
-    clearInterval(countdownInterval)
-
-    const label = qs('countdown')
-    let remaining = seconds
-
-    countdownInterval = setInterval(() => {
-        const mins = Math.floor(remaining / 60)
-        const secs = remaining % 60
-
-        if (label) {
-            label.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-        }
-
-        if (remaining <= 0) {
-            clearInterval(countdownInterval)
-            if (label) label.textContent = 'EXPIRED'
-        }
-
-        remaining--
-    }, 1000)
-}
-
-// Resend cooldown timer
-function startResendCooldown(seconds = 30) {
-    clearInterval(resendCooldown)
-
-    const btn = qs('resendBtn')
-    if (!btn) return
-
-    btn.disabled = true
-    let remaining = seconds
-
-    resendCooldown = setInterval(() => {
-        btn.innerHTML = `Resend OTP (${remaining}s)`
-
-        if (remaining <= 0) {
-            clearInterval(resendCooldown)
-            btn.disabled = false
-            btn.innerHTML = 'Resend OTP'
-        }
-
-        remaining--
-    }, 1000)
-}
-
-// ============ FORGOT PASSWORD FUNCTION ============
-async function handleForgotPassword() {
-    const emailInput = qs('forgot-email');
-    if (!emailInput) return;
-    
-    const email = emailInput.value.trim();
-    const forgotBtn = qs('forgotPasswordBtn');
-    
-    clearError(emailInput);
-    
-    if (!email) {
-        showErrorToast('Please enter your email address', 'Email Required');
-        return;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showErrorToast('Please enter a valid email address', 'Invalid Email');
-        return;
-    }
-    
-    disable(forgotBtn, 'Checking...');
-    
-    try {
-        const { data: admin, error: adminError } = await supabase
-            .from('admins')
-            .select('email, full_name')
-            .eq('email', email)
-            .maybeSingle();
-        
-        if (adminError || !admin) {
-            showErrorToast('No admin account found with this email', 'Account Not Found');
-            enable(forgotBtn, 'Send Reset Link');
-            return;
-        }
-        
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/Assets/Admin dashboard/password/reset-password.html`
-        });
-        
-        if (resetError) {
-            console.error('Reset error:', resetError);
-            showErrorToast('Failed to send reset email. Please try again.', 'Reset Failed');
-            enable(forgotBtn, 'Send Reset Link');
-            return;
-        }
-        
-        showSuccessToast(`Password reset link sent to ${email}. Check your inbox!`, 'Email Sent', 5000);
-        emailInput.value = '';
-        closeForgotPasswordModal();
-        
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        showErrorToast('An error occurred. Please try again.', 'Error');
-        enable(forgotBtn, 'Send Reset Link');
-    }
 }
 
 // ============ FORGOT PASSWORD MODAL FUNCTIONS ============
@@ -412,6 +264,64 @@ function closeForgotPasswordModal() {
     }
 }
 
+// ============ FORGOT PASSWORD FUNCTION ============
+async function handleForgotPassword() {
+    const emailInput = qs('forgot-email');
+    if (!emailInput) return;
+    
+    const email = emailInput.value.trim();
+    const forgotBtn = qs('forgotPasswordBtn');
+    
+    clearError(emailInput);
+    
+    if (!email) {
+        showErrorToast('Please enter your email address', 'Email Required');
+        return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showErrorToast('Please enter a valid email address', 'Invalid Email');
+        return;
+    }
+    
+    disable(forgotBtn, 'Checking...');
+    
+    try {
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('email, full_name')
+            .eq('email', email)
+            .maybeSingle();
+        
+        if (adminError || !admin) {
+            showErrorToast('No admin account found with this email', 'Account Not Found');
+            enable(forgotBtn, 'Send Reset Link');
+            return;
+        }
+        
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/Assets/Admin dashboard/password/reset-password.html`
+        });
+        
+        if (resetError) {
+            console.error('Reset error:', resetError);
+            showErrorToast('Failed to send reset email. Please try again.', 'Reset Failed');
+            enable(forgotBtn, 'Send Reset Link');
+            return;
+        }
+        
+        showSuccessToast(`Password reset link sent to ${email}. Check your inbox!`, 'Email Sent', 5000);
+        emailInput.value = '';
+        closeForgotPasswordModal();
+        
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        showErrorToast('An error occurred. Please try again.', 'Error');
+        enable(forgotBtn, 'Send Reset Link');
+    }
+}
+
 // ============ CHECK FOR EXISTING SESSION ============
 async function checkExistingSession() {
     console.log('Checking for existing admin session...');
@@ -467,36 +377,7 @@ async function redirectIfAlreadyLoggedIn() {
     return false;
 }
 
-// ============ GENERATE OTP ============
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// ============ SEND OTP EMAIL ============
-async function sendOTPEmail(email, otp, fullName) {
-    try {
-        // You'll need to implement this via Supabase Edge Function or external email service
-        console.log(`Sending OTP ${otp} to ${email}`);
-        
-        // For now, we'll use console and show success toast
-        showInfoToast(`Demo: Your OTP is ${otp}`, 'Test Mode', 8000);
-        
-        // In production, use Supabase Edge Function:
-        /*
-        const { error } = await supabase.functions.invoke('send-otp', {
-            body: { email, otp, fullName }
-        });
-        if (error) throw error;
-        */
-        
-        return true;
-    } catch (error) {
-        console.error('Error sending OTP email:', error);
-        return false;
-    }
-}
-
-// ============ LOGIN WITH OTP ============
+// ============ DIRECT LOGIN (NO OTP) ============
 async function handleLogin() {
     const usernameInput = qs('admin-username')
     const passwordInput = qs('admin-password')
@@ -518,7 +399,7 @@ async function handleLogin() {
         return
     }
 
-    disable(loginBtn, 'Checking...')
+    disable(loginBtn, 'Logging in...')
 
     try {
         const { data: admin, error } = await supabase
@@ -527,7 +408,7 @@ async function handleLogin() {
             .or(`admin_id.ilike.${username},email.ilike.${username}`)
             .maybeSingle()
 
-        console.log('Admin found:', admin)
+        console.log('Admin found:', admin?.email)
 
         if (error || !admin) {
             showErrorToast('Admin not found. Please check your credentials.', 'Login Failed');
@@ -547,261 +428,47 @@ async function handleLogin() {
             return
         }
 
-        // Store admin temporarily for OTP verification
-        currentAdmin = admin;
-        
-        // Generate OTP
-        const otp = generateOTP();
-        const otpExpiry = new Date();
-        otpExpiry.setMinutes(otpExpiry.getMinutes() + 5); // 5 minutes expiry
-        
-        // Store OTP in database
-        const { error: otpError } = await supabase
-            .from('admins')
-            .update({
-                otp_secret: otp,
-                otp_expiry: otpExpiry.toISOString()
-            })
-            .eq('id', admin.id);
-        
-        if (otpError) {
-            console.error('Error saving OTP:', otpError);
-            showErrorToast('Failed to generate OTP. Please try again.', 'Error');
-            enable(loginBtn, 'Login');
-            return;
-        }
-        
-        // Send OTP email
-        const emailSent = await sendOTPEmail(admin.email, otp, admin.full_name);
-        
-        if (!emailSent) {
-            showWarningToast('Unable to send OTP email. Please contact support.', 'Email Issue');
-        } else {
-            showSuccessToast(`OTP sent to ${admin.email.replace(/(.{2})(.*)(?=@)/, (match, p1, p2) => p1 + '*'.repeat(p2.length))}`, 'Verification Code Sent', 4000);
-        }
-        
-        // Switch to OTP verification step
-        goToStep(2);
-        
-        // Start countdown timer
-        startCountdown(300); // 5 minutes
-        
-        // Clear OTP inputs
-        const otpInputs = document.querySelectorAll('.otp-input');
-        otpInputs.forEach(input => input.value = '');
-        qs('otp1')?.focus();
-        
-        enable(loginBtn, 'Login');
-        
-        // Store OTP in memory for verification
-        window.pendingOTP = otp;
-        window.pendingAdminId = admin.id;
-        
-    } catch (err) {
-        console.error(err)
-        showErrorToast('Login failed. Please try again.', 'Error');
-        enable(loginBtn, 'Login')
-    }
-}
-
-// ============ VERIFY OTP ============
-async function handleVerifyOTP() {
-    const otpInputs = document.querySelectorAll('.otp-input');
-    const otp = Array.from(otpInputs).map(input => input.value).join('');
-    const verifyBtn = qs('verifyBtn');
-    
-    if (otp.length !== 6) {
-        showErrorToast('Please enter the 6-digit verification code', 'Invalid Code');
-        return;
-    }
-    
-    disable(verifyBtn, 'Verifying...');
-    
-    try {
-        if (!window.pendingAdminId) {
-            showErrorToast('Session expired. Please login again.', 'Session Error');
-            goToStep(1);
-            enable(verifyBtn, 'Verify');
-            return;
-        }
-        
-        // Check OTP from database
-        const { data: admin, error } = await supabase
-            .from('admins')
-            .select('otp_secret, otp_expiry')
-            .eq('id', window.pendingAdminId)
-            .single();
-        
-        if (error || !admin) {
-            showErrorToast('Verification failed. Please try again.', 'Error');
-            enable(verifyBtn, 'Verify');
-            return;
-        }
-        
-        // Check if OTP expired
-        if (admin.otp_expiry && new Date(admin.otp_expiry) < new Date()) {
-            showErrorToast('OTP has expired. Please request a new one.', 'OTP Expired');
-            enable(verifyBtn, 'Verify');
-            return;
-        }
-        
-        // Verify OTP
-        if (admin.otp_secret !== otp) {
-            attempts++;
-            const remaining = maxAttempts - attempts;
-            
-            if (remaining <= 0) {
-                showErrorToast('Too many failed attempts. Please login again.', 'Verification Failed');
-                goToStep(1);
-                attempts = 0;
-                enable(verifyBtn, 'Verify');
-                return;
-            }
-            
-            showErrorToast(`Invalid OTP. ${remaining} attempt(s) remaining.`, 'Invalid Code');
-            enable(verifyBtn, 'Verify');
-            return;
-        }
-        
-        // OTP verified successfully
-        attempts = 0;
-        
-        // Clear OTP from database
+        // Update last login
         await supabase
             .from('admins')
             .update({
-                otp_secret: null,
-                otp_expiry: null,
                 last_login: new Date().toISOString()
             })
-            .eq('id', window.pendingAdminId);
-        
-        // Get full admin data
-        const { data: adminData, error: adminError } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('id', window.pendingAdminId)
-            .single();
-        
-        if (adminError || !adminData) {
-            showErrorToast('Failed to retrieve admin data', 'Error');
-            enable(verifyBtn, 'Verify');
-            return;
-        }
-        
+            .eq('id', admin.id)
+
         // Store session
         const sessionExpiry = new Date();
         sessionExpiry.setHours(sessionExpiry.getHours() + 24);
         
         localStorage.setItem('currentAdmin', JSON.stringify({
-            id: adminData.id,
-            admin_id: adminData.admin_id,
-            full_name: adminData.full_name,
-            email: adminData.email,
-            role: adminData.role,
-            status: adminData.status,
+            id: admin.id,
+            admin_id: admin.admin_id,
+            full_name: admin.full_name,
+            email: admin.email,
+            role: admin.role,
+            status: admin.status,
             login_time: new Date().toISOString()
         }));
         
         localStorage.setItem('adminSessionExpiry', sessionExpiry.toISOString());
-        
+
         const remember = qs('rememberMe');
         if (remember?.checked) {
-            localStorage.setItem('rememberedAdmin', adminData.admin_id);
+            localStorage.setItem('rememberedAdmin', admin.admin_id);
         } else {
             localStorage.removeItem('rememberedAdmin');
         }
-        
-        showSuccessToast(`Welcome back, ${adminData.full_name || adminData.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
+
+        showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
         
         setTimeout(() => {
             window.location.href = '/Assets/Admin dashboard/Admin.html';
         }, 1500);
-        
-    } catch (error) {
-        console.error('OTP verification error:', error);
-        showErrorToast('Verification failed. Please try again.', 'Error');
-        enable(verifyBtn, 'Verify');
-    }
-}
 
-// ============ RESEND OTP ============
-async function resendOTP() {
-    const resendBtn = qs('resendBtn');
-    
-    if (!window.pendingAdminId) {
-        showErrorToast('Session expired. Please login again.', 'Session Error');
-        goToStep(1);
-        return;
-    }
-    
-    disable(resendBtn, 'Sending...');
-    
-    try {
-        // Get admin data
-        const { data: admin, error } = await supabase
-            .from('admins')
-            .select('email, full_name')
-            .eq('id', window.pendingAdminId)
-            .single();
-        
-        if (error || !admin) {
-            showErrorToast('Failed to resend OTP. Please try again.', 'Error');
-            enable(resendBtn, 'Resend OTP');
-            return;
-        }
-        
-        // Generate new OTP
-        const newOTP = generateOTP();
-        const otpExpiry = new Date();
-        otpExpiry.setMinutes(otpExpiry.getMinutes() + 5);
-        
-        // Update OTP in database
-        const { error: updateError } = await supabase
-            .from('admins')
-            .update({
-                otp_secret: newOTP,
-                otp_expiry: otpExpiry.toISOString()
-            })
-            .eq('id', window.pendingAdminId);
-        
-        if (updateError) {
-            console.error('Error updating OTP:', updateError);
-            showErrorToast('Failed to generate new OTP. Please try again.', 'Error');
-            enable(resendBtn, 'Resend OTP');
-            return;
-        }
-        
-        // Send new OTP email
-        const emailSent = await sendOTPEmail(admin.email, newOTP, admin.full_name);
-        
-        if (!emailSent) {
-            showWarningToast('Unable to send OTP email. Please contact support.', 'Email Issue');
-        } else {
-            showSuccessToast(`New OTP sent to ${admin.email.replace(/(.{2})(.*)(?=@)/, (match, p1, p2) => p1 + '*'.repeat(p2.length))}`, 'OTP Resent', 4000);
-        }
-        
-        // Update stored OTP
-        window.pendingOTP = newOTP;
-        
-        // Reset attempts
-        attempts = 0;
-        
-        // Start cooldown timer
-        startResendCooldown(30);
-        
-        // Clear OTP inputs
-        const otpInputs = document.querySelectorAll('.otp-input');
-        otpInputs.forEach(input => input.value = '');
-        qs('otp1')?.focus();
-        
-        // Restart countdown
-        startCountdown(300);
-        
-    } catch (error) {
-        console.error('Resend OTP error:', error);
-        showErrorToast('Failed to resend OTP. Please try again.', 'Error');
-        enable(resendBtn, 'Resend OTP');
+    } catch (err) {
+        console.error(err)
+        showErrorToast('Login failed. Please try again.', 'Error');
+        enable(loginBtn, 'Login')
     }
 }
 
@@ -822,14 +489,11 @@ async function resendOTP() {
         }
     }
     
-    setupOTPInputs();
-    console.log('Login page ready - OTP verification enabled');
+    console.log('Login page ready - Direct login mode');
 })();
 
 // Event listeners
 qs('loginBtn')?.addEventListener('click', handleLogin);
-qs('verifyBtn')?.addEventListener('click', handleVerifyOTP);
-qs('resendBtn')?.addEventListener('click', resendOTP);
 
 const forgotLink = qs('forgot-link');
 if (forgotLink) {
@@ -853,11 +517,8 @@ qs('admin-password')?.addEventListener('input', function() {
 
 // Exports
 window.handleLogin = handleLogin;
-window.handleVerifyOTP = handleVerifyOTP;
-window.resendOTP = resendOTP;
+window.togglePassword = togglePassword;
 window.openForgotPasswordModal = openForgotPasswordModal;
 window.handleForgotPassword = handleForgotPassword;
-window.goToStep = goToStep;
-window.togglePassword = togglePassword;
 
-console.log('Login page loaded - OTP enabled');
+console.log('Admin login page loaded - Direct login enabled');
