@@ -1,0 +1,389 @@
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #2563EB;
+            --blue-dark: #1D4ED8;
+            --blue-light: #EFF6FF;
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --surface: #FFFFFF;
+            --bg: #F0F4FF;
+            --footer-bg: #0F172A;
+            --footer-text: #94A3B8;
+        }
+
+        html, body {
+            min-height: 100%;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* ── Navigation ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 48px;
+            height: 70px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-logo-icon img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            margin-top: 7px;
+        }
+
+        .nav-logo span {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--blue);
+        }
+
+        .portal-link {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue);
+            border-radius: 30px;
+            padding: 6px 14px;
+        }
+
+        .portal-link i {
+            font-size: 12px;
+        }
+
+        .portal-link:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+        }
+
+        .nav-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* Get Started Button - Hero section only */
+        .btn-get-started {
+            padding: 12px 36px;
+            border: none;
+            border-radius: 40px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-get-started i {
+            font-size: 13px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-get-started:hover i {
+            transform: translateX(4px);
+        }
+
+        /* ── Main Content ── */
+        .hero {
+            background: linear-gradient(160deg, #EEF3FF 0%, #F8FAFF 50%, #EFF6FF 100%);
+            padding: 100px 48px 110px;
+            text-align: center;
+        }
+
+        .hero-inner { 
+            max-width: 720px; 
+            margin: 0 auto; 
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.15;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        /* ── Features ── */
+        .features {
+            padding: 80px 48px 90px;
+            background: var(--surface);
+        }
+
+        .features-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 48px;
+            letter-spacing: -0.01em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.1);
+            transform: translateY(-4px);
+            border-color: var(--blue-light);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--blue-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            color: var(--blue);
+            font-size: 24px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+
+        .feature-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: var(--footer-bg);
+            padding: 48px 48px 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .footer-section p {
+            color: var(--footer-text);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul li a {
+            color: var(--footer-text);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--blue);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-links a {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--footer-text);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .social-links a:hover {
+            background: var(--blue);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--footer-text);
+            font-size: 12px;
+        }
+
+        /* Secret Admin Button - Hidden in footer */
+        .secret-admin {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        .secret-admin:hover {
+            opacity: 0.7;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 0 20px;
+            }
+            .hero {
+                padding: 60px 20px 70px;
+            }
+            .hero h1 {
+                font-size: 36px;
+            }
+            .features {
+                padding: 50px 20px 60px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+            .social-links {
+                justify-content: center;
+            }
+            .nav-actions {
+                display: none;
+            }
+            .nav-hamburger {
+                display: block;
+            }
+        }
+
+        /* Mobile menu styles */
+        .nav-actions-mobile {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            gap: 12px;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-actions-mobile .portal-link {
+            margin: 0;
+            text-align: center;
+            padding: 8px 16px;
+        }
+
+        /* Animations */
+        @keyframes up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-inner { animation: up 0.5s ease both; }
+        .features-title { animation: up 0.5s 0.1s ease both; }
+        .feature-card:nth-child(1) { animation: up 0.4s 0.15s ease both; }
+        .feature-card:nth-child(2) { animation: up 0.4s 0.22s ease both; }
+        .feature-card:nth-child(3) { animation: up 0.4s 0.29s ease both; }
+        .feature-card:nth-child(4) { animation: up 0.4s 0.36s ease both; }

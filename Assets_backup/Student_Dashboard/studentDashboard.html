@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>SAOCST — Student Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="icon" href="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" />
+    <link rel="stylesheet" href="/Assets/Student_Dashboard/studentDashboard.css" />
+</head>
+
+<body>
+
+    <!--DRAWER-->
+    <div class="drawer-overlay" id="overlay"></div>
+    <nav class="drawer" id="drawer">
+        <div class="drawer-header">
+            <button class="drawer-close" id="drawerClose">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+            <div class="drawer-profile">
+                <div class="drawer-avatar"><span id="avatarInitials">ST</span></div>
+                <div class="drawer-name" id="drawerStudentName">Student Name</div>
+                <div class="drawer-role">Student Portal</div>
+                <span class="drawer-badge" id="drawerStudentId">Student</span>
+            </div>
+        </div>
+        <div class="drawer-nav">
+            <div class="drawer-nav-main" id="drawerNavMain">
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="drawer-logout" id="logoutBtn">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span class="logout-label">Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <!--TOPBAR-->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger" id="hamburgerBtn"><span></span><span></span><span></span></button>
+            <div class="brand">
+                <div class="brand-logo">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="SAOCST">
+                </div>
+                <span class="brand-name">SAOCST</span>
+                <span class="brand-tagline" id="pageTagline">Dashboard</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="icon-btn" id="darkModeToggle">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
+            <div class="notification-wrapper">
+                <button class="notification-btn" id="notifyBtn">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                </button>
+            </div>
+            <div class="student-pill">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5" />
+                    <path d="M2 12l10 5 10-5" />
+                </svg>
+                <span>Student</span>
+            </div>
+        </div>
+    </header>
+
+    <!--NOTIFICATIONS MODAL - FIXED with Clear All button -->
+    <div class="notification-modal-overlay" id="notificationModalOverlay">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h3>
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    Notifications
+                    <span class="notification-count" id="notificationCount">0</span>
+                </h3>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="clear-btn" id="clearAllNotifBtn" style="
+                        background: none;
+                        border: none;
+                        color: var(--text-3, #94a3b8);
+                        font-size: 12px;
+                        cursor: pointer;
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        transition: var(--transition);
+                        font-family: inherit;
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    ">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14"
+                            style="display:inline-block;vertical-align:middle;">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        Clear All
+                    </button>
+                    <button class="notification-modal-close" id="notificationModalClose">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="notification-modal-body" id="notificationModalBody">
+                <div class="empty-notifications">
+                    <svg class="icon-svg-xl" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <p>No notifications</p>
+                    <span>You're all caught up!</span>
+                </div>
+            </div>
+            <div class="notification-modal-footer">
+                <button class="mark-btn" id="markAllReadBtn">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Mark all as read
+                </button>
+                <button class="close-btn" id="notificationModalCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!--MAIN CONTENTS-->
+    <main class="dashboard-main" id="mainContent">
+        <div id="tab-dashboard" class="tab-content active">
+            <div class="welcome-section">
+                <div class="welcome-greeting">
+                    <h1 class="welcome-title">
+                        <span id="greetingText">Good evening</span><span class="greeting-comma">,</span>
+                        <span class="greeting-name" id="studentNameDisplay">Aaron Falsario</span>
+                    </h1>
+                </div>
+                <p class="welcome-date">
+                    <span id="currentDate">Thursday, August 13, 2026</span>
+                    <span class="welcome-time-separator">at</span>
+                    <strong id="currentTime">11:33:54 PM</strong>
+                </p>
+            </div>
+
+            <!-- Dashboard Stats - Content -->
+            <div class="content-container visible" id="dashboardStatsContent">
+                <div class="stats-grid" id="dashboardStats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="pendingPenalties">0</div>
+                            <div class="stat-label">Pending Penalties</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="completedHours">0</div>
+                            <div class="stat-label">Completed Hours</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalViolations">0</div>
+                            <div class="stat-label">Total Violations</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="complianceRate">0%</div>
+                            <div class="stat-label">Compliance Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats - Skeleton -->
+            <div class="skeleton-container hidden" id="dashboardStatsSkeleton">
+                <div class="skeleton-stats-row">
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Cards - Content -->
+            <div class="content-container visible" id="actionCardsContent">
+                <div class="action-cards">
+                    <div class="action-card" data-tab="penalties">
+                        <div class="action-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg></div>
+                        <h3>View Penalties</h3>
+                        <p>Check your active penalties and violations</p>
+                    </div>
+                    <div class="action-card" data-tab="history">
+                        <div class="action-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></div>
+                        <h3>View History</h3>
+                        <p>See your completed penalties record</p>
+                    </div>
+                    <div class="action-card" data-tab="appeal">
+                        <div class="action-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg></div>
+                        <h3>Submit Appeal</h3>
+                        <p>Appeal a penalty decision</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Cards - Skeleton -->
+            <div class="skeleton-container hidden" id="actionCardsSkeleton">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+                    <div class="skeleton-action-card skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:52px;height:52px;border-radius:14px;margin:0 auto 12px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:60%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:14px;width:80%;margin:0 auto;"></div>
+                    </div>
+                    <div class="skeleton-action-card skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:52px;height:52px;border-radius:14px;margin:0 auto 12px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:60%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:14px;width:80%;margin:0 auto;"></div>
+                    </div>
+                    <div class="skeleton-action-card skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:52px;height:52px;border-radius:14px;margin:0 auto 12px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:60%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:14px;width:80%;margin:0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Penalties - Content -->
+            <div class="content-container visible" id="recentPenaltiesContent">
+                <div class="penalties-table">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg>
+                            My Recent Penalties
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Violation</th>
+                                    <th>Service Type</th>
+                                    <th>Hours</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardPenaltiesBody">
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Penalties - Skeleton -->
+            <div class="skeleton-container hidden" id="recentPenaltiesSkeleton">
+                <div class="skeleton-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                    <div class="skeleton-title skeleton" style="height:20px;width:30%;margin:16px 20px 16px 20px;">
+                    </div>
+                    <div style="padding:0 20px 20px;">
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offense Summary - Content -->
+            <div class="content-container visible" id="offenseSummaryContent">
+                <div class="offense-summary">
+                    <div class="offense-card">
+                        <div class="offense-card-icon first"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg></div>
+                        <h4>1st Offense</h4>
+                        <p>Warning Only<br>No community service required</p>
+                    </div>
+                    <div class="offense-card">
+                        <div class="offense-card-icon second"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></div>
+                        <h4>2nd Offense</h4>
+                        <p>5 hours community service<br>+ Formal Notice</p>
+                    </div>
+                    <div class="offense-card">
+                        <div class="offense-card-icon third"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg></div>
+                        <h4>3rd Offense</h4>
+                        <p>10 hours community service<br>+ Meeting with SAO</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offense Summary - Skeleton -->
+            <div class="skeleton-container hidden" id="offenseSummarySkeleton">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+                    <div class="skeleton-offense skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:48px;height:48px;border-radius:50%;margin:0 auto 10px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:50%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:12px;width:70%;margin:0 auto;"></div>
+                    </div>
+                    <div class="skeleton-offense skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:48px;height:48px;border-radius:50%;margin:0 auto 10px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:50%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:12px;width:70%;margin:0 auto;"></div>
+                    </div>
+                    <div class="skeleton-offense skeleton-card"
+                        style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                        <div class="skeleton-icon skeleton"
+                            style="width:48px;height:48px;border-radius:50%;margin:0 auto 10px;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:50%;margin:0 auto 6px;"></div>
+                        <div class="skeleton-sub skeleton" style="height:12px;width:70%;margin:0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Info Section -->
+            <div class="warning-info-section" id="warningInfoSection" style="display:none;">
+                <div class="warning-info-header">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <h3>First Offense Warning Information</h3>
+                </div>
+                <div class="warning-info-body">
+                    <div class="warning-info-item">
+                        <div class="warning-info-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg></div>
+                        <div class="warning-info-content">
+                            <div class="warning-info-title">What does "Warning Only" mean?</div>
+                            <div class="warning-info-text">A first offense is considered a warning. No community service
+                                hours are required. However, this serves as an official notice to remind you to follow
+                                the student code of conduct.</div>
+                        </div>
+                    </div>
+                    <div class="warning-info-item">
+                        <div class="warning-info-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                            </svg></div>
+                        <div class="warning-info-content">
+                            <div class="warning-info-title">What happens next?</div>
+                            <div class="warning-info-text">This warning will remain in your record. Future violations
+                                may result in increased penalties, including community service hours or disciplinary
+                                actions.</div>
+                        </div>
+                    </div>
+                    <div class="warning-info-item">
+                        <div class="warning-info-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                                <path d="M6 12v5c0 3 2 5 6 5s6-2 6-5v-5" />
+                            </svg></div>
+                        <div class="warning-info-content">
+                            <div class="warning-info-title">How to avoid further penalties?</div>
+                            <div class="warning-info-text">Familiarize yourself with the student handbook. Follow school
+                                policies and maintain good conduct. If you have questions, consult the Student Affairs
+                                Office.</div>
+                        </div>
+                    </div>
+                    <button class="warning-action-btn" data-tab="appeal">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg>
+                        Submit an Appeal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PENALTIES TAB ========== -->
+        <div id="tab-penalties" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">My Penalties</h1>
+                <p class="page-sub">View your community service penalties and track your progress</p>
+            </div>
+
+            <!-- Penalties Stats - Content -->
+            <div class="content-container visible" id="penaltiesStatsContent">
+                <div class="stats-row" id="penaltiesStats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="penPending">0</div>
+                            <div class="stat-label">Pending Penalties</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="penCompletedHours">0</div>
+                            <div class="stat-label">Completed Hours</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="penTotal">0</div>
+                            <div class="stat-label">Total Violations</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="penCompliance">0%</div>
+                            <div class="stat-label">Compliance Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Penalties Stats - Skeleton -->
+            <div class="skeleton-container hidden" id="penaltiesStatsSkeleton">
+                <div class="skeleton-stats-row">
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Penalty Progress - Content -->
+            <div class="content-container visible" id="penaltyProgressContent">
+                <div class="penalty-progress-card" id="penaltyProgressCard" style="display:none;">
+                    <div class="progress-header">
+                        <h4>
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                            </svg>
+                            Overall Progress
+                        </h4>
+                        <span id="progressPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgressFill" style="width:0%;"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span id="progressCompleted">0 hours completed</span>
+                        <span id="progressTotal">0 hours total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Penalty Progress - Skeleton -->
+            <div class="skeleton-container hidden" id="penaltyProgressSkeleton">
+                <div class="skeleton-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div class="skeleton-title skeleton" style="height:18px;width:30%;"></div>
+                        <div class="skeleton-title skeleton" style="height:18px;width:10%;"></div>
+                    </div>
+                    <div class="skeleton" style="height:8px;width:100%;border-radius:4px;"></div>
+                    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+                        <div class="skeleton" style="height:12px;width:30%;"></div>
+                        <div class="skeleton" style="height:12px;width:20%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="penalties-filters">
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="penaltyStatusFilter">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Search:</label>
+                    <input type="text" id="penaltySearchInput" placeholder="Search violations..." />
+                </div>
+                <div class="filter-group">
+                    <label>Sort:</label>
+                    <select id="penaltySortFilter">
+                        <option value="date-desc">Latest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="hours-desc">Most Hours</option>
+                        <option value="hours-asc">Least Hours</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn-clear" id="clearPenaltyFilters">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        Clear
+                    </button>
+                    <button class="btn-export" id="exportPenaltiesData">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Penalties Table - Content -->
+            <div class="content-container visible" id="penaltiesTableContent">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Violation</th>
+                                <th>Service Type</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                                <th>Deadline</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="penaltiesTableBody">
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <svg class="icon-svg-lg" viewBox="0 0 24 24">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                                        <line x1="9" y1="9" x2="15" y2="15" />
+                                        <line x1="15" y1="9" x2="9" y2="15" />
+                                    </svg>
+                                    <div class="empty-title">Loading penalties...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Penalties Table - Skeleton -->
+            <div class="skeleton-container hidden" id="penaltiesTableSkeleton">
+                <div class="skeleton-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                    <div style="padding:0 20px 20px;">
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offense Level Legend -->
+            <div class="offense-legend">
+                <span class="legend-label">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                    </svg>
+                    Offense Levels:
+                </span>
+                <span class="status-badge status-completed"><svg class="icon-svg" viewBox="0 0 24 24" width="12"
+                        height="12">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg> 1st Offense - Warning</span>
+                <span class="status-badge status-pending"><svg class="icon-svg" viewBox="0 0 24 24" width="12"
+                        height="12">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg> 2nd Offense - 5 hrs + Consultation</span>
+                <span class="status-badge status-rejected"><svg class="icon-svg" viewBox="0 0 24 24" width="12"
+                        height="12">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg> 3rd Offense - 10 hrs + Parent Meeting</span>
+                <span class="legend-total">Total: <strong id="penaltiesTotalCount">0</strong> violations</span>
+            </div>
+        </div>
+
+        <!-- ========== HISTORY TAB ========== -->
+        <div id="tab-history" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">History</h1>
+                <p class="page-sub">View your complete disciplinary record</p>
+            </div>
+
+            <!-- History Stats - Content -->
+            <div class="content-container visible" id="historyStatsContent">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="histCompleted">0</div>
+                            <div class="stat-label">Completed Penalties</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="histHours">0</div>
+                            <div class="stat-label">Total Hours Completed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="histViolations">0</div>
+                            <div class="stat-label">Total Violations</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="histReports">0</div>
+                            <div class="stat-label">Reports Filed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Stats - Skeleton -->
+            <div class="skeleton-container hidden" id="historyStatsSkeleton">
+                <div class="skeleton-stats-row">
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton-icon skeleton"></div>
+                        <div class="skeleton-text">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line-sm skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab-btn active" data-subtab="penalties">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                    </svg>
+                    Penalty History
+                </button>
+                <button class="tab-btn" data-subtab="appeals">
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                    </svg>
+                    Appeal History
+                </button>
+            </div>
+
+            <div id="subtab-penalties" class="tab-content active">
+                <div class="history-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg>
+                            Completed Penalties
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Violation</th>
+                                    <th>Service Type</th>
+                                    <th>Hours</th>
+                                    <th>Completed On</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyPenaltiesBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <svg class="icon-svg-lg" viewBox="0 0 24 24">
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                        <div class="empty-title">No Completed Penalties</div>
+                                        <div class="empty-sub">Complete your community service to see it here</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="subtab-appeals" class="tab-content">
+                <div class="history-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg>
+                            Appeal History
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Penalty</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyAppealsBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <svg class="icon-svg-lg" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                            <polyline points="14 2 14 8 20 8" />
+                                            <line x1="16" y1="13" x2="8" y2="13" />
+                                            <line x1="16" y1="17" x2="8" y2="17" />
+                                        </svg>
+                                        <div class="empty-title">No Appeals Found</div>
+                                        <div class="empty-sub">Submit an appeal to see it here</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== APPEAL TAB ========== -->
+        <div id="tab-appeal" class="tab-content">
+            <div class="page-header">
+                <h1 class="page-title">Submit an Appeal</h1>
+                <p class="page-sub">Request a review of your penalty decision</p>
+            </div>
+
+            <div class="appeal-container">
+                <div class="appeal-form-card">
+                    <div class="card-header">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg>
+                            Appeal Form
+                        </h3>
+                        <p>Fill out the form below to submit your appeal</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Appeal Form - Content -->
+                        <div class="content-container visible" id="appealFormContent">
+                            <div class="form-group">
+                                <label>Select Penalty</label>
+                                <select id="penaltySelect" class="form-control">
+                                    <option value="">Loading penalties...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Violation Details</label>
+                                <div class="violation-info">
+                                    <div class="info-row">
+                                        <span class="info-label">Violation:</span>
+                                        <span class="info-value" id="violationName">—</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Hours Assigned:</span>
+                                        <span class="info-value" id="violationHours">—</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Deadline:</span>
+                                        <span class="info-value" id="violationDeadline">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Appeal Reason</label>
+                                <textarea id="appealReason" class="form-control" rows="5"
+                                    placeholder="Explain why you are appealing this penalty. Provide any relevant details or evidence..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Supporting Statement</label>
+                                <textarea id="supportingStatement" class="form-control" rows="3"
+                                    placeholder="Additional comments or statements to support your appeal..."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                                <button type="button" class="btn-primary" id="submitAppealBtn">
+                                    <svg class="icon-svg" viewBox="0 0 24 24">
+                                        <line x1="22" y1="2" x2="11" y2="13" />
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                    </svg>
+                                    Submit Appeal
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Appeal Form - Skeleton -->
+                        <div class="skeleton-container hidden" id="appealFormSkeleton">
+                            <div class="skeleton-appeal-form">
+                                <div class="skeleton-field skeleton"></div>
+                                <div class="skeleton-field skeleton"></div>
+                                <div class="skeleton-field-lg skeleton" style="height:100px;"></div>
+                                <div class="skeleton-field-lg skeleton" style="height:80px;"></div>
+                                <div
+                                    style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                                    <div class="skeleton" style="height:44px;width:100px;border-radius:10px;"></div>
+                                    <div class="skeleton" style="height:44px;width:140px;border-radius:10px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="appeal-guidelines-card">
+                    <div class="card-header">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg>
+                            Appeal Guidelines
+                        </h3>
+                        <p>Important information before submitting</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="guideline-item">
+                            <div class="guideline-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg></div>
+                            <div class="guideline-content">
+                                <h4>Time Limit</h4>
+                                <p>Appeals must be submitted within 5 days of the penalty issuance date.</p>
+                            </div>
+                        </div>
+                        <div class="guideline-item">
+                            <div class="guideline-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                </svg></div>
+                            <div class="guideline-content">
+                                <h4>Required Information</h4>
+                                <p>Provide a clear explanation and any supporting evidence for your appeal.</p>
+                            </div>
+                        </div>
+                        <div class="guideline-item">
+                            <div class="guideline-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg></div>
+                            <div class="guideline-content">
+                                <h4>Processing Time</h4>
+                                <p>Appeals are typically reviewed within 3-5 business days.</p>
+                            </div>
+                        </div>
+                        <div class="guideline-item">
+                            <div class="guideline-icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                                    <path d="M22 7l-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                                </svg></div>
+                            <div class="guideline-content">
+                                <h4>Notification</h4>
+                                <p>You will be notified via email once your appeal has been reviewed.</p>
+                            </div>
+                        </div>
+                        <div class="warning-box">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <div class="warning-content">
+                                <strong>Important:</strong> Submitting false or misleading information may result in
+                                additional penalties.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Appeals - Content -->
+            <div class="content-container visible" id="recentAppealsContent">
+                <div class="recent-appeals-card">
+                    <div class="card-header">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            My Recent Appeals
+                        </h3>
+                        <p>Track your submitted appeals</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Violation</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="appealsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">
+                                            <svg class="icon-svg-lg" viewBox="0 0 24 24">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                <polyline points="14 2 14 8 20 8" />
+                                                <line x1="16" y1="13" x2="8" y2="13" />
+                                                <line x1="16" y1="17" x2="8" y2="17" />
+                                            </svg>
+                                            <div class="empty-title">No Appeals Found</div>
+                                            <div class="empty-sub">Submit an appeal to see it here</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Appeals - Skeleton -->
+            <div class="skeleton-container hidden" id="recentAppealsSkeleton">
+                <div class="skeleton-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+                    <div class="skeleton-title skeleton" style="height:20px;width:30%;margin:16px 20px 16px 20px;">
+                    </div>
+                    <div style="padding:0 20px 20px;">
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SETTINGS TAB ========== -->
+        <div id="tab-settings" class="tab-content">
+            <div class="welcome-section">
+                <h1 class="welcome-title">Settings</h1>
+                <p class="welcome-date">Manage your account preferences</p>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <!-- Settings - Content -->
+            <div class="content-container visible" id="settingsContent">
+                <div class="settings-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;margin-bottom:20px;">
+                    <div class="card-header" style="padding:16px 20px 0;">
+                        <div class="card-title">
+                            <svg class="icon-svg" viewBox="0 0 24 24" width="16" height="16">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 10v4" />
+                                <path d="M12 14h.01" />
+                            </svg>
+                            Profile Information
+                        </div>
+                    </div>
+                    <div style="padding:20px;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Student ID</label>
+                            <input type="text" id="studentId" class="form-control" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="email" class="form-control" placeholder="student@example.com"
+                                disabled>
+                        </div>
+                        <button class="btn-primary" id="saveProfileBtn" style="width:100%;justify-content:center;">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-container">
+                    <div class="settings-group">
+                        <div class="settings-item" id="langSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Language</div>
+                                    <div class="settings-item-sub" id="currentLanguageDisplay">English</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="settings-item">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Dark Mode</div>
+                                    <div class="settings-item-sub">Switch between light and dark theme</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="darkModeSetting">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-item" id="securitySetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    <polyline points="9 12 11 14 15 10" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Security</div>
+                                    <div class="settings-item-sub">Change password, manage security</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="settings-item" id="notifSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Notification</div>
+                                    <div class="settings-item-sub">Customize your alerts</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-item" id="faqSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">FAQ</div>
+                                    <div class="settings-item-sub">Frequently asked questions</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="settings-item" id="aboutSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">About Us</div>
+                                    <div class="settings-item-sub">Learn more about SAOCST</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group danger-zone">
+                        <div class="settings-item" id="logoutSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <polyline points="16 17 21 12 16 7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Logout</div>
+                                    <div class="settings-item-sub">Sign out of your account</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="settings-item" id="deleteSetting">
+                            <div class="settings-item-left">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    <line x1="10" y1="11" x2="10" y2="17" />
+                                    <line x1="14" y1="11" x2="14" y2="17" />
+                                </svg>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-title">Delete Account</div>
+                                    <div class="settings-item-sub">Permanently delete your account</div>
+                                </div>
+                            </div>
+                            <div class="settings-item-right">
+                                <svg class="icon-svg" viewBox="0 0 24 24">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings - Skeleton -->
+            <div class="skeleton-container hidden" id="settingsSkeleton">
+                <div class="skeleton-card"
+                    style="background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:20px;">
+                    <div class="skeleton-title skeleton" style="height:20px;width:30%;margin:16px 20px 16px 20px;">
+                    </div>
+                    <div style="padding:0 20px 20px;">
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton-cell skeleton"></div>
+                            <div class="skeleton-cell skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================================
+    BOTTOM NAVIGATION (Mobile)
+    ============================================================ -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-item active" data-tab="dashboard">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="penalties">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+            </svg>
+            <span>Penalties</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="history">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>History</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="appeal">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            <span>Appeal</span>
+        </button>
+        <button class="bottom-nav-item" data-tab="settings">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09z" />
+            </svg>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- ============================================================
+    MODALS
+    ============================================================ -->
+    <!-- Penalty Detail Modal -->
+    <div class="penalty-modal" id="penaltyModal">
+        <div class="penalty-modal-content">
+            <div class="penalty-modal-header">
+                <h3>
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                    </svg>
+                    Penalty Details
+                </h3>
+                <button class="penalty-modal-close" id="closePenaltyModal">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="penalty-modal-body">
+                <div class="detail-group"><label>Violation</label>
+                    <p id="modalViolation">-</p>
+                </div>
+                <div class="detail-group"><label>Service Type</label>
+                    <p id="modalServiceType">-</p>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-group half"><label>Hours Required</label>
+                        <p id="modalHours">-</p>
+                    </div>
+                    <div class="detail-group half"><label>Status</label>
+                        <p id="modalStatus">-</p>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-group half"><label>Date Issued</label>
+                        <p id="modalDateIssued">-</p>
+                    </div>
+                    <div class="detail-group half"><label>Deadline</label>
+                        <p id="modalDeadline">-</p>
+                    </div>
+                </div>
+                <div class="detail-group"><label>Description / Notes</label>
+                    <p id="modalDescription">No additional notes provided.</p>
+                </div>
+            </div>
+            <div class="penalty-modal-footer">
+                <button class="modal-close-btn" id="modalCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reason Modal -->
+    <div class="reason-modal-overlay" id="reasonModal">
+        <div class="reason-modal-content">
+            <div class="reason-modal-header rejected" id="modalHeader">
+                <div class="modal-header-icon">
+                    <svg id="modalIcon" class="icon-svg-xl" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                </div>
+                <div class="modal-header-text">
+                    <h3 id="modalTitle">Appeal Rejected</h3>
+                    <p>Review the details below</p>
+                </div>
+                <button class="modal-close-btn-top" id="modalCloseBtnTop">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="reason-modal-body">
+                <div class="modal-info-grid">
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg>
+                            Violation
+                        </span>
+                        <span class="modal-info-value" id="modalViolationDetail">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            Submitted
+                        </span>
+                        <span class="modal-info-value" id="modalSubmitted">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            Reviewed
+                        </span>
+                        <span class="modal-info-value" id="modalReviewed">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Reviewed By
+                        </span>
+                        <span class="modal-info-value" id="modalReviewedBy">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            Adjusted Hours
+                        </span>
+                        <span class="modal-info-value" id="modalAdjustedHours">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="modal-info-label">
+                            <svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            New Deadline
+                        </span>
+                        <span class="modal-info-value" id="modalNewDeadline">—</span>
+                    </div>
+                </div>
+                <div class="modal-reason-section">
+                    <div class="modal-reason-label">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Decision Reason
+                    </div>
+                    <div class="modal-reason-text" id="modalDecisionReason">—</div>
+                </div>
+                <div class="modal-reason-section">
+                    <div class="modal-reason-label">
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Additional Comments
+                    </div>
+                    <div class="modal-reason-text secondary" id="modalReviewComments">—</div>
+                </div>
+            </div>
+            <div class="reason-modal-footer">
+                <button class="btn-close-modal" id="modalCloseFooterBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Modal -->
+    <div class="modal-overlay" id="languageModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Select Language</h3>
+                <button class="modal-close" id="langModalClose">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <button class="language-option" data-lang="English">English</button>
+                <button class="language-option" data-lang="Filipino">Filipino / Tagalog</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div class="modal-overlay" id="securityModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="modal-close" id="secModalClose">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>Current Password</label><input type="password" id="modalCurrentPassword"
+                        class="form-control" placeholder="Enter current password"></div>
+                <div class="form-group"><label>New Password</label><input type="password" id="modalNewPassword"
+                        class="form-control" placeholder="Enter new password (min. 6 characters)"></div>
+                <div class="form-group"><label>Confirm Password</label><input type="password" id="modalConfirmPassword"
+                        class="form-control" placeholder="Confirm new password"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="secModalCancel">Cancel</button>
+                <button class="btn-save" id="secModalSave">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal-overlay" id="notificationModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Notification Settings</h3>
+                <button class="modal-close" id="notifModalClose">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="toggle-item"><span>Email Notifications</span><label class="toggle-switch"><input
+                            type="checkbox" id="modalEmailNotif"><span class="toggle-slider"></span></label></div>
+                <div class="toggle-item"><span>Penalty Updates</span><label class="toggle-switch"><input type="checkbox"
+                            id="modalPenaltyNotif"><span class="toggle-slider"></span></label></div>
+                <div class="toggle-item"><span>Appeal Status</span><label class="toggle-switch"><input type="checkbox"
+                            id="modalAppealNotif"><span class="toggle-slider"></span></label></div>
+                <div class="toggle-item"><span>Deadline Reminders</span><label class="toggle-switch"><input
+                            type="checkbox" id="modalDeadlineNotif"><span class="toggle-slider"></span></label></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="notifModalCancel">Cancel</button>
+                <button class="btn-save" id="notifModalSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <button class="modal-close" id="confirmModalClose">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="confirmCancelBtn">Cancel</button>
+                <button class="btn-save" id="confirmOkBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastNotification" class="toast-notification"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="/Assets/Student_Dashboard/studentDashboard.js"></script>
+
+</body>
+
+</html>

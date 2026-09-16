@@ -1,11 +1,11 @@
 // ============ DOCST PERMANENT BOTTOM NAVIGATION ============
 
 const bottomNavItems = [
-    { icon: 'fas fa-chart-line', label: 'Home', href: '/Assets/Admin_dashboard/Admin.html' },
-    { icon: 'fas fa-users', label: 'Students', href: '/Assets/Admin_dashboard/students/record.html' },
-    { icon: 'fas fa-gavel', label: 'Penalties', href: '/Assets/Admin_dashboard/penalties/student.html' },
-    { icon: 'fas fa-chart-bar', label: 'Reports', href: '/Assets/Admin_dashboard/report/report.html' },
-    { icon: 'fas fa-cog', label: 'Settings', href: '/Assets/Admin_dashboard/settings/setting.html' }
+    { icon: 'fas fa-chart-line', label: 'Home', href: '/Assets/Admin dashboard/Admin.html' },
+    { icon: 'fas fa-users', label: 'Students', href: '/Assets/Admin dashboard/students/record.html' },
+    { icon: 'fas fa-gavel', label: 'Penalties', href: '/Assets/Admin dashboard/penalties/student.html' },
+    { icon: 'fas fa-chart-bar', label: 'Reports', href: '/Assets/Admin dashboard/report/report.html' },
+    { icon: 'fas fa-cog', label: 'Settings', href: '/Assets/Admin dashboard/settings/setting.html' }
 ];
 
 // ============ CREATE BOTTOM NAVIGATION ============

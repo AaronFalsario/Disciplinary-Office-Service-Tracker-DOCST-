@@ -113,7 +113,7 @@ document.getElementById('sendResetLinkBtn')?.addEventListener('click', async () 
         
         // Send password reset email using Supabase Auth
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/Assets/Student_Authentication/Admin Authentication/update-password.html',
+            redirectTo: window.location.origin + '/Assets/Student Authentication/Admin Authentication/update-password.html',
         })
 
         if (resetError) {
@@ -145,7 +145,7 @@ document.getElementById('sendResetLinkBtn')?.addEventListener('click', async () 
                 // Wait 2 seconds then try again
                 setTimeout(async () => {
                     const { error: retryError } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: window.location.origin + '/Assets/Student_Authentication/Admin Authentication/update-password.html',
+                        redirectTo: window.location.origin + '/Assets/Student Authentication/Admin Authentication/update-password.html',
                     })
                     
                     if (retryError) {

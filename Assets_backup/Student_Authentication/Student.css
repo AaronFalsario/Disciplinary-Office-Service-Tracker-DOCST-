@@ -1,0 +1,846 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --blue: #2563EB;
+    --blue-dark: #1D4ED8;
+    --blue-deeper: #1741B0;
+    --blue-light: #EFF6FF;
+    --blue-mid: #3B82F6;
+    --text: #0F172A;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --surface: #FFFFFF;
+    --bg: #EEF3FF;
+    --input-bg: #F8FAFC;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --green: #10B981;
+    --green-light: #D1FAE5;
+}
+
+html,
+body {
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    animation: fadeInBody 0.6s ease-out;
+}
+
+@keyframes fadeInBody {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Card Container */
+.card {
+    background: var(--surface);
+    border-radius: 28px;
+    box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+    display: flex;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 620px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: cardSlideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+    margin-top: -10px;
+}
+
+@keyframes cardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* LEFT PANEL */
+.left {
+    background: linear-gradient(160deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+    width: 380px;
+    flex-shrink: 0;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    animation: slideInLeft 0.6s ease-out 0.1s both;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.left::before {
+    content: '';
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+    animation: pulseGlow 3s infinite;
+}
+
+.left::after {
+    content: '';
+    position: absolute;
+    left: -50px;
+    bottom: -50px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    animation: pulseGlow 3s infinite 0.5s;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.left-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+    animation: fadeInRight 0.5s ease-out 0.15s both;
+}
+
+.left-brand-icon img {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    animation: rotateIn 0.5s ease-out 0.2s both;
+}
+
+@keyframes rotateIn {
+    from {
+        opacity: 0;
+        transform: rotate(-180deg) scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+    }
+}
+
+.left-brand-text .top {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    opacity: 0.85;
+    text-transform: uppercase;
+    color: white;
+}
+
+.left-brand-text .btm {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    opacity: 0.75;
+    text-transform: uppercase;
+    margin-top: 2px;
+    color: white;
+}
+
+.left-headline {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 18px;
+    animation: fadeInRight 0.5s ease-out 0.2s both;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.left-sub {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    animation: fadeInRight 0.5s ease-out 0.25s both;
+}
+
+.left-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.left-feature {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.left-feature:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.left-feature:nth-child(2) {
+    animation-delay: 0.28s;
+}
+
+.left-feature:nth-child(3) {
+    animation-delay: 0.36s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.left-feature:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateX(5px);
+}
+
+.lf-icon {
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.lf-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.lf-sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 3px;
+}
+
+/* RIGHT PANEL */
+.right {
+    flex: 1;
+    padding: 44px 48px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: slideInRight 0.6s ease-out 0.15s both;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.right::-webkit-scrollbar {
+    width: 6px;
+}
+
+.right::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.right::-webkit-scrollbar-thumb {
+    background: var(--blue);
+    border-radius: 10px;
+}
+
+/* Panel switching animation */
+.panel {
+    display: none;
+}
+
+.panel.active {
+    display: flex;
+    flex-direction: column;
+    animation: panelFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes panelFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============ BOTH PANELS - WIDER FIELDS ============ */
+.panel-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: -.01em;
+    text-align: center;
+    animation: fadeInDown 0.4s ease-out 0.05s both;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.portal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--blue-light);
+    border: 1px solid #BFDBFE;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 24px;
+    margin-bottom: 20px;
+    width: fit-content;
+    align-self: center;
+    animation: fadeInUp 0.4s ease-out 0.1s both;
+}
+
+.panel-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    text-align: center;
+    line-height: 1.5;
+    animation: fadeInUp 0.4s ease-out 0.15s both;
+}
+
+/* ============ ALL FIELDS - WIDER ============ */
+.field {
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+/* BOTH LOGIN AND SIGNUP - WIDER FIELDS */
+#student-login .field,
+#student-signup .field {
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+/* Input Wrapper */
+.input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 0 16px;
+    transition: border-color .15s, box-shadow .2s;
+}
+
+.input-wrap:focus-within {
+    border-color: var(--blue);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-wrap i {
+    color: var(--muted);
+    font-size: 15px;
+    flex-shrink: 0;
+    width: 22px;
+}
+
+.input-wrap input {
+    flex: 1;
+    padding: 12px 10px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+}
+
+.input-wrap input::placeholder {
+    color: #AAA;
+}
+
+.input-wrap .eye-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 6px;
+    font-size: 14px;
+    transition: color .15s;
+}
+
+.input-wrap .eye-btn:hover {
+    color: var(--blue);
+}
+
+/* Checkbox Row - Wider */
+.row-check {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    animation: fadeInUp 0.4s ease-out 0.3s both;
+}
+
+.check-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.check-label input[type="checkbox"] {
+    accent-color: var(--blue);
+    width: 16px;
+    height: 16px;
+    transition: transform 0.1s;
+}
+
+.check-label input[type="checkbox"]:checked {
+    transform: scale(1.1);
+}
+
+.forgot-link {
+    font-size: 13px;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* Submit Button - Wider */
+.btn-submit {
+    width: 100%;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    padding: 14px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+    letter-spacing: .02em;
+    animation: fadeInUp 0.4s ease-out 0.35s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-submit::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.btn-submit:active::before {
+    width: 200px;
+    height: 200px;
+}
+
+.btn-submit:hover {
+    background: var(--blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Switch Text - Wider */
+.switch-text {
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    animation: fadeInUp 0.4s ease-out 0.4s both;
+}
+
+.switch-text a {
+    color: var(--blue);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.switch-text a:hover {
+    text-decoration: underline;
+    transform: translateX(2px);
+    display: inline-block;
+}
+
+/* ============ SIGNUP SPECIFIC - TIGHTER HEIGHT ============ */
+#student-signup .field {
+    margin-bottom: 14px;
+}
+
+#student-signup .input-wrap input {
+    padding: 9px 10px;
+}
+
+#student-signup .btn-submit {
+    padding: 11px;
+    margin-bottom: 14px;
+}
+
+#student-signup .info-banner {
+    margin-bottom: 18px;
+}
+
+#student-signup .panel-title {
+    margin-bottom: 6px;
+}
+
+#student-signup .portal-badge {
+    margin-bottom: 14px;
+}
+
+#student-signup .panel-desc {
+    margin-bottom: 20px;
+}
+
+/* Info Banner - Wider */
+.info-banner {
+    background: var(--blue-light);
+    border: 1px solid #BFDBFE;
+    border-radius: 12px;
+    padding: 12px 16px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    animation: fadeInUp 0.4s ease-out 0.2s both;
+}
+
+.info-banner .ib-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-banner .ib-sub {
+    font-size: 12px;
+    color: var(--blue);
+    opacity: 0.8;
+}
+
+/* Messages - Wider */
+.error-message {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: shake 0.4s ease, fadeInUp 0.3s ease;
+    font-weight: 500;
+    background: var(--red-light);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border-left: 3px solid var(--red);
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.success-message {
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeInUp 0.3s ease;
+    background: var(--green-light);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border-left: 3px solid var(--green);
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.input-wrap.error {
+    border-color: var(--red);
+    background: var(--red-light);
+    animation: shake 0.3s ease;
+}
+
+/* Small hint text for Student ID */
+.field small {
+    color: var(--muted);
+    font-size: 11px;
+    display: block;
+    margin-top: 6px;
+    padding-left: 4px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1024px) {
+    .left {
+        width: 320px;
+        padding: 32px 24px;
+    }
+
+    .right {
+        padding: 36px 32px;
+    }
+
+    #student-login .field,
+    #student-signup .field,
+    .btn-submit,
+    .switch-text,
+    .info-banner,
+    .row-check {
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 16px;
+        align-items: flex-start;
+    }
+
+    .card {
+        flex-direction: column;
+        border-radius: 24px;
+        max-width: 100%;
+        min-height: auto;
+        overflow: visible;
+        margin-top: 0;
+    }
+
+    .left {
+        display: none;
+    }
+
+    .right {
+        width: 100%;
+        padding: 32px 24px;
+        border-radius: 24px;
+        overflow-y: visible;
+    }
+
+    .panel-title {
+        font-size: 24px;
+    }
+
+    .portal-badge {
+        font-size: 12px;
+        padding: 5px 12px;
+    }
+
+    .panel-desc {
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
+
+    #student-login .field,
+    #student-signup .field,
+    .btn-submit,
+    .switch-text,
+    .info-banner,
+    .row-check {
+        max-width: 100%;
+    }
+
+    .btn-submit {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+
+    .right {
+        padding: 24px 20px;
+    }
+
+    .panel-title {
+        font-size: 22px;
+    }
+
+    .field label {
+        font-size: 12px;
+    }
+
+    .input-wrap {
+        padding: 0 12px;
+    }
+
+    .input-wrap input {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    .btn-submit {
+        padding: 11px;
+        font-size: 13px;
+    }
+
+    .switch-text {
+        font-size: 13px;
+    }
+
+    #student-signup .field {
+        margin-bottom: 12px;
+    }
+
+    #student-signup .input-wrap input {
+        padding: 8px 8px;
+    }
+}

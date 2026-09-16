@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Redirect after delay
             setTimeout(function() {
-                window.location.href = 'Assets/Student_Authentication/Admin Authentication/Admin.html';
+                window.location.href = 'Assets/Student Authentication/Admin Authentication/Admin.html';
             }, 1000);
             
             // Remove notification after animation
