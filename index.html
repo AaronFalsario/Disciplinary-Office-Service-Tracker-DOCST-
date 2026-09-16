@@ -1,166 +1,708 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAOCST - Student Affairs Office Community
-Service Tracker</title>
+    <title>SAOCST - Student Affairs Office Community Service Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="Assets/Images/DOCST LOGO.png" type="image/png">
-    <link rel="stylesheet" href="Assets/Landing/style.css">
+    <link rel="icon" href="/Assets/Images/DOCST LOGO.png" type="image/png">
+    <link rel="stylesheet" href="/Assets/Landing/style.css">
+    <style>
+        /* ===== TERMS MODAL ===== */
+        .terms-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(6px);
+            z-index: 20000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .terms-modal-overlay.active {
+            display: flex;
+        }
+
+        .terms-modal {
+            background: #ffffff;
+            max-width: 700px;
+            width: 100%;
+            border-radius: 24px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+            padding: 36px 34px 30px;
+            animation: modalFadeIn 0.25s ease;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .terms-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .terms-header i {
+            color: #2563EB;
+            font-size: 28px;
+        }
+
+        .terms-header h2 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0b1e3a;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .terms-subhead {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 0 20px 0;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e9eef4;
+            line-height: 1.5;
+        }
+
+        /* ===== SCROLLABLE BODY ===== */
+        .terms-scroll {
+            overflow-y: auto;
+            padding-right: 12px;
+            margin-bottom: 20px;
+            flex: 1;
+            max-height: 48vh;
+            font-size: 14.5px;
+            line-height: 1.7;
+            color: #334155;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+
+        .terms-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .terms-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .terms-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .terms-date {
+            font-size: 13px;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 0 0 18px 0;
+        }
+
+        .terms-intro {
+            background: #f8fafc;
+            border-left: 3px solid #2563EB;
+            padding: 14px 18px;
+            border-radius: 0 10px 10px 0;
+            margin: 0 0 24px 0;
+            font-size: 14.5px;
+            line-height: 1.7;
+            color: #1e293b;
+        }
+
+        .terms-intro strong {
+            color: #0b1e3a;
+        }
+
+        /* ===== SECTION HEADINGS ===== */
+        .terms-section {
+            margin-bottom: 22px;
+        }
+
+        .terms-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0b1e3a;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        .terms-section h3 .section-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #2563EB;
+            color: #fff;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .terms-section p {
+            margin: 0 0 10px 0;
+        }
+
+        .terms-section ul {
+            margin: 8px 0 10px 0;
+            padding-left: 20px;
+            list-style: none;
+        }
+
+        .terms-section ul li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 8px;
+        }
+
+        .terms-section ul li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 9px;
+            width: 6px;
+            height: 6px;
+            background: #2563EB;
+            border-radius: 50%;
+        }
+
+        .terms-section a,
+        .terms-section strong {
+            color: #0b1e3a;
+        }
+
+        /* ===== CHECKBOX ===== */
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .terms-checkbox:has(input:checked) {
+            border-color: #2563EB;
+            background: #eff6ff;
+        }
+
+        .terms-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: #2563EB;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .terms-checkbox label {
+            font-size: 14px;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1.5;
+        }
+
+        .terms-checkbox label strong {
+            color: #0b1e3a;
+        }
+
+        /* ===== ACTIONS ===== */
+        .terms-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .terms-btn {
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .terms-btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .terms-btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .terms-btn-primary {
+            background: #2563EB;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .terms-btn-primary:hover:not(:disabled) {
+            background: #1D4ED8;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .terms-btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 560px) {
+            .terms-modal {
+                padding: 26px 20px 22px;
+                border-radius: 20px;
+            }
+
+            .terms-header h2 {
+                font-size: 22px;
+            }
+
+            .terms-header i {
+                font-size: 24px;
+            }
+
+            .terms-actions {
+                flex-direction: column-reverse;
+            }
+
+            .terms-btn {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- Navigation -->
-<nav>
-    <a href="#" class="nav-logo">
-        <div class="nav-logo-icon">
-            <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo">
-        </div>
-        <span>SAOCST</span>
-    </a>
-    <div class="nav-actions">
-        <a href="Assets/Student Authentication/Student.html" class="portal-link">
-            <i class="fas fa-user-graduate"></i> Portal
-        </a>
-    </div>
-</nav>
-
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-inner">
-        <h1>Student Affairs Office Community<br>Service Tracker</h1>
-        <p>A centralized Digital System for managing and tracking Student Community Service Requirements with real-time Access and Record keeping</p>
-        <a href="Assets/Student Authentication/Student.html" class="btn-get-started">
-            Get Started <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="features" id="categories">
-    <div class="features-title">Key Features</div>
-    <div class="features-grid">
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-list-check"></i></div>
-            <div class="feature-title">Track Service Hours</div>
-            <div class="feature-desc">View required Service hours, pending task, and completed work in an organized dashboard</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-clock-rotate-left"></i></div>
-            <div class="feature-title">Real-time Access</div>
-            <div class="feature-desc">Monitor Deadline and stay informed about your Disciplinary status with instant update</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
-            <div class="feature-title">Secure Access</div>
-            <div class="feature-desc">Dedicated portal for student, and administrators with role-based access control</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fas fa-circle-check"></i></div>
-            <div class="feature-title">Efficient Management</div>
-            <div class="feature-desc">Streamlined recording, verification and updating of student community service requirements</div>
-        </div>
-    </div>
-</section>
-
-<!-- Footer -->
-<footer>
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>SAOCST</h3>
-            <p>Student Affairs Office Community Service Tracker - A centralized digital system for managing student community service requirements with real-time access and record keeping.</p>
-        </div>
-        <div class="footer-section">
-            <h3>Quick Links</h3>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#categories">Features</a></li>
-                <li><a href="Assets/Student Authentication/Student.html">Student Portal</a></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h3>Follow Us</h3>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
+    <!-- Navigation -->
+    <nav>
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">
+                <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="SAOCST Logo">
             </div>
-            <p style="margin-top: 16px;">📧 saocst@gmail.com</p>
+            <span>SAOCST</span>
+        </a>
+        <div class="nav-actions">
+            <a href="#" class="portal-link" id="portalLink">
+                <i class="fas fa-user-graduate"></i> Portal
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-inner">
+            <h1>Student Affairs Office Community<br>Service Tracker</h1>
+            <p>A centralized Digital System for managing and tracking Student Community Service Requirements with
+                real-time Access and Record keeping</p>
+            <a href="#" class="btn-get-started" id="getStartedBtn">
+                Get Started <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="categories">
+        <div class="features-title">Key Features</div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-list-check"></i></div>
+                <div class="feature-title">Track Service Hours</div>
+                <div class="feature-desc">View required Service hours, pending task, and completed work in an organized
+                    dashboard</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                <div class="feature-title">Real-time Access</div>
+                <div class="feature-desc">Monitor Deadline and stay informed about your Disciplinary status with instant
+                    update</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+                <div class="feature-title">Secure Access</div>
+                <div class="feature-desc">Dedicated portal for student, and administrators with role-based access
+                    control</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-circle-check"></i></div>
+                <div class="feature-title">Efficient Management</div>
+                <div class="feature-desc">Streamlined recording, verification and updating of student community service
+                    requirements</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>SAOCST</h3>
+                <p>Student Affairs Office Community Service Tracker - A centralized digital system for managing student
+                    community service requirements with real-time access and record keeping.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#categories">Features</a></li>
+                    <li><a href="#" id="footerPortalLink">Student Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                </div>
+                <p style="margin-top: 16px;">📧 saocst@gmail.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 SAOCST - Student Affairs Office Community Service Tracker. All rights reserved.</p>
+            <p style="margin-top: 8px;">
+                <span class="secret-admin" id="secretAdminBtn" title="Admin Access (Double Click)"
+                    style="cursor: pointer; padding: 4px 8px; border-radius: 20px; background: rgba(0,0,0,0.05);">
+                    🔧 <span style="font-size: 10px;">v1.0.0</span>
+                </span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- ===== TERMS OF USE MODAL ===== -->
+    <div class="terms-modal-overlay" id="termsModalOverlay">
+        <div class="terms-modal" role="dialog" aria-labelledby="termsModalTitle" aria-modal="true">
+
+            <div class="terms-header">
+                <i class="fas fa-file-contract"></i>
+                <h2 id="termsModalTitle">Terms of Use</h2>
+            </div>
+            <p class="terms-subhead">Please review and accept the terms before proceeding to the Student Portal.</p>
+
+            <div class="terms-scroll">
+                <p class="terms-date"><strong>Effective date:</strong> January 1, 2026</p>
+
+                <p class="terms-intro">
+                    <strong>Welcome to SAOCST.</strong> The Student Affairs Office Community Service Tracker ("SAOCST",
+                    "the platform") is a data-based tracking system designed to record, monitor, and manage student
+                    community service requirements. By accessing, browsing, or using this platform, you acknowledge
+                    that you have read, understood, and agreed to comply with the following Terms of Use. If you do not
+                    accept these terms in full, please discontinue use of the platform immediately.
+                </p>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">1</span> Acceptance of Terms</h3>
+                    <p>By clicking "I Agree" and proceeding to the Student Portal, you confirm that you have read,
+                        understood, and accepted these Terms of Use, and that you are at least 18 years of age or have
+                        parental/guardian consent to use this system.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">2</span> Purpose of the System</h3>
+                    <p>SAOCST is a centralized, data-driven tracking platform that records and monitors student
+                        community service hours, deadlines, and disciplinary status. All data entered into the system
+                        is used solely for tracking, verification, and reporting of community service compliance. The
+                        system is intended for use by enrolled students and authorized administrators only.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">3</span> Data Collection &amp; Tracking</h3>
+                    <ul>
+                        <li>The platform collects and stores personal information, service records, timestamps, and
+                            activity logs necessary for tracking community service progress.</li>
+                        <li>All tracked data is used exclusively for monitoring service hours, verifying compliance,
+                            and generating reports for authorized personnel.</li>
+                        <li>You consent to the continuous tracking and recording of your service-related activity within
+                            the platform.</li>
+                        <li>Data is retained for the duration required by institutional policy and applicable
+                            record-keeping regulations.</li>
+                    </ul>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">4</span> User Responsibilities</h3>
+                    <ul>
+                        <li>You agree to provide accurate, current, and complete information during registration and
+                            throughout your use of the system.</li>
+                        <li>You are responsible for maintaining the confidentiality of your login credentials and for
+                            all activities that occur under your account.</li>
+                        <li>You agree not to misuse the platform, including but not limited to attempting unauthorized
+                            access, submitting false service records, or interfering with system operations.</li>
+                    </ul>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">5</span> Data Privacy &amp; Record Keeping</h3>
+                    <p>Your personal information and service records will be stored and processed in accordance with
+                        applicable data privacy laws and the institution's privacy policy. As a tracking system,
+                        SAOCST maintains historical records of your service activity. We implement reasonable security
+                        measures to protect your data; however, we cannot guarantee absolute security.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">6</span> Service Verification</h3>
+                    <p>All community service submissions are subject to verification by authorized personnel. SAOCST
+                        reserves the right to reject or revoke credit for any service activity that does not meet
+                        institutional guidelines or that is found to be falsified.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">7</span> Limitation of Liability</h3>
+                    <p>SAOCST and its developers shall not be liable for any direct, indirect, incidental, or
+                        consequential damages arising from your use of, or inability to use, the platform, including
+                        but not limited to loss of data, tracking inaccuracies, or missed deadlines.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">8</span> Modifications</h3>
+                    <p>We may update these Terms of Use from time to time. Continued use of the platform after changes
+                        are posted constitutes your acceptance of the revised terms.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h3><span class="section-num">9</span> Contact</h3>
+                    <p>If you have any questions about these Terms, please contact the Student Affairs Office at
+                        <strong>saocst@gmail.com</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="terms-checkbox">
+                <input type="checkbox" id="termsCheckbox">
+                <label for="termsCheckbox">
+                    I have read and agree to the <strong>Terms of Use</strong> of the SAOCST platform.
+                </label>
+            </div>
+
+            <div class="terms-actions">
+                <button class="terms-btn terms-btn-secondary" id="termsCancelBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="terms-btn terms-btn-primary" id="termsAgreeBtn" disabled>
+                    <i class="fas fa-check"></i> I Agree &amp; Continue
+                </button>
+            </div>
         </div>
     </div>
-    <div class="footer-bottom">
-        <p>© 2026 SAOCST - Student Affairs Office Community Service Tracker. All rights reserved.</p>
-        <p style="margin-top: 8px;">
-            <span class="secret-admin" id="secretAdminBtn" title="Admin Access (Double Click)" style="cursor: pointer; padding: 4px 8px; border-radius: 20px; background: rgba(0,0,0,0.05);">
-                🔧 <span style="font-size: 10px;">v1.0.0</span>
-            </span>
-        </p>
-    </div>
-</footer>
 
-<script>
-    // ============ DIRECT SCRIPT - NO EXTERNAL FILE NEEDED ============
-    (function() {
-        console.log('🔧 Script loaded');
-        
-        // Find the secret admin button
-        const secretAdminBtn = document.getElementById('secretAdminBtn');
-        
-        if (secretAdminBtn) {
-            console.log('✅ Secret admin button found!');
-            
-            secretAdminBtn.addEventListener('dblclick', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🔐 Double click detected! Redirecting...');
-                
-                // Create notification
-                const notification = document.createElement('div');
-                notification.innerHTML = `
-                    <div style="
-                        position: fixed;
-                        bottom: 20px;
-                        right: 20px;
-                        background: linear-gradient(135deg, #2563EB, #1D4ED8);
-                        color: white;
-                        padding: 14px 24px;
-                        border-radius: 12px;
-                        font-size: 14px;
-                        font-weight: 500;
-                        z-index: 10000;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                        animation: slideIn 0.3s ease;
-                    ">
-                        🔐 Redirecting to Admin Portal...
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                // Redirect to admin login
-                setTimeout(function() {
-                    window.location.href = 'Assets/Student Authentication/Admin Authentication/Admin.html';
-                }, 800);
-                
-                // Remove notification
-                setTimeout(function() {
-                    if (notification.remove) notification.remove();
-                }, 1500);
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ===== HAMBURGER MENU =====
+            const nav = document.querySelector('nav');
+            if (nav && !document.querySelector('.hamburger')) {
+                const hamburgerBtn = document.createElement('button');
+                hamburgerBtn.className = 'hamburger';
+                hamburgerBtn.id = 'hamburger';
+                hamburgerBtn.innerHTML = '<span></span><span></span><span></span>';
+                const navLogo = document.querySelector('.nav-logo');
+                if (navLogo) nav.insertBefore(hamburgerBtn, navLogo.nextSibling);
+            }
+
+            const hamburger = document.getElementById('hamburger');
+            if (hamburger) {
+                hamburger.addEventListener('click', function () {
+                    const navActions = document.querySelector('.nav-actions');
+                    if (navActions) navActions.classList.toggle('nav-actions-mobile');
+                });
+            }
+
+            // ===== SECRET ADMIN BUTTON =====
+            const secretAdminBtn = document.getElementById('secretAdminBtn');
+            if (secretAdminBtn) {
+                secretAdminBtn.addEventListener('dblclick', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const notification = document.createElement('div');
+                    notification.innerHTML = `
+                        <div style="
+                            position: fixed;
+                            bottom: 20px;
+                            right: 20px;
+                            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+                            color: white;
+                            padding: 12px 20px;
+                            border-radius: 12px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            z-index: 10000;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                            animation: slideIn 0.3s ease;
+                        ">
+                            🔐 Redirecting to Admin Portal...
+                        </div>
+                    `;
+                    document.body.appendChild(notification);
+
+                    setTimeout(function () {
+                        window.location.href = 'Assets/Student_Authentication/Admin_Authentication/Admin.html';
+                    }, 1000);
+
+                    setTimeout(function () {
+                        if (notification.remove) notification.remove();
+                    }, 1500);
+                });
+            }
+
+            // ===== TERMS MODAL =====
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            const portalLink = document.getElementById('portalLink');
+            const footerPortalLink = document.getElementById('footerPortalLink');
+            const termsOverlay = document.getElementById('termsModalOverlay');
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            const termsAgreeBtn = document.getElementById('termsAgreeBtn');
+            const termsCancelBtn = document.getElementById('termsCancelBtn');
+
+            const STUDENT_PORTAL_URL = '/Assets/Student_Authentication/Student.html';
+
+            function openTermsModal(e) {
+                if (e) e.preventDefault();
+
+                if (localStorage.getItem('saocst_terms_accepted') === 'true') {
+                    window.location.href = STUDENT_PORTAL_URL;
+                    return;
+                }
+
+                termsCheckbox.checked = false;
+                termsAgreeBtn.disabled = true;
+                termsOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeTermsModal() {
+                termsOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            if (getStartedBtn) getStartedBtn.addEventListener('click', openTermsModal);
+            if (portalLink) portalLink.addEventListener('click', openTermsModal);
+            if (footerPortalLink) footerPortalLink.addEventListener('click', openTermsModal);
+
+            if (termsCancelBtn) termsCancelBtn.addEventListener('click', closeTermsModal);
+
+            if (termsOverlay) {
+                termsOverlay.addEventListener('click', function (e) {
+                    if (e.target === termsOverlay) closeTermsModal();
+                });
+            }
+
+            if (termsCheckbox) {
+                termsCheckbox.addEventListener('change', function () {
+                    termsAgreeBtn.disabled = !termsCheckbox.checked;
+                });
+            }
+
+            if (termsAgreeBtn) {
+                termsAgreeBtn.addEventListener('click', function () {
+                    if (!termsCheckbox.checked) return;
+
+                    localStorage.setItem('saocst_terms_accepted', 'true');
+                    localStorage.setItem('saocst_terms_accepted_at', new Date().toISOString());
+
+                    window.location.href = STUDENT_PORTAL_URL;
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && termsOverlay.classList.contains('active')) {
+                    closeTermsModal();
+                }
             });
-        } else {
-            console.error('❌ Secret admin button NOT found! Check the element with id "secretAdminBtn"');
-        }
-        
-        // Add animation style
+        });
+
+        // ===== DYNAMIC STYLES =====
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideIn {
                 from { transform: translateX(100%); opacity: 0; }
                 to { transform: translateX(0); opacity: 1; }
             }
+
+            .hamburger {
+                display: none;
+                flex-direction: column;
+                cursor: pointer;
+                background: none;
+                border: none;
+                padding: 8px;
+            }
+
+            .hamburger span {
+                width: 25px;
+                height: 3px;
+                background: #333;
+                margin: 3px 0;
+                border-radius: 3px;
+                transition: 0.3s;
+            }
+
+            @media (max-width: 768px) {
+                .hamburger { display: flex; }
+
+                .nav-actions { display: none !important; }
+
+                .nav-actions.nav-actions-mobile {
+                    display: flex !important;
+                    position: absolute;
+                    top: 70px;
+                    right: 20px;
+                    background: white;
+                    flex-direction: column;
+                    padding: 15px 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                }
+
+                .nav-actions.nav-actions-mobile a { margin: 5px 0; }
+            }
         `;
         document.head.appendChild(style);
-    })();
-</script>
+    </script>
 
 </body>
+
 </html>

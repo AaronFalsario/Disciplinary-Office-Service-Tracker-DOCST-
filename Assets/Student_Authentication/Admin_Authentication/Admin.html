@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>SAOCST — Admin Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/Assets/Student_Authentication/Admin_Authentication/Admin.css">
+    <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
+    <base href="/">
+</head>
+<style>
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --blue: #2563EB;
+        --blue-dark: #1D4ED8;
+        --blue-deeper: #1741B0;
+        --blue-light: #EFF6FF;
+        --blue-mid: #3B82F6;
+        --text: #0F172A;
+        --muted: #64748B;
+        --border: #E2E8F0;
+        --surface: #FFFFFF;
+        --bg: #EEF3FF;
+        --input-bg: #F8FAFC;
+        --red: #DC2626;
+        --red-light: #FEE2E2;
+        --green: #10B981;
+        --green-light: #D1FAE5;
+    }
+
+    html,
+    body {
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px;
+    }
+
+    .card {
+        background: var(--surface);
+        border-radius: 28px;
+        box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+        display: flex;
+        width: 100%;
+        max-width: 1100px;
+        min-height: 680px;
+        overflow: hidden;
+    }
+
+    /* LEFT PANEL */
+    .left {
+        background: linear-gradient(160deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+        width: 380px;
+        flex-shrink: 0;
+        padding: 40px 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .left::before {
+        content: '';
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        pointer-events: none;
+    }
+
+    .left::after {
+        content: '';
+        position: absolute;
+        left: -50px;
+        bottom: -50px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        pointer-events: none;
+    }
+
+    .left-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+
+    .left-brand-icon img {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+    }
+
+    .left-brand-text {
+        color: #fff;
+    }
+
+    .left-brand-text .top {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        opacity: 0.85;
+        text-transform: uppercase;
+    }
+
+    .left-brand-text .btm {
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0.75;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .left-headline {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.3;
+        margin-bottom: 18px;
+    }
+
+    .left-sub {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.6;
+        margin-bottom: 36px;
+    }
+
+    .left-features {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .left-feature {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .lf-icon {
+        width: 38px;
+        height: 38px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+    }
+
+    .lf-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .lf-sub {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.65);
+        margin-top: 3px;
+    }
+
+    /* RIGHT PANEL */
+    .right {
+        flex: 1;
+        padding: 44px 48px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .panel {
+        display: none;
+    }
+
+    .panel.active {
+        display: block;
+    }
+
+    .panel-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--blue-light);
+        border: 1px solid #BFDBFE;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 24px;
+        margin-bottom: 16px;
+    }
+
+    .panel-desc {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 24px;
+    }
+
+    .security-steps {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .step {
+        flex: 1;
+        height: 4px;
+        border-radius: 4px;
+        background: var(--border);
+    }
+
+    .step.active {
+        background: var(--blue);
+    }
+
+    .step.done {
+        background: var(--blue);
+    }
+
+    .step-label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 20px;
+    }
+
+    .admin-info-banner {
+        background: var(--blue-light);
+        border: 1px solid #BFDBFE;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 24px;
+    }
+
+    .admin-info-banner .ib-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--blue);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .admin-info-banner .ib-sub {
+        font-size: 12px;
+        color: var(--blue);
+        opacity: 0.8;
+    }
+
+    .field {
+        margin-bottom: 20px;
+    }
+
+    .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+
+    .input-wrap {
+        display: flex;
+        align-items: center;
+        background: var(--input-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 0 16px;
+        transition: all 0.2s;
+    }
+
+    .input-wrap:focus-within {
+        border-color: var(--blue);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .input-wrap i {
+        color: var(--muted);
+        font-size: 15px;
+        width: 20px;
+    }
+
+    .input-wrap input {
+        flex: 1;
+        padding: 14px 10px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .input-wrap .eye-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        padding: 8px;
+    }
+
+    .row-check {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        font-size: 13px;
+        color: var(--blue);
+        text-decoration: none;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+        background: var(--blue-dark);
+        transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 13px;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+        color: var(--blue);
+    }
+
+    .otp-row {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .otp-input {
+        width: 56px;
+        height: 56px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        background: var(--input-bg);
+        outline: none;
+    }
+
+    .otp-input:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .otp-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 20px;
+    }
+
+    .error-message {
+        color: var(--red);
+        font-size: 12px;
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--red-light);
+        border-radius: 10px;
+        border-left: 3px solid var(--red);
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 380px;
+        pointer-events: none;
+    }
+
+    /* Toast Base Styles */
+    .toast {
+        background: white;
+        border-radius: 20px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.05);
+        pointer-events: auto;
+        cursor: pointer;
+        animation: toastSlideIn 0.3s ease forwards;
+        transition: all 0.2s ease;
+        border-left: 4px solid;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    .toast:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Toast Types */
+    .toast-success {
+        border-left-color: #10b981;
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    }
+
+    .toast-success .toast-icon {
+        background: #10b981;
+        color: white;
+    }
+
+    .toast-error {
+        border-left-color: #ef4444;
+        background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+    }
+
+    .toast-error .toast-icon {
+        background: #ef4444;
+        color: white;
+    }
+
+    .toast-warning {
+        border-left-color: #f59e0b;
+        background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+    }
+
+    .toast-warning .toast-icon {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .toast-info {
+        border-left-color: #3b82f6;
+        background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    }
+
+    .toast-info .toast-icon {
+        background: #3b82f6;
+        color: white;
+    }
+
+    /* Toast Icon */
+    .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Toast Content */
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #1f2937;
+    }
+
+    .toast-message {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+
+    /* Toast Close Button */
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 14px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        margin: -4px -4px -4px 0;
+        transition: color 0.2s;
+        flex-shrink: 0;
+    }
+
+    .toast-close:hover {
+        color: #6b7280;
+    }
+
+    /* Animations */
+    @keyframes toastSlideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes toastSlideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    .toast-removing {
+        animation: toastSlideOut 0.25s ease forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .toast-container {
+            top: 16px;
+            right: 16px;
+            left: 16px;
+            max-width: none;
+        }
+
+        .toast {
+            padding: 12px 16px;
+        }
+
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+
+        .toast-title {
+            font-size: 13px;
+        }
+
+        .toast-message {
+            font-size: 12px;
+        }
+    }
+
+    /* ============ RESPONSIVE - HIDE BLUE PANEL ON MOBILE ============ */
+    @media (max-width: 768px) {
+        body {
+            padding: 16px;
+            align-items: flex-start;
+        }
+
+        .card {
+            flex-direction: column;
+            border-radius: 24px;
+            max-width: 100%;
+            min-height: auto;
+            overflow: visible;
+        }
+
+        /* HIDE the blue panel on mobile */
+        .left {
+            display: none;
+        }
+
+        /* RIGHT PANEL takes full width */
+        .right {
+            width: 100%;
+            padding: 32px 24px;
+            border-radius: 24px;
+            overflow-y: visible;
+        }
+
+        .panel-title {
+            font-size: 24px;
+        }
+
+        .admin-badge {
+            font-size: 11px;
+            padding: 5px 12px;
+        }
+
+        .panel-desc {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            font-size: 12px;
+        }
+
+        .input-wrap {
+            padding: 0 14px;
+        }
+
+        .input-wrap input {
+            padding: 11px 8px;
+            font-size: 14px;
+        }
+
+        .btn-submit {
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .otp-input {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+
+        .otp-row {
+            gap: 8px;
+        }
+
+        .security-steps {
+            gap: 6px;
+        }
+
+        .admin-info-banner {
+            padding: 10px 12px;
+            margin-bottom: 20px;
+        }
+
+        .admin-info-banner .ib-title {
+            font-size: 12px;
+        }
+
+        .admin-info-banner .ib-sub {
+            font-size: 11px;
+        }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+        body {
+            padding: 12px;
+        }
+
+        .right {
+            padding: 24px 20px;
+        }
+
+        .panel-title {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .admin-badge {
+            font-size: 10px;
+            padding: 4px 10px;
+            margin-bottom: 12px;
+        }
+
+        .panel-desc {
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .input-wrap {
+            padding: 0 12px;
+        }
+
+        .input-wrap input {
+            padding: 10px 6px;
+            font-size: 13px;
+        }
+
+        .input-wrap i {
+            font-size: 13px;
+            width: 18px;
+        }
+
+        .btn-submit {
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .row-check {
+            margin-bottom: 18px;
+            font-size: 12px;
+        }
+
+        .check-label {
+            font-size: 12px;
+        }
+
+        .forgot-link {
+            font-size: 12px;
+        }
+
+        .otp-input {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .otp-row {
+            gap: 6px;
+        }
+
+        .step-label {
+            font-size: 10px;
+            margin-bottom: 16px;
+        }
+    }
+</style>
+
+<body>
+    <div class="card">
+        <!-- LEFT PANEL -->
+        <div class="left">
+            <div class="left-brand">
+                <div class="left-brand-icon">
+                    <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="DOCST Logo"
+                        onerror="this.style.backgroundColor='rgba(255,255,255,0.2)'">
+                </div>
+                <div class="left-brand-text">
+                    <div class="top">Student Affair Office</div>
+                    <div class="btm">Community Service Tracker</div>
+                </div>
+            </div>
+            <div class="left-headline">Maintain Integrity &amp;<br>Excellence.</div>
+            <div class="left-sub">The centralized Student Affair Office record tracking system for administrators and
+                students. Secure, transparent and efficient.</div>
+            <div class="left-features">
+                <div class="left-feature">
+                    <div class="lf-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <div class="lf-title">Admin Control</div>
+                        <div class="lf-sub">Manage records and cases efficiently.</div>
+                    </div>
+                </div>
+                <div class="left-feature">
+                    <div class="lf-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div>
+                        <div class="lf-title">Student Access</div>
+                        <div class="lf-sub">View status and student appeals.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL - Single Step Login (No OTP) -->
+        <div class="right">
+            <div class="panel active" id="step1">
+                <div class="panel-title">Admin Login</div>
+                <div class="admin-badge"><i class="fas fa-shield-halved"></i> Admin Portal</div>
+                <div class="panel-desc">Restricted access. Authorized personnel only.</div>
+                <div class="admin-info-banner">
+                    <div class="ib-title"><i class="fas fa-triangle-exclamation"></i> Restricted Access</div>
+                    <div class="ib-sub">This portal is for authorized administrators only. All login attempts are
+                        logged.</div>
+                </div>
+                <div class="field">
+                    <label>Admin ID or Email</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user-shield"></i>
+                        <input type="text" id="admin-username" placeholder="ADMIN-001 or admin@docst.edu.ph">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="admin-password" placeholder="Enter your password">
+                        <button class="eye-btn" type="button" onclick="togglePassword('admin-password', this)"><i
+                                class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="row-check">
+                    <label class="check-label"><input type="checkbox" id="rememberMe"> Keep me signed in</label>
+                    <a href="#" class="forgot-link" id="forgotLink">Forgot Password?</a>
+                </div>
+                <button class="btn-submit" id="loginBtn">Login <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from '@supabase/supabase-js'
+
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+        const supabase = createClient(supabaseUrl, supabaseKey)
+
+        // Make supabase available globally
+        window.supabase = supabase;
+
+        function qs(id) {
+            return document.getElementById(id)
+        }
+
+        function showError(inputElement, message) {
+            if (!inputElement) return
+            const parent = inputElement.closest('.field') || inputElement.parentElement
+            if (!parent) return
+            const old = parent.querySelector('.error-message')
+            if (old) old.remove()
+            const div = document.createElement('div')
+            div.className = 'error-message'
+            div.innerHTML = ` ${message}`
+            parent.appendChild(div)
+            setTimeout(() => {
+                if (div.parentElement) div.remove()
+            }, 5000)
+        }
+
+        function clearError(inputElement) {
+            if (!inputElement) return
+            const parent = inputElement.closest('.field') || inputElement.parentElement
+            const old = parent?.querySelector('.error-message')
+            if (old) old.remove()
+        }
+
+        // ============ TOAST SYSTEM ============
+        let toastContainer = null;
+
+        function getToastContainer() {
+            if (!toastContainer) {
+                toastContainer = document.querySelector('.toast-container');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.className = 'toast-container';
+                    document.body.appendChild(toastContainer);
+                }
+            }
+            return toastContainer;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function removeToast(toast) {
+            toast.classList.add('toast-removing');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 250);
+        }
+
+        function showToast(message, type = 'info', title = null, duration = 4000) {
+            const container = getToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            let iconHtml = '';
+            let defaultTitle = '';
+            switch (type) {
+                case 'success':
+                    iconHtml = '<i class="fas fa-check-circle"></i>';
+                    defaultTitle = 'Success';
+                    break;
+                case 'error':
+                    iconHtml = '<i class="fas fa-times-circle"></i>';
+                    defaultTitle = 'Error';
+                    break;
+                case 'warning':
+                    iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+                    defaultTitle = 'Warning';
+                    break;
+                case 'info':
+                default:
+                    iconHtml = '<i class="fas fa-info-circle"></i>';
+                    defaultTitle = 'Information';
+                    break;
+            }
+            const finalTitle = title || defaultTitle;
+            toast.innerHTML = `
+            <div class="toast-icon">${iconHtml}</div>
+            <div class="toast-content">
+                <div class="toast-title">${escapeHtml(finalTitle)}</div>
+                <div class="toast-message">${escapeHtml(message)}</div>
+            </div>
+            <button class="toast-close"><i class="fas fa-times"></i></button>
+        `;
+            container.appendChild(toast);
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeToast(toast);
+            });
+            toast.addEventListener('click', (e) => {
+                if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+                    removeToast(toast);
+                }
+            });
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        removeToast(toast);
+                    }
+                }, duration);
+            }
+            return toast;
+        }
+
+        function showSuccessToast(message, title = 'Success', duration = 4000) {
+            return showToast(message, 'success', title, duration);
+        }
+
+        function showErrorToast(message, title = 'Error', duration = 5000) {
+            return showToast(message, 'error', title, duration);
+        }
+
+        function showWarningToast(message, title = 'Warning', duration = 4000) {
+            return showToast(message, 'warning', title, duration);
+        }
+
+        function showInfoToast(message, title = 'Information', duration = 3000) {
+            return showToast(message, 'info', title, duration);
+        }
+
+        function disable(btn, text) {
+            if (!btn) return
+            btn.disabled = true
+            btn.innerHTML = text
+        }
+
+        function enable(btn, text) {
+            if (!btn) return
+            btn.disabled = false
+            btn.innerHTML = text
+        }
+
+        // Toggle password visibility
+        window.togglePassword = function (inputId, btn) {
+            const input = qs(inputId)
+            if (!input) return
+            const hidden = input.type === 'password'
+            input.type = hidden ? 'text' : 'password'
+            btn.innerHTML = hidden
+                ? '<i class="fas fa-eye-slash"></i>'
+                : '<i class="fas fa-eye"></i>'
+        }
+
+        // ============ FORGOT PASSWORD MODAL ============
+        function openForgotPasswordModal() {
+            let modal = qs('forgotPasswordModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'forgotPasswordModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                <div class="modal-content" style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: white;
+                    padding: 30px;
+                    border-radius: 16px;
+                    width: 90%;
+                    max-width: 400px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    z-index: 10001;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 20px;">Reset Password</h3>
+                        <button id="closeForgotModalBtn" style="
+                            background: none;
+                            border: none;
+                            font-size: 24px;
+                            cursor: pointer;
+                            color: #666;
+                        ">&times;</button>
+                    </div>
+                    <p style="margin-bottom: 20px; color: #666;">Enter your email address and we'll send you a link to reset your password.</p>
+                    <div class="field" style="margin-bottom: 20px;">
+                        <label>Email Address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="forgot-email" placeholder="admin@gordoncollege.edu.ph">
+                        </div>
+                    </div>
+                    <button id="forgotPasswordBtn" class="btn-submit" style="width: 100%; margin-bottom: 10px;">Send Reset Link</button>
+                    <button id="cancelForgotBtn" style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 1px solid #ddd;
+                        background: white;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">Cancel</button>
+                </div>
+                <div class="modal-overlay" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 10000;
+                "></div>
+            `;
+                document.body.appendChild(modal);
+                const closeBtn = qs('closeForgotModalBtn');
+                const cancelBtn = qs('cancelForgotBtn');
+                const overlay = modal.querySelector('.modal-overlay');
+                const forgotBtn = qs('forgotPasswordBtn');
+                if (closeBtn) closeBtn.onclick = closeForgotPasswordModal;
+                if (cancelBtn) cancelBtn.onclick = closeForgotPasswordModal;
+                if (overlay) overlay.onclick = closeForgotPasswordModal;
+                if (forgotBtn) forgotBtn.onclick = handleForgotPassword;
+                const emailInput = qs('forgot-email');
+                if (emailInput) {
+                    emailInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleForgotPassword();
+                        }
+                    });
+                }
+            }
+            modal.style.display = 'block';
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = qs('forgotPasswordModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // ============ FORGOT PASSWORD FUNCTION ============
+        async function handleForgotPassword() {
+            const emailInput = qs('forgot-email');
+            if (!emailInput) return;
+            const email = emailInput.value.trim();
+            const forgotBtn = qs('forgotPasswordBtn');
+            clearError(emailInput);
+            if (!email) {
+                showErrorToast('Please enter your email address', 'Email Required');
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showErrorToast('Please enter a valid email address', 'Invalid Email');
+                return;
+            }
+            disable(forgotBtn, 'Checking...');
+            try {
+                const { data: admin, error: adminError } = await supabase
+                    .from('admins')
+                    .select('email, full_name')
+                    .eq('email', email)
+                    .maybeSingle();
+                if (adminError || !admin) {
+                    showErrorToast('No admin account found with this email', 'Account Not Found');
+                    enable(forgotBtn, 'Send Reset Link');
+                    return;
+                }
+                const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/Assets/Admin_dashboard/password/password.html`
+                });
+                if (resetError) {
+                    console.error('Reset error:', resetError);
+                    showErrorToast('Failed to send reset email. Please try again.', 'Reset Failed');
+                    enable(forgotBtn, 'Send Reset Link');
+                    return;
+                }
+                showSuccessToast(`Password reset link sent to ${email}. Check your inbox!`, 'Email Sent', 5000);
+                emailInput.value = '';
+                closeForgotPasswordModal();
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showErrorToast('An error occurred. Please try again.', 'Error');
+                enable(forgotBtn, 'Send Reset Link');
+            }
+        }
+
+        // ============ CHECK FOR EXISTING SESSION ============
+        async function checkExistingSession() {
+            console.log('Checking for existing admin session...');
+            const storedAdmin = localStorage.getItem('currentAdmin');
+            if (!storedAdmin) {
+                console.log('No stored admin session found');
+                return false;
+            }
+            try {
+                const sessionExpiry = localStorage.getItem('adminSessionExpiry');
+                if (sessionExpiry && new Date(sessionExpiry) < new Date()) {
+                    console.log('Session expired');
+                    localStorage.removeItem('currentAdmin');
+                    localStorage.removeItem('adminSessionExpiry');
+                    return false;
+                }
+                const admin = JSON.parse(storedAdmin);
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admins')
+                    .select('id, status, role, full_name')
+                    .eq('id', admin.id)
+                    .single();
+                if (adminError || !adminData || adminData.status !== 'active') {
+                    console.log('Admin account invalid or inactive');
+                    localStorage.removeItem('currentAdmin');
+                    localStorage.removeItem('adminSessionExpiry');
+                    return false;
+                }
+                console.log('Valid session found for admin:', adminData.full_name || admin.email);
+                return true;
+            } catch (error) {
+                console.error('Session check error:', error);
+                localStorage.removeItem('currentAdmin');
+                localStorage.removeItem('adminSessionExpiry');
+                return false;
+            }
+        }
+
+        // ============ REDIRECT TO DASHBOARD IF ALREADY LOGGED IN ============
+        async function redirectIfAlreadyLoggedIn() {
+            const hasValidSession = await checkExistingSession();
+            if (hasValidSession) {
+                console.log('Already logged in - redirecting to dashboard...');
+                window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+                return true;
+            }
+            return false;
+        }
+
+        // ============ DIRECT LOGIN (NO OTP) ============
+        async function handleLogin() {
+            const usernameInput = qs('admin-username')
+            const passwordInput = qs('admin-password')
+            const loginBtn = qs('loginBtn')
+
+            const username = usernameInput.value.trim()
+            const password = passwordInput.value.trim()
+
+            clearError(usernameInput)
+            clearError(passwordInput)
+
+            if (!username) {
+                showErrorToast('Enter Admin ID or Email', 'Missing Field');
+                return
+            }
+
+            if (!password) {
+                showErrorToast('Enter Password', 'Missing Field');
+                return
+            }
+
+            disable(loginBtn, 'Logging in...')
+
+            try {
+                const { data: admin, error } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .or(`admin_id.ilike.${username},email.ilike.${username}`)
+                    .maybeSingle()
+
+                console.log('Admin found:', admin?.email)
+
+                if (error || !admin) {
+                    showErrorToast('Admin not found. Please check your credentials.', 'Login Failed');
+                    enable(loginBtn, 'Login')
+                    return
+                }
+
+                if (admin.password_hash !== password) {
+                    showErrorToast('Wrong password. Please try again.', 'Authentication Failed');
+                    enable(loginBtn, 'Login')
+                    return
+                }
+
+                if (admin.status !== 'active') {
+                    showErrorToast('Your account is inactive. Please contact support.', 'Account Inactive');
+                    enable(loginBtn, 'Login')
+                    return
+                }
+
+                // Update last login
+                await supabase
+                    .from('admins')
+                    .update({
+                        last_login: new Date().toISOString()
+                    })
+                    .eq('id', admin.id)
+
+                // Store session with 24 hour expiry
+                const sessionExpiry = new Date();
+                sessionExpiry.setHours(sessionExpiry.getHours() + 24);
+
+                const adminSession = {
+                    id: admin.id,
+                    admin_id: admin.admin_id,
+                    full_name: admin.full_name,
+                    email: admin.email,
+                    role: admin.role,
+                    status: admin.status,
+                    login_time: new Date().toISOString(),
+                    expires: sessionExpiry.toISOString()
+                };
+
+                localStorage.setItem('currentAdmin', JSON.stringify(adminSession));
+                localStorage.setItem('adminSessionExpiry', sessionExpiry.toISOString());
+
+                const remember = qs('rememberMe');
+                if (remember?.checked) {
+                    localStorage.setItem('rememberedAdmin', admin.admin_id);
+                } else {
+                    localStorage.removeItem('rememberedAdmin');
+                }
+
+                showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
+
+                setTimeout(() => {
+                    window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+                }, 1500);
+
+            } catch (err) {
+                console.error(err)
+                showErrorToast('Login failed. Please try again.', 'Error');
+                enable(loginBtn, 'Login')
+            }
+        }
+
+        // ============ INITIALIZE LOGIN PAGE ============
+        (async function initLoginPage() {
+            const isAlreadyLoggedIn = await redirectIfAlreadyLoggedIn();
+            if (isAlreadyLoggedIn) return;
+
+            const remembered = localStorage.getItem('rememberedAdmin');
+            if (remembered) {
+                const usernameInput = qs('admin-username');
+                if (usernameInput) {
+                    usernameInput.value = remembered;
+                }
+                const rememberCheckbox = qs('rememberMe');
+                if (rememberCheckbox) {
+                    rememberCheckbox.checked = true;
+                }
+            }
+
+            console.log('Login page ready - Direct login mode');
+        })();
+
+        // Event listeners
+        qs('loginBtn')?.addEventListener('click', handleLogin);
+
+        const forgotLink = qs('forgot-link');
+        if (forgotLink) {
+            forgotLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                openForgotPasswordModal();
+            });
+        }
+
+        qs('admin-password')?.addEventListener('keypress', e => {
+            if (e.key === 'Enter') handleLogin()
+        })
+
+        qs('admin-username')?.addEventListener('input', function () {
+            clearError(this)
+        })
+
+        qs('admin-password')?.addEventListener('input', function () {
+            clearError(this)
+        })
+
+        // Exports
+        window.handleLogin = handleLogin;
+        window.togglePassword = togglePassword;
+        window.openForgotPasswordModal = openForgotPasswordModal;
+        window.handleForgotPassword = handleForgotPassword;
+
+        console.log('Admin login page loaded - Direct login enabled');
+    </script>
+</body>
+
+</html>

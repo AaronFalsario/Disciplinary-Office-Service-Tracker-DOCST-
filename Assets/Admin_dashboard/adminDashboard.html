@@ -1,0 +1,4426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAOCST - Admin Dashboard</title>
+    <!-- Google Font & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="icon" href="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" type="image/png" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<style>
+    :root {
+        --blue: #2563EB;
+        --blue-dark: #1D4ED8;
+        --blue-light: #EFF6FF;
+        --blue-mid: #3B82F6;
+        --red: #DC2626;
+        --red-light: #FEE2E2;
+        --green: #10B981;
+        --green-light: #D1FAE5;
+        --green-dark: #065F46;
+        --amber: #F59E0B;
+        --amber-light: #FEF3C7;
+        --amber-dark: #92400E;
+        --purple: #8B5CF6;
+        --purple-light: #EDE9FE;
+        --teal: #14B8A6;
+        --teal-light: #CCFBF1;
+        --pink: #EC4899;
+        --pink-light: #FCE7F3;
+        --indigo: #6366F1;
+        --indigo-light: #E0E7FF;
+        --text: #0F172A;
+        --text-2: #475569;
+        --text-3: #94A3B8;
+        --text-4: #CBD5E1;
+        --bg: #F8FAFC;
+        --surface: #FFFFFF;
+        --border: #E2E8F0;
+        --border-2: #CBD5E1;
+        --topbar-h: 64px;
+        --drawer-w: 220px;
+        --drawer-collapsed-w: 68px;
+        --radius: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+        --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --hover-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --drawer-bg: #FFFFFF;
+        --drawer-text: #1E293B;
+        --drawer-text-muted: #64748B;
+        --drawer-border: #E2E8F0;
+        --drawer-hover: #F1F5F9;
+        --drawer-active-bg: #EFF6FF;
+        --drawer-active-border: var(--blue);
+        --font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    body.dark-mode {
+        --bg: #0F172A;
+        --surface: #1E293B;
+        --border: #334155;
+        --border-2: #475569;
+        --text: #F1F5F9;
+        --text-2: #CBD5E1;
+        --text-3: #94A3B8;
+        --text-4: #64748B;
+        --blue-light: #1E3A5F;
+        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+        --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        --hover-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.4);
+        --red-light: #7F1D1D;
+        --green-light: #064E3B;
+        --amber-light: #451A03;
+        --purple-light: #2E1065;
+        --teal-light: #042F2E;
+        --pink-light: #4C0519;
+        --indigo-light: #1E1B4B;
+        --drawer-bg: #0B1120;
+        --drawer-text: #F1F5F9;
+        --drawer-text-muted: #94A3B8;
+        --drawer-border: rgba(255, 255, 255, 0.06);
+        --drawer-hover: rgba(255, 255, 255, 0.06);
+        --drawer-active-bg: rgba(255, 255, 255, 0.08);
+        --drawer-active-border: #3B82F6;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html,
+    body {
+        min-height: 100vh;
+        font-family: var(--font-family);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.6;
+        transition: background 0.3s ease, color 0.3s ease;
+        scroll-behavior: smooth;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    button {
+        font-family: var(--font-family);
+        cursor: pointer;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-2);
+        border-radius: 4px;
+        transition: var(--transition);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--blue);
+    }
+
+    .icon-svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.8;
+        fill: none;
+        stroke: currentColor;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .icon-svg-sm {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2;
+    }
+
+    .icon-svg-md {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.8;
+    }
+
+    .icon-svg-lg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 1.8;
+    }
+
+    .icon-svg-xl {
+        width: 32px;
+        height: 32px;
+        stroke-width: 1.5;
+    }
+
+    .icon-svg-2xl {
+        width: 40px;
+        height: 40px;
+        stroke-width: 1.2;
+    }
+
+    .icon-svg-3xl {
+        width: 48px;
+        height: 48px;
+        stroke-width: 1;
+    }
+
+    .btn-generate-id:hover {
+        background: var(--blue) !important;
+        color: #fff !important;
+        border-color: var(--blue) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-generate-id:active {
+        transform: scale(0.96);
+    }
+
+    #newStudentId:focus,
+    #editStudentId:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    body.dark-mode .btn-generate-id {
+        background: #1e293b !important;
+        color: #60a5fa !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .btn-generate-id:hover {
+        background: #2563eb !important;
+        color: #fff !important;
+        border-color: #2563eb !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes wave {
+
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+
+        20% {
+            transform: rotate(20deg);
+        }
+
+        40% {
+            transform: rotate(-10deg);
+        }
+
+        60% {
+            transform: rotate(15deg);
+        }
+
+        80% {
+            transform: rotate(-5deg);
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes bounceIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.3);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        70% {
+            transform: scale(0.9);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    .anim-fade-in-up {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .anim-fade-in-down {
+        animation: fadeInDown 0.5s ease forwards;
+    }
+
+    .anim-fade-in-left {
+        animation: fadeInLeft 0.5s ease forwards;
+    }
+
+    .anim-fade-in-right {
+        animation: fadeInRight 0.5s ease forwards;
+    }
+
+    .anim-scale-in {
+        animation: scaleIn 0.4s ease forwards;
+    }
+
+    .anim-pulse {
+        animation: pulse 0.5s ease;
+    }
+
+    .anim-bounce-in {
+        animation: bounceIn 0.6s ease forwards;
+    }
+
+    .anim-slide-up {
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    }
+
+    .stagger-children>*:nth-child(1) {
+        animation-delay: 0.05s;
+    }
+
+    .stagger-children>*:nth-child(2) {
+        animation-delay: 0.10s;
+    }
+
+    .stagger-children>*:nth-child(3) {
+        animation-delay: 0.15s;
+    }
+
+    .stagger-children>*:nth-child(4) {
+        animation-delay: 0.20s;
+    }
+
+    .stagger-children>*:nth-child(5) {
+        animation-delay: 0.25s;
+    }
+
+    .stagger-children>*:nth-child(6) {
+        animation-delay: 0.30s;
+    }
+
+    .stagger-children>*:nth-child(7) {
+        animation-delay: 0.35s;
+    }
+
+    .stagger-children>*:nth-child(8) {
+        animation-delay: 0.40s;
+    }
+
+    .stagger-children>*:nth-child(9) {
+        animation-delay: 0.45s;
+    }
+
+    .stagger-children>*:nth-child(10) {
+        animation-delay: 0.50s;
+    }
+
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        backdrop-filter: blur(4px);
+    }
+
+    .drawer-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--drawer-collapsed-w);
+        background: var(--drawer-bg);
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: visible;
+        box-shadow: 2px 0 24px rgba(0, 0, 0, 0.06);
+        border-right: 1px solid var(--drawer-border);
+    }
+
+    .drawer:hover {
+        width: var(--drawer-w);
+    }
+
+    .drawer.open {
+        width: var(--drawer-w);
+    }
+
+    @media (max-width: 768px) {
+        .drawer {
+            width: var(--drawer-w);
+            transform: translateX(-100%);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        .drawer.open {
+            transform: translateX(0);
+            width: var(--drawer-w);
+        }
+
+        .drawer:hover {
+            transform: translateX(0);
+            width: var(--drawer-w);
+        }
+    }
+
+    .drawer-header {
+        padding: 20px 16px 16px;
+        border-bottom: 1px solid var(--drawer-border);
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: padding 0.35s ease;
+    }
+
+    .drawer:hover .drawer-header,
+    .drawer.open .drawer-header {
+        padding: 24px 20px 20px;
+    }
+
+    .drawer-close {
+        display: none;
+        background: var(--drawer-hover);
+        border: none;
+        color: var(--drawer-text-muted);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+        align-self: flex-end;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drawer-close:hover {
+        background: var(--drawer-active-bg);
+        color: var(--drawer-text);
+        transform: rotate(90deg);
+    }
+
+    @media (max-width: 768px) {
+        .drawer-close {
+            display: flex;
+        }
+    }
+
+    .drawer-profile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-top: 4px;
+        width: 100%;
+    }
+
+    .drawer-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        border: 2px solid rgba(37, 99, 235, 0.15);
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+        transition: all 0.35s ease;
+        flex-shrink: 0;
+    }
+
+    .drawer:hover .drawer-avatar,
+    .drawer.open .drawer-avatar {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 12px;
+    }
+
+    .drawer-avatar:hover {
+        transform: scale(1.05);
+        border-color: rgba(37, 99, 235, 0.3);
+        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .drawer-avatar span {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        transition: font-size 0.35s ease;
+    }
+
+    .drawer:hover .drawer-avatar span,
+    .drawer.open .drawer-avatar span {
+        font-size: 22px;
+    }
+
+    .drawer-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--drawer-text);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-name,
+    .drawer.open .drawer-name {
+        opacity: 1;
+    }
+
+    .drawer-role {
+        font-size: 11px;
+        color: var(--drawer-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-role,
+    .drawer.open .drawer-role {
+        opacity: 1;
+    }
+
+    .drawer-badge {
+        display: inline-block;
+        margin-top: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--blue);
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(37, 99, 235, 0.15);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-badge,
+    .drawer.open .drawer-badge {
+        opacity: 1;
+    }
+
+    body.dark-mode .drawer-badge {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60A5FA;
+        border-color: rgba(59, 130, 246, 0.15);
+    }
+
+    .drawer-nav {
+        flex: 1;
+        padding: 12px 8px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .drawer-nav::-webkit-scrollbar {
+        width: 3px;
+    }
+
+    .drawer-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .drawer-nav::-webkit-scrollbar-thumb {
+        background: var(--drawer-border);
+        border-radius: 4px;
+    }
+
+    .drawer-nav-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .drawer-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        color: var(--drawer-text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        background: none;
+        border: none;
+        border-radius: var(--radius);
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .drawer-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%) scaleY(0);
+        width: 3px;
+        height: 24px;
+        background: var(--drawer-active-border);
+        border-radius: 0 3px 3px 0;
+        transition: transform 0.3s ease;
+    }
+
+    .drawer-item.active::before {
+        transform: translateY(-50%) scaleY(1);
+    }
+
+    .drawer-item:hover {
+        background: var(--drawer-hover);
+        color: var(--drawer-text);
+        transform: translateX(2px);
+    }
+
+    .drawer-item.active {
+        color: var(--drawer-text);
+        font-weight: 600;
+        background: var(--drawer-active-bg);
+    }
+
+    .drawer-item .icon-svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .drawer-item .item-label {
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-item .item-label,
+    .drawer.open .drawer-item .item-label {
+        opacity: 1;
+    }
+
+    .drawer-item .item-badge {
+        margin-left: auto;
+        background: var(--red);
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 12px;
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-item .item-badge,
+    .drawer.open .drawer-item .item-badge {
+        opacity: 1;
+    }
+
+    .drawer-divider {
+        height: 1px;
+        background: var(--drawer-border);
+        margin: 8px 0;
+        border: none;
+    }
+
+    .drawer-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--drawer-border);
+        flex-shrink: 0;
+    }
+
+    .drawer-logout {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--drawer-text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        background: none;
+        border: none;
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .drawer-logout .icon-svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .drawer-logout .logout-label {
+        opacity: 0;
+        transition: opacity 0.35s ease 0.05s;
+    }
+
+    .drawer:hover .drawer-logout .logout-label,
+    .drawer.open .drawer-logout .logout-label {
+        opacity: 1;
+    }
+
+    .drawer-logout:hover {
+        color: #EF4444;
+        background: rgba(239, 68, 68, 0.08);
+        transform: translateX(2px);
+    }
+
+    body.dark-mode .drawer-logout:hover {
+        background: rgba(239, 68, 68, 0.12);
+    }
+
+    .topbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        height: var(--topbar-h);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        margin-left: var(--drawer-collapsed-w);
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .drawer:hover .topbar {
+        margin-left: var(--drawer-w);
+    }
+
+    .drawer.open .topbar {
+        margin-left: var(--drawer-w);
+    }
+
+    @media (max-width: 768px) {
+        .topbar {
+            margin-left: 0;
+            padding: 0 16px;
+        }
+
+        .drawer:hover .topbar,
+        .drawer.open .topbar {
+            margin-left: 0;
+        }
+    }
+
+    .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: var(--text-2);
+        border-radius: 2px;
+        transition: var(--transition);
+    }
+
+    .hamburger:hover span {
+        background: var(--text);
+    }
+
+    @media (max-width: 768px) {
+        .hamburger {
+            display: flex;
+        }
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .brand-logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--blue-light);
+    }
+
+    .brand-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .brand-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--blue);
+        transition: color 0.3s;
+    }
+
+    .brand-tagline {
+        font-size: 12px;
+        color: var(--text-3);
+        padding-left: 10px;
+        border-left: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+    @media (max-width: 768px) {
+        .brand-tagline {
+            display: none;
+        }
+    }
+
+    .admin-pill {
+        background: linear-gradient(135deg, var(--purple), var(--indigo));
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 6px 16px;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+    }
+
+    .admin-pill:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+    }
+
+    .admin-pill .icon-svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 10px;
+        color: var(--text-2);
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .icon-btn:hover {
+        background: var(--bg);
+        color: var(--blue);
+        transform: translateY(-1px);
+    }
+
+    .icon-btn .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .status-dot:hover {
+        transform: scale(1.3);
+    }
+
+    .status-dot.online {
+        background: var(--green);
+        animation: pulse 2s infinite;
+    }
+
+    .status-dot.away {
+        background: var(--amber);
+        animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline {
+        background: var(--red);
+    }
+
+    .notification-wrapper {
+        position: relative;
+    }
+
+    .notification-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 10px;
+        color: var(--text-2);
+        transition: var(--transition);
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-btn:hover {
+        background: var(--bg);
+        color: var(--blue);
+        transform: translateY(-1px);
+    }
+
+    .notification-btn .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #EF4444;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 20px;
+        text-align: center;
+        line-height: 18px;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        animation: bounceIn 0.3s ease;
+        z-index: 10;
+    }
+
+    .notification-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 20000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .notification-modal-overlay.active {
+        display: flex;
+    }
+
+    /* NOTIFICATION MODAL - IMPROVED UI */
+    .notification-modal-content {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        width: 90%;
+        max-width: 520px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: var(--hover-shadow-lg);
+        animation: slideUp 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .notification-modal-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notification-modal-header h3 .icon-svg {
+        color: var(--blue);
+        width: 22px;
+        height: 22px;
+    }
+
+    .notification-count {
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 10px;
+        border-radius: 20px;
+        margin-left: 4px;
+    }
+
+    .notification-modal-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-3);
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-modal-footer .clear-btn {
+        background: none;
+        border: none;
+        color: #EF4444;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .notification-modal-footer .clear-btn:hover {
+        background: #FEF2F2;
+        color: #DC2626;
+    }
+
+    body.dark-mode .notification-modal-footer .clear-btn:hover {
+        background: #7F1D1D;
+        color: #FCA5A5;
+    }
+
+    .notification-modal-close:hover {
+        background: var(--bg);
+        color: var(--text);
+        transform: rotate(90deg);
+    }
+
+    .notification-modal-close .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .notification-modal-body {
+        padding: 8px 20px;
+        overflow-y: auto;
+        flex: 1;
+        max-height: 400px;
+    }
+
+    .notification-modal-body::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .notification-modal-body::-webkit-scrollbar-track {
+        background: var(--bg);
+        border-radius: 4px;
+    }
+
+    .notification-modal-body::-webkit-scrollbar-thumb {
+        background: var(--border-2);
+        border-radius: 4px;
+    }
+
+    .notification-modal-body .empty-notifications {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .notification-modal-body .empty-notifications .icon-svg {
+        color: var(--text-3);
+        margin-bottom: 12px;
+        opacity: 0.4;
+        width: 48px;
+        height: 48px;
+    }
+
+    .notification-modal-body .empty-notifications p {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .notification-modal-body .empty-notifications span {
+        font-size: 13px;
+        color: var(--text-3);
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+    }
+
+    .notification-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .notification-item:hover {
+        background: var(--bg);
+        transform: translateX(2px);
+    }
+
+    .notification-item.unread {
+        background: var(--blue-light);
+        border-color: rgba(37, 99, 235, 0.15);
+    }
+
+    .notification-item.unread:hover {
+        background: var(--blue-light);
+    }
+
+    .notification-item .n-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .notification-item .n-icon.penalty {
+        background: var(--amber-light);
+        color: var(--amber);
+    }
+
+    .notification-item .n-icon.appeal {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .notification-item .n-icon.deadline {
+        background: var(--red-light);
+        color: var(--red);
+    }
+
+    .notification-item .n-icon.system {
+        background: var(--purple-light);
+        color: var(--purple);
+    }
+
+    .notification-item .n-icon .icon-svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .notification-item .n-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-item .n-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 2px;
+    }
+
+    .notification-item .n-message {
+        font-size: 12px;
+        color: var(--text-2);
+        line-height: 1.4;
+    }
+
+    .notification-item .n-time {
+        font-size: 10px;
+        color: var(--text-3);
+        margin-top: 4px;
+    }
+
+    .notification-item .n-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--blue);
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 6px;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .notification-modal-footer {
+        padding: 12px 24px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        background: var(--bg);
+    }
+
+    .notification-modal-footer .mark-btn {
+        background: none;
+        border: none;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .notification-modal-footer .mark-btn:hover {
+        background: var(--blue-light);
+    }
+
+    .notification-modal-footer .mark-btn .icon-svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .notification-modal-footer .close-btn {
+        background: var(--blue);
+        border: none;
+        color: #fff;
+        padding: 8px 24px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .notification-modal-footer .close-btn:hover {
+        background: var(--blue-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .toast-container {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 380px;
+        width: 100%;
+    }
+
+    .toast {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--hover-shadow-lg);
+        animation: slideInRight 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .toast::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+    }
+
+    .toast:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .toast .toast-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .toast .toast-icon .icon-svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .toast-success {
+        border-left: 4px solid var(--green);
+    }
+
+    .toast-success::before {
+        background: var(--green);
+    }
+
+    .toast-success .toast-icon {
+        background: var(--green-light);
+        color: var(--green);
+    }
+
+    .toast-error {
+        border-left: 4px solid var(--red);
+    }
+
+    .toast-error::before {
+        background: var(--red);
+    }
+
+    .toast-error .toast-icon {
+        background: var(--red-light);
+        color: var(--red);
+    }
+
+    .toast-warning {
+        border-left: 4px solid var(--amber);
+    }
+
+    .toast-warning::before {
+        background: var(--amber);
+    }
+
+    .toast-warning .toast-icon {
+        background: var(--amber-light);
+        color: var(--amber);
+    }
+
+    .toast-info {
+        border-left: 4px solid var(--blue);
+    }
+
+    .toast-info::before {
+        background: var(--blue);
+    }
+
+    .toast-info .toast-icon {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .toast-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toast-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+        line-height: 1.3;
+    }
+
+    .toast-message {
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.4;
+        margin-top: 1px;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: var(--text-3);
+        padding: 4px;
+        border-radius: 6px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+    }
+
+    .toast-close:hover {
+        background: var(--bg);
+        color: var(--text);
+        transform: rotate(90deg);
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(30px) scale(0.95);
+        }
+    }
+
+    .toast.removing {
+        animation: slideOutRight 0.3s ease forwards;
+    }
+
+    .dashboard-main {
+        margin-left: var(--drawer-collapsed-w);
+        padding: 28px 32px 40px;
+        min-height: calc(100vh - var(--topbar-h));
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    }
+
+    .drawer:hover .dashboard-main {
+        margin-left: var(--drawer-w);
+    }
+
+    .drawer.open .dashboard-main {
+        margin-left: var(--drawer-w);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-main {
+            margin-left: 0;
+            padding: 16px 16px 80px;
+        }
+
+        .drawer:hover .dashboard-main,
+        .drawer.open .dashboard-main {
+            margin-left: 0;
+        }
+    }
+
+    .skeleton {
+        background: var(--border);
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        color: transparent !important;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .skeleton::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: shimmer 1.5s infinite;
+    }
+
+    body.dark-mode .skeleton::after {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+
+    .skeleton-text {
+        height: 16px;
+        width: 80%;
+        margin-bottom: 8px;
+    }
+
+    .skeleton-title {
+        height: 24px;
+        width: 50%;
+        margin-bottom: 12px;
+    }
+
+    .skeleton-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+    }
+
+    .skeleton-btn {
+        height: 36px;
+        width: 100px;
+        border-radius: 8px;
+    }
+
+    .welcome-section {
+        margin-bottom: 28px;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .welcome-greeting {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .welcome-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        transition: color 0.3s;
+    }
+
+    .welcome-title .greeting-name {
+        color: var(--blue);
+        position: relative;
+    }
+
+    .welcome-title .greeting-name::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--blue);
+        border-radius: 2px;
+        opacity: 0.3;
+    }
+
+    .welcome-date {
+        font-size: 14px;
+        color: var(--text-3);
+        transition: color 0.3s;
+        margin-top: 4px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        cursor: default;
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--blue), var(--purple));
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .stat-card:hover::after {
+        opacity: 1;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.05) rotate(-3deg);
+    }
+
+    .stat-icon.blue {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .stat-icon.amber {
+        background: var(--amber-light);
+        color: var(--amber);
+    }
+
+    .stat-icon.purple {
+        background: var(--purple-light);
+        color: var(--purple);
+    }
+
+    .stat-icon.green {
+        background: var(--green-light);
+        color: var(--green);
+    }
+
+    .stat-icon .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .stat-trend {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition);
+    }
+
+    .stat-trend:hover {
+        transform: scale(1.05);
+    }
+
+    .stat-trend.up {
+        background: var(--green-light);
+        color: var(--green);
+    }
+
+    .stat-trend.down {
+        background: var(--red-light);
+        color: var(--red);
+    }
+
+    .stat-trend.neutral {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .stat-trend .icon-svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .stat-info {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        transition: color 0.3s;
+        line-height: 1.2;
+    }
+
+    .stat-card:hover .stat-value {
+        color: var(--blue);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-3);
+        margin-top: 2px;
+        transition: color 0.3s;
+    }
+
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .quick-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .quick-stat-item {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 16px;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .quick-stat-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .quick-stat-item:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .quick-stat-item:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .quick-stat-item:nth-child(4) {
+        animation-delay: 0.25s;
+    }
+
+    .quick-stat-item:nth-child(5) {
+        animation-delay: 0.3s;
+    }
+
+    .quick-stat-item:nth-child(6) {
+        animation-delay: 0.35s;
+    }
+
+    .quick-stat-item:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .quick-stat-item .number {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+        transition: var(--transition);
+    }
+
+    .quick-stat-item:hover .number {
+        transform: scale(1.05);
+        color: var(--blue);
+    }
+
+    .quick-stat-item .label {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-top: 4px;
+    }
+
+    .quick-stat-item .icon .icon-svg {
+        width: 18px;
+        height: 18px;
+        color: var(--blue);
+        margin-bottom: 4px;
+        transition: var(--transition);
+    }
+
+    .quick-stat-item:hover .icon .icon-svg {
+        transform: scale(1.2) rotate(10deg);
+        color: var(--purple);
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    .action-btn:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    .action-btn:hover {
+        background: var(--bg);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .action-btn:active {
+        transform: scale(0.95);
+    }
+
+    .action-btn .icon-svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .action-btn.primary {
+        background: var(--blue);
+        color: white;
+        border-color: var(--blue);
+    }
+
+    .action-btn.primary:hover {
+        background: var(--blue-dark);
+        border-color: var(--blue-dark);
+    }
+
+    .action-btn.btn-sm {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+
+    .action-btn.danger {
+        background: var(--red);
+        color: white;
+        border-color: var(--red);
+    }
+
+    .action-btn.danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+    .action-btn.success {
+        background: var(--green);
+        color: white;
+        border-color: var(--green);
+    }
+
+    .action-btn.success:hover {
+        background: #059669;
+        border-color: #059669;
+    }
+
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 992px) {
+        .two-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 20px;
+        height: 300px;
+        position: relative;
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .chart-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .chart-card:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .chart-card:hover {
+        box-shadow: var(--hover-shadow);
+        transform: translateY(-2px);
+    }
+
+    .chart-card canvas {
+        max-height: 240px;
+        max-width: 100%;
+    }
+
+    .card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 20px;
+        transition: var(--transition);
+    }
+
+    .card:hover {
+        box-shadow: var(--hover-shadow);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .card-title {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-title .icon-svg {
+        width: 18px;
+        height: 18px;
+        color: var(--blue);
+    }
+
+    .card-sub {
+        font-size: 12px;
+        color: var(--text-3);
+    }
+
+    .progress-ring-container {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .progress-ring-item {
+        text-align: center;
+        flex: 1;
+        min-width: 80px;
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .progress-ring-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .progress-ring-item:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .progress-ring-item:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .progress-ring {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        position: relative;
+        margin: 0 auto 8px;
+        transition: var(--transition);
+    }
+
+    .progress-ring:hover {
+        transform: scale(1.05);
+    }
+
+    .progress-ring svg {
+        transform: rotate(-90deg);
+    }
+
+    .progress-ring .ring-bg {
+        fill: none;
+        stroke: var(--border);
+        stroke-width: 6;
+    }
+
+    .progress-ring .ring-fg {
+        fill: none;
+        stroke: var(--blue);
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease;
+    }
+
+    .progress-ring .ring-fg.green {
+        stroke: var(--green);
+    }
+
+    .progress-ring .ring-fg.amber {
+        stroke: var(--amber);
+    }
+
+    .progress-ring .ring-fg.red {
+        stroke: var(--red);
+    }
+
+    .progress-ring .ring-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        transition: var(--transition);
+    }
+
+    .progress-ring:hover .ring-label {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .recent-table {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 24px;
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+        animation-delay: 0.2s;
+    }
+
+    .recent-table:hover {
+        box-shadow: var(--hover-shadow);
+    }
+
+    .recent-table table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .recent-table th {
+        background: var(--bg);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-2);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .recent-table td {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text);
+        transition: var(--transition);
+    }
+
+    .recent-table tbody tr {
+        transition: var(--transition);
+    }
+
+    .recent-table tbody tr:hover {
+        background: var(--bg);
+        transform: scale(1.01);
+    }
+
+    .activity-feed {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 20px;
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+        animation-delay: 0.25s;
+    }
+
+    .activity-feed:hover {
+        box-shadow: var(--hover-shadow);
+    }
+
+    .activity-timeline {
+        position: relative;
+        padding-left: 28px;
+    }
+
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+    }
+
+    .timeline-item {
+        position: relative;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        animation: fadeInLeft 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .timeline-item:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .timeline-item:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    .timeline-item:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .timeline-item:nth-child(4) {
+        animation-delay: 0.25s;
+    }
+
+    .timeline-item:nth-child(5) {
+        animation-delay: 0.3s;
+    }
+
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+
+    .timeline-item .timeline-dot {
+        position: absolute;
+        left: -24px;
+        top: 14px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid var(--blue);
+        background: var(--surface);
+        transition: var(--transition);
+    }
+
+    .timeline-item:hover .timeline-dot {
+        transform: scale(1.5);
+    }
+
+    .timeline-item .timeline-dot.green {
+        border-color: var(--green);
+        background: var(--green-light);
+    }
+
+    .timeline-item .timeline-dot.amber {
+        border-color: var(--amber);
+        background: var(--amber-light);
+    }
+
+    .timeline-item .timeline-dot.red {
+        border-color: var(--red);
+        background: var(--red-light);
+    }
+
+    .timeline-item .timeline-content {
+        padding-left: 4px;
+        transition: var(--transition);
+    }
+
+    .timeline-item:hover .timeline-content {
+        transform: translateX(4px);
+    }
+
+    .timeline-item .timeline-time {
+        font-size: 11px;
+        color: var(--text-3);
+    }
+
+    .violations-list {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 20px;
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    .violations-list:nth-child(1) {
+        animation-delay: 0.15s;
+    }
+
+    .violations-list:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .violations-list:hover {
+        box-shadow: var(--hover-shadow);
+        transform: translateY(-2px);
+    }
+
+    .violation-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+    .violation-item:hover {
+        transform: translateX(4px);
+    }
+
+    .violation-item:last-child {
+        border-bottom: none;
+    }
+
+    .violation-name {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .violation-count {
+        color: var(--text-3);
+        font-size: 13px;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+        animation: fadeInLeft 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .activity-item:nth-child(1) {
+        animation-delay: 0.05s;
+    }
+
+    .activity-item:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .activity-item:nth-child(3) {
+        animation-delay: 0.15s;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item:hover {
+        transform: translateX(4px);
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--blue-light);
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .activity-item:hover .activity-icon {
+        transform: scale(1.1) rotate(10deg);
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 13px;
+        color: var(--text);
+    }
+
+    .activity-time {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-top: 2px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+
+    .status-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .status-badge .icon-svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .status-pending {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    .status-progress {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+
+    .status-completed {
+        background: var(--green-light);
+        color: var(--green-dark);
+    }
+
+    .status-rejected {
+        background: var(--red-light);
+        color: var(--red);
+    }
+
+    .status-approved {
+        background: var(--green-light);
+        color: var(--green-dark);
+    }
+
+    .action-icons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-icons .icon-btn-sm {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-3);
+    }
+
+    .action-icons .icon-btn-sm:hover {
+        background: var(--bg);
+        transform: scale(1.2) rotate(10deg);
+        color: var(--text);
+    }
+
+    .action-icons .icon-btn-sm .icon-svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .action-icons .icon-btn-sm.blue {
+        color: var(--blue);
+    }
+
+    .action-icons .icon-btn-sm.amber {
+        color: var(--amber);
+    }
+
+    .action-icons .icon-btn-sm.red {
+        color: var(--red);
+    }
+
+    .action-icons .icon-btn-sm.green {
+        color: var(--green);
+    }
+
+    .toast-container {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 360px;
+        width: 100%;
+    }
+
+    .toast {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--hover-shadow-lg);
+        animation: fadeInRight 0.4s ease forwards;
+        transition: var(--transition);
+    }
+
+    .toast:hover {
+        transform: translateX(-4px);
+    }
+
+    .toast .icon-svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .toast-success {
+        border-left: 4px solid var(--green);
+    }
+
+    .toast-error {
+        border-left: 4px solid var(--red);
+    }
+
+    .toast-warning {
+        border-left: 4px solid var(--amber);
+    }
+
+    .toast-info {
+        border-left: 4px solid var(--blue);
+    }
+
+    .toast-success .icon-svg {
+        color: var(--green);
+    }
+
+    .toast-error .icon-svg {
+        color: var(--red);
+    }
+
+    .toast-warning .icon-svg {
+        color: var(--amber);
+    }
+
+    .toast-info .icon-svg {
+        color: var(--blue);
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text);
+    }
+
+    .toast-message {
+        font-size: 12px;
+        color: var(--text-3);
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: var(--text-3);
+        padding: 0 4px;
+        transition: var(--transition);
+    }
+
+    .toast-close:hover {
+        transform: rotate(90deg);
+        color: var(--text);
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal {
+        background: var(--surface, #ffffff);
+        border-radius: 16px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 0;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header h2 .icon-svg {
+        color: var(--blue);
+        width: 24px;
+        height: 24px;
+    }
+
+    .modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--bg);
+        color: var(--text-3);
+        font-size: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        background: var(--red);
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    .modal-close .icon-svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-body .form-group {
+        margin-bottom: 16px;
+    }
+
+    .modal-body .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-2);
+        margin-bottom: 4px;
+    }
+
+    .modal-body .form-group input,
+    .modal-body .form-group select,
+    .modal-body .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .modal-body .form-group input:focus,
+    .modal-body .form-group select:focus,
+    .modal-body .form-group textarea:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .modal-body .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .modal-body .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 992px) {
+        .modal-body .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .modal-footer {
+        padding: 16px 24px 24px;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        border-top: 1px solid var(--border);
+    }
+
+    .modal-footer .action-btn {
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .topbar {
+            margin-left: 0;
+            padding: 0 16px;
+        }
+
+        .drawer:hover .topbar,
+        .drawer.open .topbar {
+            margin-left: 0;
+        }
+
+        .dashboard-main {
+            margin-left: 0;
+            padding: 16px 16px 80px;
+        }
+
+        .drawer:hover .dashboard-main,
+        .drawer.open .dashboard-main {
+            margin-left: 0;
+        }
+
+        .welcome-title {
+            font-size: 22px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .two-columns {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-card {
+            height: 280px;
+        }
+
+        .modal-body .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-actions .search-box {
+            min-width: 100%;
+        }
+
+        .page-actions .filter-select {
+            min-width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-card {
+            height: 250px;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+
+        .quick-actions .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .modal {
+            max-width: 100%;
+            margin: 10px;
+        }
+    }
+
+    @media (min-width: 769px) {
+        .drawer {
+            transform: translateX(0) !important;
+            width: var(--drawer-collapsed-w);
+        }
+
+        .drawer:hover {
+            width: var(--drawer-w);
+        }
+
+        .bottom-nav {
+            display: none !important;
+        }
+    }
+
+    body.dark-mode .drawer {
+        background: #0B1120;
+    }
+
+    body.dark-mode .drawer-item {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    body.dark-mode .drawer-item.active {
+        color: #fff;
+    }
+
+    body.dark-mode .drawer-item:hover {
+        color: #fff;
+    }
+
+    body.dark-mode .stat-card {
+        background: #1E293B;
+    }
+
+    body.dark-mode .quick-stat-item {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .quick-stat-item .number {
+        color: #F1F5F9;
+    }
+
+    body.dark-mode .page-actions .search-box,
+    body.dark-mode .page-actions .filter-select {
+        background: #1E293B;
+        border-color: #334155;
+        color: #F1F5F9;
+    }
+
+    body.dark-mode .recent-table th {
+        background: #0F172A;
+    }
+
+    body.dark-mode .toast {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .bottom-nav {
+        background: #1E293B;
+        border-top-color: #334155;
+    }
+
+    body.dark-mode .violations-list {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .activity-feed {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .recent-table {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .card {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .chart-card {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .modal {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    body.dark-mode .modal-header {
+        border-color: #334155;
+    }
+
+    body.dark-mode .modal-footer {
+        border-color: #334155;
+    }
+
+    body.dark-mode .modal-body .form-group input,
+    body.dark-mode .modal-body .form-group select,
+    body.dark-mode .modal-body .form-group textarea {
+        background: #0F172A;
+        border-color: #334155;
+        color: #F1F5F9;
+    }
+
+    .text-muted {
+        color: var(--text-3);
+    }
+
+    .hidden-page {
+        display: none !important;
+    }
+
+    .page-header {
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-sub {
+        font-size: 14px;
+        color: var(--text-3);
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .page-actions .search-box {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .page-actions .search-box:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .page-actions .filter-select {
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        transition: var(--transition);
+        font-family: inherit;
+        min-width: 140px;
+    }
+
+    .page-actions .filter-select:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .detail-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 20px;
+        transition: var(--transition);
+        margin-bottom: 20px;
+    }
+
+    .detail-card:hover {
+        box-shadow: var(--hover-shadow);
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .detail-title {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-title .icon-svg {
+        width: 18px;
+        height: 18px;
+        color: var(--blue);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-item .label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-item .value {
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .profile-card {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .profile-info {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .profile-info .name {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .profile-info .role {
+        font-size: 14px;
+        color: var(--text-3);
+        margin-bottom: 12px;
+    }
+
+    .profile-info .details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .profile-info .details .label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .profile-info .details .value {
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        display: none;
+        justify-content: space-around;
+        padding: 6px 0 env(safe-area-inset-bottom);
+        z-index: 400;
+        backdrop-filter: blur(8px);
+    }
+
+    @media (max-width: 768px) {
+        .bottom-nav {
+            display: flex;
+        }
+    }
+
+    .bottom-nav-item {
+        background: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 4px 12px;
+        color: var(--text-3);
+        font-size: 10px;
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+    }
+
+    .bottom-nav-item .icon-svg {
+        width: 22px;
+        height: 22px;
+        stroke-width: 1.5;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--blue);
+    }
+
+    .bottom-nav-item.active .icon-svg {
+        stroke: var(--blue);
+        stroke-width: 2;
+    }
+
+    .bottom-nav-item.active::after {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        background: var(--blue);
+        border-radius: 0 0 3px 3px;
+    }
+
+    .bottom-nav-item:hover {
+        color: var(--blue);
+        transform: translateY(-2px);
+    }
+
+    .logout-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 50000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .logout-modal-content {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        max-width: 420px;
+        width: 90%;
+        padding: 28px 32px;
+        animation: slideUp 0.3s ease;
+        box-shadow: var(--hover-shadow-lg);
+    }
+
+    .logout-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .logout-modal-header .icon-svg {
+        width: 32px;
+        height: 32px;
+        color: var(--red);
+        stroke-width: 1.5;
+    }
+
+    .logout-modal-header h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .logout-modal-body p {
+        font-size: 14px;
+        color: var(--text-2);
+        margin-bottom: 12px;
+    }
+
+    .logout-modal-warning {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--red-light);
+        border-radius: var(--radius);
+        color: var(--red);
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    .logout-modal-warning .icon-svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .logout-modal-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .logout-modal-cancel {
+        padding: 8px 24px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .logout-modal-cancel:hover {
+        background: var(--bg);
+    }
+
+    .logout-modal-confirm {
+        padding: 8px 24px;
+        border-radius: var(--radius);
+        border: none;
+        background: var(--red);
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .logout-modal-confirm:hover {
+        background: #b91c1c;
+        transform: scale(1.02);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    #notificationBtn {
+        position: relative !important;
+    }
+
+    #notificationBadge {
+        position: absolute !important;
+        top: -4px !important;
+        right: -4px !important;
+        background: #EF4444 !important;
+        color: #fff !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        padding: 0 5px !important;
+        border-radius: 20px !important;
+        text-align: center !important;
+        line-height: 18px !important;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+        z-index: 10 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+</style>
+
+<body>
+    <script>
+        (function () {
+            const sessionData = localStorage.getItem('currentAdmin');
+            if (!sessionData) {
+                window.location.href = '/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html';
+                return;
+            }
+            try {
+                const session = JSON.parse(sessionData);
+                if (!session.id) {
+                    localStorage.removeItem('currentAdmin');
+                    window.location.href = '/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html';
+                    return;
+                }
+                window.currentAdmin = session;
+            } catch (e) {
+                localStorage.removeItem('currentAdmin');
+                window.location.href = '/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html';
+            }
+        })();
+    </script>
+    <!-- DRAWER -->
+    <aside class="drawer" id="drawer">
+        <div class="drawer-header">
+            <button class="drawer-close" id="drawerClose">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+            <div class="drawer-profile">
+                <div class="drawer-avatar"><span id="drawerAvatarLetter">A</span></div>
+                <div class="drawer-name" id="drawerAdminName">Admin User</div>
+                <div class="drawer-role" id="drawerAdminRole">Discipline Officer</div>
+                <span class="drawer-badge"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg> Admin</span>
+            </div>
+        </div>
+        <nav class="drawer-nav">
+            <div class="drawer-nav-main" id="drawerNavMain"></div>
+        </nav>
+        <div class="drawer-footer">
+            <button class="drawer-logout" id="logoutDrawerBtn">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span class="logout-label">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+            <div class="brand">
+                <img src="/Assets/Images/304165957_491516459647524_3858023326832346527_n.png" alt="SAOCST Logo"
+                    class="brand-logo"
+                    onerror="this.style.display='none'; this.parentElement.querySelector('.brand-logo-fallback').style.display='flex';" />
+                <div class="brand-logo-fallback"
+                    style="display:none; width:36px; height:36px; border-radius:8px; background:var(--blue); color:white; align-items:center; justify-content:center; font-weight:700; font-size:16px;">
+                    S</div>
+                <span class="brand-name">SAOCST</span>
+                <span class="brand-tagline" id="pageTagline">Discipline Office</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <span class="status-dot online" id="statusDot"></span>
+            <span style="font-size:12px; color:var(--text-3); margin-right:8px;" id="statusText">Online</span>
+            <button class="icon-btn" id="themeToggle">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
+            <button class="icon-btn" id="notificationBtn">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+            </button>
+            <button class="admin-pill" id="topbarAdminBtn">
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span id="topbarAdminName">Admin</span>
+            </button>
+        </div>
+    </header>
+
+
+    <!-- NOTIFICATION MODAL -->
+    <div class="notification-modal-overlay" id="notificationModalOverlay">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h3>
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    Notifications
+                    <span class="notification-count" id="notificationCount">0</span>
+                </h3>
+                <button class="notification-modal-close" id="notificationModalClose">
+                    <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="notification-modal-body" id="notificationModalBody">
+                <div class="empty-notifications">
+                    <svg class="icon-svg-xl" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <p>No notifications</p>
+                    <span>You're all caught up!</span>
+                </div>
+            </div>
+            <div class="notification-modal-footer">
+                <div style="display: flex; gap: 8px;">
+                    <button class="mark-btn" id="markAllReadBtn">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Mark all as read
+                    </button>
+                    <button class="clear-btn" id="clearAllNotificationsBtn">
+                        <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        Clear all
+                    </button>
+                </div>
+                <button class="close-btn" id="notificationModalCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main" id="mainContent">
+
+        <!-- DASHBOARD TAB -->
+        <div id="page-dashboard">
+            <div class="welcome-section">
+                <div class="welcome-greeting">
+                    <h1 class="welcome-title" id="welcomeTitle">
+                        <span id="greetingText">Good morning</span>, <span class="greeting-name"
+                            id="adminNameDisplay">Admin</span>
+                    </h1>
+                </div>
+                <div class="welcome-date" id="currentDate">Loading...</div>
+            </div>
+
+            <!-- Stats Grid (Skeletons added) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon blue"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg></span>
+                        <span class="stat-trend up"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="18 15 12 9 6 15" />
+                            </svg> 12%</span>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value skeleton" id="statStudents" style="height: 28px; width: 60px;">—</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon amber"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                                <polyline points="2 17 12 22 22 17" />
+                                <polyline points="2 12 12 17 22 12" />
+                            </svg></span>
+                        <span class="stat-trend up" id="violationTrend"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="18 15 12 9 6 15" />
+                            </svg> 8%</span>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value skeleton" id="statViolations" style="height: 28px; width: 60px;">—</div>
+                        <div class="stat-label">Total Violations</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon purple"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg></span>
+                        <span class="stat-trend down" id="pendingTrend"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg> 3%</span>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value skeleton" id="statPendingAppeals" style="height: 28px; width: 60px;">—
+                        </div>
+                        <div class="stat-label">Pending Appeals</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-icon green"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg></span>
+                        <span class="stat-trend up" id="approvedTrend"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="18 15 12 9 6 15" />
+                            </svg> 15%</span>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value skeleton" id="statApprovedAppeals" style="height: 28px; width: 60px;">—
+                        </div>
+                        <div class="stat-label">Approved Appeals</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats (Skeletons added) -->
+            <div class="quick-stats">
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg></span>
+                    <div class="number skeleton" id="totalCases" style="height: 22px; width: 40px;">0</div>
+                    <div class="label">Total Cases</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg></span>
+                    <div class="number skeleton" id="inProgress" style="height: 22px; width: 40px;">0</div>
+                    <div class="label">In Progress</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></span>
+                    <div class="number skeleton" id="resolved" style="height: 22px; width: 40px;">0</div>
+                    <div class="label">Resolved</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg></span>
+                    <div class="number skeleton" id="complianceRate" style="height: 22px; width: 40px;">0%</div>
+                    <div class="label">Compliance Rate</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg></span>
+                    <div class="number skeleton" id="activeStudents" style="height: 22px; width: 40px;">0</div>
+                    <div class="label">Active Students</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg></span>
+                    <div class="number skeleton" id="pendingReviews" style="height: 22px; width: 40px;">0</div>
+                    <div class="label">Pending Reviews</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-btn primary" id="addViolationBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg> <span>Add Violation</span></button>
+                <button class="action-btn" id="addStudentBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg> <span>Add Student</span></button>
+                <button class="action-btn" id="reviewAppealsBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg> <span>Review Appeals</span></button>
+                <button class="action-btn" id="generateReportBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg> <span>Generate Report</span></button>
+                <button class="action-btn" id="exportDataBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg> <span>Export Data</span></button>
+            </div>
+
+            <!-- Charts -->
+            <div class="two-columns">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                            </svg> Monthly Violation Trend</span>
+                        <select id="trendPeriod"
+                            style="padding:4px 8px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;">
+                            <option value="6">Last 6 Months</option>
+                            <option value="12">Last 12 Months</option>
+                            <option value="3">Last 3 Months</option>
+                        </select>
+                    </div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg> Violation Category Distribution</span></div>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Progress Rings (Skeletons added) -->
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg> System Overview</span></div>
+                <div class="progress-ring-container">
+                    <div class="progress-ring-item">
+                        <div class="progress-ring" id="resolutionRing">
+                            <svg width="80" height="80">
+                                <circle class="ring-bg" cx="40" cy="40" r="32" />
+                                <circle class="ring-fg green" cx="40" cy="40" r="32" stroke-dasharray="201"
+                                    stroke-dashoffset="201" />
+                            </svg>
+                            <div class="ring-label skeleton" id="resolutionLabel" style="height: 18px; width: 30px;">0%
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-3);">Resolution Rate</div>
+                    </div>
+                    <div class="progress-ring-item">
+                        <div class="progress-ring" id="appealRing">
+                            <svg width="80" height="80">
+                                <circle class="ring-bg" cx="40" cy="40" r="32" />
+                                <circle class="ring-fg amber" cx="40" cy="40" r="32" stroke-dasharray="201"
+                                    stroke-dashoffset="201" />
+                            </svg>
+                            <div class="ring-label skeleton" id="appealLabel" style="height: 18px; width: 30px;">0%
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-3);">Appeal Success Rate</div>
+                    </div>
+                    <div class="progress-ring-item">
+                        <div class="progress-ring" id="studentRing">
+                            <svg width="80" height="80">
+                                <circle class="ring-bg" cx="40" cy="40" r="32" />
+                                <circle class="ring-fg blue" cx="40" cy="40" r="32" stroke-dasharray="201"
+                                    stroke-dashoffset="201" />
+                            </svg>
+                            <div class="ring-label skeleton" id="studentLabel" style="height: 18px; width: 30px;">0%
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-3);">Student Engagement</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="two-columns">
+                <div class="recent-table" style="margin-bottom:0;">
+                    <div style="padding:16px 20px 0; display:flex; justify-content:space-between;">
+                        <span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg> Recent Violations</span>
+                        <span class="card-sub">Last 5</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Violation</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentViolationsBody">
+                            <tr>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton skeleton-text"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="activity-feed">
+                    <div class="card-header">
+                        <span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg> Recent Activity</span>
+                        <span class="card-sub" id="activityCount">0 events</span>
+                    </div>
+                    <div class="activity-timeline" id="activityContainer">
+                        <div class="timeline-item">
+                            <div class="timeline-dot green"></div>
+                            <div class="timeline-content">
+                                <div class="skeleton skeleton-text" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot red"></div>
+                            <div class="timeline-content">
+                                <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Students & Recent Appeals -->
+            <div class="two-columns" style="margin-top:24px;">
+                <div class="violations-list">
+                    <div class="card-header">
+                        <span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg> Students with Most Violations</span>
+                        <span class="card-sub">Top 5</span>
+                    </div>
+                    <div id="topStudentsList">
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                    </div>
+                </div>
+                <div class="violations-list">
+                    <div class="card-header">
+                        <span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg> Recent Appeals</span>
+                        <span class="card-sub">Latest</span>
+                    </div>
+                    <div id="recentAppealsList">
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENALTIES TAB -->
+
+        <div id="page-penalties" class="hidden-page">
+            <div class="page-header">
+                <h1 class="page-title">Penalties Management</h1>
+                <p class="page-sub">Manage violation types, penalties, and enforcement rules</p>
+            </div>
+
+            <div class="page-actions">
+                <input class="search-box" id="penaltySearch"
+                    placeholder="Search by student, violation, or description..." />
+                <select class="filter-select" id="penaltyCategoryFilter">
+                    <option value="">All Categories</option>
+                    <option>Academic</option>
+                    <option>Behavior</option>
+                    <option>Attendance</option>
+                    <option>Uniform</option>
+                </select>
+                <select class="filter-select" id="penaltyStatusFilter">
+                    <option value="">All Status</option>
+                    <option>Active</option>
+                    <option>Inactive</option>
+                    <option>in-progress</option>
+                    <option>Completed</option>
+                    <option>Resolved</option>
+                </select>
+                <button class="action-btn primary" id="addPenaltyBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg> Add Penalty</button>
+                <button class="action-btn" id="exportPenaltiesBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg> Export</button>
+            </div>
+
+            <div class="quick-stats" style="margin-bottom:20px;">
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg></span>
+                    <div class="number" id="totalPenalties">0</div>
+                    <div class="label">Total Penalties</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></span>
+                    <div class="number" id="activePenalties">0</div>
+                    <div class="label">Active</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg></span>
+                    <div class="number" id="inactivePenalties">0</div>
+                    <div class="label">Inactive</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                            <polyline points="2 17 12 22 22 17" />
+                            <polyline points="2 12 12 17 22 12" />
+                        </svg></span>
+                    <div class="number" id="severePenalties">0</div>
+                    <div class="label">Severe Offenses</div>
+                </div>
+            </div>
+
+            <div class="recent-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Violation</th>
+                            <th>Description</th>
+                            <th>Level</th>
+                            <th>Penalty</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="penaltiesTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:20px;">Loading penalties...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- STUDENTS TAB -->
+        <div id="page-students" class="hidden-page">
+            <div class="page-header">
+                <h1 class="page-title">Student Management</h1>
+                <p class="page-sub">View, manage, and track all student records</p>
+            </div>
+
+            <div class="page-actions">
+                <input class="search-box" id="studentSearch" placeholder="Search by name, ID, or email..." />
+                <select class="filter-select" id="studentCourseFilter">
+                    <option value="">All Courses</option>
+                    <option>BSIT</option>
+                    <option>BSCS</option>
+                    <option>BSBA</option>
+                    <option>BSED</option>
+                    <option>BSN</option>
+                </select>
+                <select class="filter-select" id="studentStatusFilter">
+                    <option value="">All Status</option>
+                    <option>Good</option>
+                    <option>Probation</option>
+                    <option>Warning</option>
+                    <option>Suspended</option>
+                </select>
+                <button class="action-btn primary" id="addStudentBtn2"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg> Add Student</button>
+                <button class="action-btn" id="importStudentsBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg> Import</button>
+                <input type="file" id="importStudentsFile" accept=".csv" style="display:none;" />
+            </div>
+
+            <div class="quick-stats" style="margin-bottom:20px;">
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg></span>
+                    <div class="number" id="totalStudentsCount">0</div>
+                    <div class="label">Total Students</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></span>
+                    <div class="number" id="goodStanding">0</div>
+                    <div class="label">Good Standing</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg></span>
+                    <div class="number" id="probationCount">0</div>
+                    <div class="label">On Probation</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg></span>
+                    <div class="number" id="suspendedCount">0</div>
+                    <div class="label">Suspended</div>
+                </div>
+            </div>
+
+            <div class="recent-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Year</th>
+                            <th>Violations</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:20px;">Loading students...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="studentProfile" style="display:none; margin-top:24px;">
+                <div class="detail-card">
+                    <div class="profile-card">
+                        <div class="profile-avatar" id="profileAvatar">S</div>
+                        <div class="profile-info">
+                            <div class="name" id="profileName">Student Name</div>
+                            <div class="role" id="profileRole">BSIT - 3rd Year</div>
+                            <div class="details">
+                                <div><span class="label">Student ID</span><br><span class="value"
+                                        id="profileId">—</span></div>
+                                <div><span class="label">Email</span><br><span class="value" id="profileEmail">—</span>
+                                </div>
+                                <div><span class="label">Course</span><br><span class="value"
+                                        id="profileCourse">—</span></div>
+                                <div><span class="label">Year Level</span><br><span class="value"
+                                        id="profileYear">—</span></div>
+                                <div><span class="label">Status</span><br><span class="value"
+                                        id="profileStatus">—</span></div>
+                                <div><span class="label">Total Violations</span><br><span class="value"
+                                        id="profileViolations">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <span class="detail-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg> Violation History</span>
+                        <button class="action-btn btn-sm" id="closeProfileBtn">Close Profile</button>
+                    </div>
+                    <div id="profileViolationHistory">
+                        <div class="text-muted" style="padding:12px 0;">No violations recorded</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPEALS TAB -->
+        <div id="page-appeals" class="hidden-page">
+            <div class="page-header">
+                <h1 class="page-title">Appeals Management</h1>
+                <p class="page-sub">Review, manage, and resolve student appeals</p>
+            </div>
+
+            <div class="page-actions">
+                <input class="search-box" id="appealSearch"
+                    placeholder="Search appeals by ID, student, or violation..." />
+                <select class="filter-select" id="appealStatusFilter">
+                    <option value="">All Status</option>
+                    <option>Pending</option>
+                    <option>Approved</option>
+                    <option>Rejected</option>
+                    <option>Under Review</option>
+                </select>
+                <select class="filter-select" id="appealDateFilter">
+                    <option value="">All Time</option>
+                    <option>Today</option>
+                    <option>This Week</option>
+                    <option>This Month</option>
+                </select>
+                <button class="action-btn primary" id="reviewAllBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg> Review All</button>
+            </div>
+
+            <div class="quick-stats" style="margin-bottom:20px;">
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg></span>
+                    <div class="number" id="totalAppeals">0</div>
+                    <div class="label">Total Appeals</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg></span>
+                    <div class="number" id="pendingAppealsCount">0</div>
+                    <div class="label">Pending</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></span>
+                    <div class="number" id="approvedAppealsCount">0</div>
+                    <div class="label">Approved</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg></span>
+                    <div class="number" id="rejectedAppealsCount">0</div>
+                    <div class="label">Rejected</div>
+                </div>
+            </div>
+
+            <div class="recent-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appeal ID</th>
+                            <th>Student</th>
+                            <th>Violation</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appealsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:20px;">Loading appeals...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="appealDetail" style="display:none; margin-top:24px;">
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <span class="detail-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg> Appeal Details</span>
+                        <button class="action-btn btn-sm" id="closeAppealBtn">Close</button>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="label">Appeal ID</span>
+                            <span class="value" id="appealDetailId">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Student</span>
+                            <span class="value" id="appealDetailStudent">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Violation</span>
+                            <span class="value" id="appealDetailViolation">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Submitted</span>
+                            <span class="value" id="appealDetailDate">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Status</span>
+                            <span class="value" id="appealDetailStatus">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Reason</span>
+                            <span class="value" id="appealDetailReason">—</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px; display:flex; gap:12px;">
+                        <button class="action-btn success" id="approveAppealBtn"><svg class="icon-svg"
+                                viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg> Approve</button>
+                        <button class="action-btn danger" id="rejectAppealBtn"><svg class="icon-svg"
+                                viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg> Reject</button>
+                        <button class="action-btn" id="requestInfoBtn"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg> Request More Info</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS TAB -->
+        <div id="page-reports" class="hidden-page">
+            <div class="page-header">
+                <h1 class="page-title">Reports & Analytics</h1>
+                <p class="page-sub">Generate comprehensive reports and analyze trends</p>
+            </div>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+                <button class="action-btn" id="exportPdf"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="12" y1="18" x2="12" y2="12" />
+                        <line x1="9" y1="15" x2="12" y2="18" />
+                        <line x1="15" y1="15" x2="12" y2="18" />
+                    </svg> PDF</button>
+                <button class="action-btn" id="exportExcel"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="8" y1="16" x2="16" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                        <line x1="8" y1="8" x2="10" y2="8" />
+                    </svg> Excel</button>
+                <button class="action-btn" id="exportCsv"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="8" y1="16" x2="16" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                        <line x1="8" y1="8" x2="10" y2="8" />
+                    </svg> CSV</button>
+                <button class="action-btn" id="printReport"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <polyline points="6 9 6 2 18 2 18 9" />
+                        <path d="M18 9h3v6h-3" />
+                        <path d="M6 15H3V9h3" />
+                        <rect x="6" y="15" width="12" height="7" rx="1" />
+                        <line x1="18" y1="15" x2="18" y2="22" />
+                        <line x1="6" y1="15" x2="6" y2="22" />
+                    </svg> Print</button>
+                <button class="action-btn" id="scheduleReport"><svg class="icon-svg" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                        <polyline points="12 14 12 18 14 16" />
+                    </svg> Schedule</button>
+            </div>
+
+            <div class="two-columns">
+                <div class="chart-card">
+                    <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                            </svg> Weekly Violations</span></div>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg> Violations by Course</span></div>
+                    <canvas id="courseChart"></canvas>
+                </div>
+            </div>
+            <div class="two-columns">
+                <div class="chart-card">
+                    <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg> Appeal Approval Rate</span></div>
+                    <canvas id="approvalChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-header"><span class="card-title"><svg class="icon-svg" viewBox="0 0 24 24">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                                <polyline points="2 17 12 22 22 17" />
+                                <polyline points="2 12 12 17 22 12" />
+                            </svg> Penalty Distribution</span></div>
+                    <canvas id="penaltyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="quick-stats" style="margin-top:24px;">
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg></span>
+                    <div class="number" id="reportTotalCases">0</div>
+                    <div class="label">Total Cases</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                        </svg></span>
+                    <div class="number" id="reportResolutionRate">0%</div>
+                    <div class="label">Resolution Rate</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg></span>
+                    <div class="number" id="reportActiveStudents">0</div>
+                    <div class="label">Active Students</div>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg></span>
+                    <div class="number" id="reportAvgPenalty">0</div>
+                    <div class="label">Avg. Penalty Points</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-item active" data-page="dashboard">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" data-page="penalties">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+            </svg>
+            <span>Penalties</span>
+        </button>
+        <button class="bottom-nav-item" data-page="students">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span>Students</span>
+        </button>
+        <button class="bottom-nav-item" data-page="appeals">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+            </svg>
+            <span>Appeals</span>
+        </button>
+        <button class="bottom-nav-item" data-page="settings">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09z" />
+            </svg>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="/Assets/Admin_dashboard/adminDashboard.js"></script>
+</body>
+
+</html>

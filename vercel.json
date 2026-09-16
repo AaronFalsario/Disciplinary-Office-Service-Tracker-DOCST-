@@ -8,32 +8,80 @@
       "destination": "/index.html"
     },
     {
-      "source": "/Assets/Admin dashboard/(.*)",
-      "destination": "/Assets/Admin dashboard/$1"
+      "source": "/admin",
+      "destination": "/Assets/Admin_dashboard/adminDashboard.html"
     },
     {
-      "source": "/Assets/Admin%20dashboard/(.*)",
-      "destination": "/Assets/Admin%20dashboard/$1"
+      "source": "/admin/password",
+      "destination": "/Assets/Admin_dashboard/password/password.html"
     },
     {
-      "source": "/Assets/Student Authentication/(.*)",
-      "destination": "/Assets/Student Authentication/$1"
+      "source": "/student",
+      "destination": "/Assets/Student_Authentication/Student.html"
     },
     {
-      "source": "/Assets/Student%20Authentication/(.*)",
-      "destination": "/Assets/Student%20Authentication/$1"
+      "source": "/admin/login",
+      "destination": "/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html"
+    },
+    {
+      "source": "/admin/update",
+      "destination": "/Assets/Student_Authentication/Admin_Authentication/update.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/Assets/Student_Dashboard/studentDashboard.html"
+    },
+    {
+      "source": "/landing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/Assets/Admin_dashboard/adminDashboard.html",
+      "destination": "/Assets/Admin_dashboard/adminDashboard.html"
+    },
+    {
+      "source": "/Assets/Admin_dashboard/password/password.html",
+      "destination": "/Assets/Admin_dashboard/password/password.html"
+    },
+    {
+      "source": "/Assets/Student_Authentication/Student.html",
+      "destination": "/Assets/Student_Authentication/Student.html"
+    },
+    {
+      "source": "/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html",
+      "destination": "/Assets/Student_Authentication/Admin_Authentication/AdminLogin.html"
+    },
+    {
+      "source": "/Assets/Student_Authentication/Admin_Authentication/update.html",
+      "destination": "/Assets/Student_Authentication/Admin_Authentication/update.html"
+    },
+    {
+      "source": "/Assets/Student_Dashboard/studentDashboard.html",
+      "destination": "/Assets/Student_Dashboard/studentDashboard.html"
     },
     {
       "source": "/Assets/Landing/index.html",
       "destination": "/index.html"
     },
     {
+      "source": "/Assets/Admin_dashboard/(.*)",
+      "destination": "/Assets/Admin_dashboard/$1"
+    },
+    {
+      "source": "/Assets/Student_Authentication/(.*)",
+      "destination": "/Assets/Student_Authentication/$1"
+    },
+    {
+      "source": "/Assets/Student_Dashboard/(.*)",
+      "destination": "/Assets/Student_Dashboard/$1"
+    },
+    {
       "source": "/Assets/Landing/(.*)",
       "destination": "/index.html"
     },
     {
-      "source": "/index.html",
-      "destination": "/index.html"
+      "source": "/Assets/(.*)",
+      "destination": "/Assets/$1"
     },
     {
       "source": "/(.*)",

@@ -81,13 +81,12 @@ const adminNavItems = [
 // ============ ACTIVE PAGE DETECTION ============
 function getActiveAdminLabel() {
     const path = window.location.pathname;
-    console.log('Current path:', path); // Debug log
+    console.log('Current path:', path);
     
     if (path.includes('Admin.html') || path.endsWith('/Admin dashboard/')) return 'Dashboard';
     if (path.includes('record.html')) return 'Users';
     if (path.includes('penalties') && path.includes('student.html')) return 'Penalties';
     if (path.includes('student.html') && path.includes('penalties')) return 'Penalties';
-    // Fix: Detect Appeals page - check for appeal in the path
     if (path.includes('appeal') || path.includes('appeal.html') || path.includes('/appeal/')) return 'Appeals';
     if (path.includes('report.html')) return 'Reports';
     if (path.includes('setting.html')) return 'Settings';
@@ -116,6 +115,22 @@ function formatAdminId(adminId) {
     return adminId;
 }
 
+function getAdminInitials(fullName) {
+    if (!fullName || fullName === 'Administrator') return 'AD';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getCurrentAdmin() {
+    try {
+        const stored = localStorage.getItem('currentAdmin');
+        return stored ? JSON.parse(stored) : null;
+    } catch {
+        return null;
+    }
+}
+
 // ============ SETUP ADMIN DRAWER ============
 function setupAdminDrawer(adminName, adminId) {
     const drawerNav = document.getElementById('drawerNavMain');
@@ -125,7 +140,7 @@ function setupAdminDrawer(adminName, adminId) {
     }
 
     const activeLabel = getActiveAdminLabel();
-    console.log('Active label:', activeLabel); // Debug log
+    console.log('Active label:', activeLabel);
     drawerNav.innerHTML = '';
 
     adminNavItems.forEach((item, index) => {
@@ -159,22 +174,6 @@ function setupAdminDrawer(adminName, adminId) {
     }
     
     return true;
-}
-
-function getAdminInitials(fullName) {
-    if (!fullName || fullName === 'Administrator') return 'AD';
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function getCurrentAdmin() {
-    try {
-        const stored = localStorage.getItem('currentAdmin');
-        return stored ? JSON.parse(stored) : null;
-    } catch {
-        return null;
-    }
 }
 
 // ============ LOGOUT TOAST FUNCTIONS ============
@@ -342,7 +341,7 @@ async function performLogout() {
             );
         }
         
-        // Redirect to root - NOT to /Assets/Landing/index.html
+        // Redirect to root
         setTimeout(() => {
             window.location.href = '/';
         }, 1500);
@@ -364,6 +363,7 @@ async function performLogout() {
         }
     }
 }
+
 // ============ LOGOUT SETUP ============
 function setupAdminLogout(logoutBtnId) {
     const logoutBtn = document.getElementById(logoutBtnId);

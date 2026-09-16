@@ -20,7 +20,7 @@ function showError(inputElement, message) {
 
     const div = document.createElement('div')
     div.className = 'error-message'
-    div.innerHTML = `⚠️ ${message}`
+    div.innerHTML = ` ${message}`
 
     parent.appendChild(div)
 
@@ -301,7 +301,7 @@ async function handleForgotPassword() {
         }
         
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/Assets/Admin dashboard/password/reset-password.html`
+            redirectTo: `${window.location.origin}/Assets/Admin_dashboard/password/password.html`
         });
         
         if (resetError) {
@@ -355,7 +355,7 @@ async function checkExistingSession() {
             return false;
         }
         
-        console.log('✅ Valid session found for admin:', adminData.full_name || admin.email);
+        console.log('Valid session found for admin:', adminData.full_name || admin.email);
         return true;
         
     } catch (error) {
@@ -371,7 +371,7 @@ async function redirectIfAlreadyLoggedIn() {
     const hasValidSession = await checkExistingSession();
     if (hasValidSession) {
         console.log('Already logged in - redirecting to dashboard...');
-        window.location.href = '/Assets/Admin dashboard/Admin.html';
+        window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
         return true;
     }
     return false;
@@ -462,7 +462,7 @@ async function handleLogin() {
         showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
         
         setTimeout(() => {
-            window.location.href = '/Assets/Admin dashboard/Admin.html';
+            window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
         }, 1500);
 
     } catch (err) {

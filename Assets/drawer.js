@@ -1,6 +1,3 @@
-// ============ STUDENT DRAWER (SAME DESIGN AS ADMIN) ============
-
-// Apply dark mode INSTANTLY before anything renders (prevents flash)
 if (localStorage.getItem('docst_dark_mode') === 'enabled') {
     document.documentElement.classList.add('dark-mode');
     document.body?.classList.add('dark-mode');
@@ -71,62 +68,77 @@ drawerStyles.textContent = `
 `;
 document.head.appendChild(drawerStyles);
 
+
+// NAVIGATION ITEMS - NOW USE TAB IDs INSTEAD OF PATHS
 const navItems = [
     { 
+        id: 'dashboard',
         name: 'Dashboard', 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-        path: '/Assets/Student_Dashboard/stud.html'
     },
     { 
+        id: 'penalties',
         name: 'My Penalties', 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>',
-        path: '/Assets/Student_Dashboard/penalties/penalties.html'
     },
     { 
+        id: 'appeal',
         name: 'Appeal', 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>',
-        path: '/Assets/Student_Dashboard/appeal/appeal.html'
     },
     { 
+        id: 'history',
         name: 'History', 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>',
-        path: '/Assets/Student_Dashboard/history/history.html'
     }
 ];
 
 const footerItems = [
     { 
+        id: 'settings',
         name: 'Settings', 
         icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>',
-        path: '/Assets/Student_Dashboard/settings/setting.html'
     }
 ];
 
-// ============ ACTIVE PAGE DETECTION ============
-function getCurrentPage() {
-    const path = window.location.pathname;
-    if (path.includes('/stud.html'))            return 'Dashboard';
-    if (path.includes('/penalties/penalties'))  return 'My Penalties';
-    if (path.includes('/appeal/appeal'))        return 'Appeal';
-    if (path.includes('/history/history'))      return 'History';
-    if (path.includes('/settings/setting'))     return 'Settings';
-    return '';
+// ACTIVE TAB DETECTION - GET FROM GLOBAL STATE OR URL
+function getCurrentTab() {
+    // Try to get from global window.currentTab (set by studentDashboard.js)
+    if (window.currentTab) {
+        return window.currentTab;
+    }
+    // Fallback: check URL hash
+    const hash = window.location.hash.replace('#', '');
+    if (hash && navItems.some(item => item.id === hash)) {
+        return hash;
+    }
+    return 'dashboard';
 }
 
-// ============ RENDER NAV ============
+// RENDER NAV - NOW USES SWITCH TAB FUNCTION
 function renderDrawerNavigation() {
     const drawerNav = document.querySelector('.drawer-nav-main');
     if (!drawerNav) return;
 
-    const currentPage = getCurrentPage();
+    const currentTab = getCurrentTab();
     drawerNav.innerHTML = '';
 
     navItems.forEach(item => {
         const button = document.createElement('button');
-        button.className = `drawer-item${item.name === currentPage ? ' active' : ''}`;
+        button.className = `drawer-item${item.id === currentTab ? ' active' : ''}`;
         button.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        button.dataset.tab = item.id;
         button.addEventListener('click', () => {
-            window.location.href = item.path;
+            // Call the global switchTab function from studentDashboard.js
+            if (window.switchTab) {
+                window.switchTab(item.id);
+            } else {
+                // Fallback: navigate by hash
+                window.location.hash = item.id;
+                window.location.reload();
+            }
+            // Close drawer on mobile
+            closeDrawer();
         });
         drawerNav.appendChild(button);
     });
@@ -137,16 +149,23 @@ function renderDrawerNavigation() {
 
     footerItems.forEach(item => {
         const button = document.createElement('button');
-        button.className = `drawer-item${item.name === currentPage ? ' active' : ''}`;
+        button.className = `drawer-item${item.id === currentTab ? ' active' : ''}`;
         button.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        button.dataset.tab = item.id;
         button.addEventListener('click', () => {
-            window.location.href = item.path;
+            if (window.switchTab) {
+                window.switchTab(item.id);
+            } else {
+                window.location.hash = item.id;
+                window.location.reload();
+            }
+            closeDrawer();
         });
         drawerNav.appendChild(button);
     });
 }
 
-// ============ UPDATE PROFILE ============
+// UPDATE PROFILE
 function updateDrawerProfile(studentName, studentId) {
     const drawerNameEl   = document.getElementById('drawerStudentName');
     const drawerIdEl     = document.getElementById('drawerStudentId');
@@ -164,26 +183,32 @@ function getInitials(name) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// ============ MOBILE DRAWER CONTROLS ============
+// MOBILE DRAWER CONTROLS - EXPOSED FOR USE IN OTHER FILES
+let drawerInstance = null;
+
+function openDrawer() {
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    drawer?.classList.add('open');
+    overlay?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('drawer-open');
+}
+
+function closeDrawer() {
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    drawer?.classList.remove('open');
+    overlay?.classList.remove('open');
+    document.body.style.overflow = '';
+    document.body.classList.remove('drawer-open');
+}
+
 function initDrawerControls() {
     const overlay    = document.getElementById('overlay');
     const drawer     = document.getElementById('drawer');
-    const hamburger  = document.getElementById('hamburger');
+    const hamburger  = document.getElementById('hamburgerBtn');
     const drawerClose = document.getElementById('drawerClose');
-
-    function openDrawer() {
-        drawer?.classList.add('open');
-        overlay?.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        document.body.classList.add('drawer-open');
-    }
-
-    function closeDrawer() {
-        drawer?.classList.remove('open');
-        overlay?.classList.remove('open');
-        document.body.style.overflow = '';
-        document.body.classList.remove('drawer-open');
-    }
 
     if (hamburger) hamburger.addEventListener('click', (e) => { e.stopPropagation(); openDrawer(); });
     if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
@@ -198,7 +223,7 @@ function initDrawerControls() {
     });
 }
 
-// ============ GET CURRENT STUDENT FROM STORAGE ============
+// GET CURRENT STUDENT FROM STORAGE
 function getCurrentStudent() {
     try {
         const stored = localStorage.getItem('currentStudent');
@@ -211,14 +236,17 @@ function getCurrentStudent() {
     }
 }
 
-// ============ MAIN EXPORT ============
+// MAIN EXPORTS
 export function setupDrawer(studentName, studentId) {
     updateDrawerProfile(studentName, studentId);
     renderDrawerNavigation();
     initDrawerControls();
+    
+    // Expose functions globally for other scripts
+    window.openDrawer = openDrawer;
+    window.closeDrawer = closeDrawer;
 }
 
-// ============ LOGOUT ============
 export function setupLogout(logoutBtnId = 'logoutBtn') {
     const logoutBtn = document.getElementById(logoutBtnId);
     if (!logoutBtn) return;
@@ -256,7 +284,7 @@ export function setupLogout(logoutBtnId = 'logoutBtn') {
     });
 }
 
-// Auto-initialize drawer when DOM is ready
+// AUTO-INITIALIZE
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         const student = getCurrentStudent();
