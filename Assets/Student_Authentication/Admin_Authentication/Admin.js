@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+﻿import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -68,14 +68,14 @@ function removeToast(toast) {
 
 function showToast(message, type = 'info', title = null, duration = 4000) {
     const container = getToastContainer();
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     let iconHtml = '';
     let defaultTitle = '';
-    
-    switch(type) {
+
+    switch (type) {
         case 'success':
             iconHtml = '<i class="fas fa-check-circle"></i>';
             defaultTitle = 'Success';
@@ -94,9 +94,9 @@ function showToast(message, type = 'info', title = null, duration = 4000) {
             defaultTitle = 'Information';
             break;
     }
-    
+
     const finalTitle = title || defaultTitle;
-    
+
     toast.innerHTML = `
         <div class="toast-icon">${iconHtml}</div>
         <div class="toast-content">
@@ -105,21 +105,21 @@ function showToast(message, type = 'info', title = null, duration = 4000) {
         </div>
         <button class="toast-close"><i class="fas fa-times"></i></button>
     `;
-    
+
     container.appendChild(toast);
-    
+
     const closeBtn = toast.querySelector('.toast-close');
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         removeToast(toast);
     });
-    
+
     toast.addEventListener('click', (e) => {
         if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
             removeToast(toast);
         }
     });
-    
+
     if (duration > 0) {
         setTimeout(() => {
             if (toast.parentElement) {
@@ -127,7 +127,7 @@ function showToast(message, type = 'info', title = null, duration = 4000) {
             }
         }, duration);
     }
-    
+
     return toast;
 }
 
@@ -160,7 +160,7 @@ function enable(btn, text) {
 }
 
 // see password toggle
-window.togglePassword = function(inputId, btn) {
+window.togglePassword = function (inputId, btn) {
     const input = qs(inputId)
     if (!input) return
 
@@ -175,7 +175,7 @@ window.togglePassword = function(inputId, btn) {
 // ============ FORGOT PASSWORD MODAL FUNCTIONS ============
 function openForgotPasswordModal() {
     let modal = qs('forgotPasswordModal');
-    
+
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'forgotPasswordModal';
@@ -233,17 +233,17 @@ function openForgotPasswordModal() {
             "></div>
         `;
         document.body.appendChild(modal);
-        
+
         const closeBtn = qs('closeForgotModalBtn');
         const cancelBtn = qs('cancelForgotBtn');
         const overlay = modal.querySelector('.modal-overlay');
         const forgotBtn = qs('forgotPasswordBtn');
-        
+
         if (closeBtn) closeBtn.onclick = closeForgotPasswordModal;
         if (cancelBtn) cancelBtn.onclick = closeForgotPasswordModal;
         if (overlay) overlay.onclick = closeForgotPasswordModal;
         if (forgotBtn) forgotBtn.onclick = handleForgotPassword;
-        
+
         const emailInput = qs('forgot-email');
         if (emailInput) {
             emailInput.addEventListener('keypress', (e) => {
@@ -253,7 +253,7 @@ function openForgotPasswordModal() {
             });
         }
     }
-    
+
     modal.style.display = 'block';
 }
 
@@ -268,53 +268,53 @@ function closeForgotPasswordModal() {
 async function handleForgotPassword() {
     const emailInput = qs('forgot-email');
     if (!emailInput) return;
-    
+
     const email = emailInput.value.trim();
     const forgotBtn = qs('forgotPasswordBtn');
-    
+
     clearError(emailInput);
-    
+
     if (!email) {
         showErrorToast('Please enter your email address', 'Email Required');
         return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showErrorToast('Please enter a valid email address', 'Invalid Email');
         return;
     }
-    
+
     disable(forgotBtn, 'Checking...');
-    
+
     try {
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('email, full_name')
             .eq('email', email)
             .maybeSingle();
-        
+
         if (adminError || !admin) {
             showErrorToast('No admin account found with this email', 'Account Not Found');
             enable(forgotBtn, 'Send Reset Link');
             return;
         }
-        
+
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/Assets/Admin_dashboard/password/password.html`
         });
-        
+
         if (resetError) {
             console.error('Reset error:', resetError);
             showErrorToast('Failed to send reset email. Please try again.', 'Reset Failed');
             enable(forgotBtn, 'Send Reset Link');
             return;
         }
-        
+
         showSuccessToast(`Password reset link sent to ${email}. Check your inbox!`, 'Email Sent', 5000);
         emailInput.value = '';
         closeForgotPasswordModal();
-        
+
     } catch (error) {
         console.error('Forgot password error:', error);
         showErrorToast('An error occurred. Please try again.', 'Error');
@@ -325,13 +325,13 @@ async function handleForgotPassword() {
 // ============ CHECK FOR EXISTING SESSION ============
 async function checkExistingSession() {
     console.log('Checking for existing admin session...');
-    
+
     const storedAdmin = localStorage.getItem('currentAdmin');
     if (!storedAdmin) {
         console.log('No stored admin session found');
         return false;
     }
-    
+
     try {
         const sessionExpiry = localStorage.getItem('adminSessionExpiry');
         if (sessionExpiry && new Date(sessionExpiry) < new Date()) {
@@ -340,24 +340,24 @@ async function checkExistingSession() {
             localStorage.removeItem('adminSessionExpiry');
             return false;
         }
-        
+
         const admin = JSON.parse(storedAdmin);
         const { data: adminData, error: adminError } = await supabase
             .from('admins')
             .select('id, status, role, full_name')
             .eq('id', admin.id)
             .single();
-        
+
         if (adminError || !adminData || adminData.status !== 'active') {
             console.log('Admin account invalid or inactive');
             localStorage.removeItem('currentAdmin');
             localStorage.removeItem('adminSessionExpiry');
             return false;
         }
-        
+
         console.log('Valid session found for admin:', adminData.full_name || admin.email);
         return true;
-        
+
     } catch (error) {
         console.error('Session check error:', error);
         localStorage.removeItem('currentAdmin');
@@ -371,7 +371,7 @@ async function redirectIfAlreadyLoggedIn() {
     const hasValidSession = await checkExistingSession();
     if (hasValidSession) {
         console.log('Already logged in - redirecting to dashboard...');
-        window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+        window.location.href = '/Assets/Admin_dashboard/adminDashboard.html';
         return true;
     }
     return false;
@@ -439,7 +439,7 @@ async function handleLogin() {
         // Store session
         const sessionExpiry = new Date();
         sessionExpiry.setHours(sessionExpiry.getHours() + 24);
-        
+
         localStorage.setItem('currentAdmin', JSON.stringify({
             id: admin.id,
             admin_id: admin.admin_id,
@@ -449,7 +449,7 @@ async function handleLogin() {
             status: admin.status,
             login_time: new Date().toISOString()
         }));
-        
+
         localStorage.setItem('adminSessionExpiry', sessionExpiry.toISOString());
 
         const remember = qs('rememberMe');
@@ -460,9 +460,9 @@ async function handleLogin() {
         }
 
         showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
-        
+
         setTimeout(() => {
-            window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+            window.location.href = '/Assets/Admin_dashboard/adminDashboard.html';
         }, 1500);
 
     } catch (err) {
@@ -476,7 +476,7 @@ async function handleLogin() {
 (async function initLoginPage() {
     const isAlreadyLoggedIn = await redirectIfAlreadyLoggedIn();
     if (isAlreadyLoggedIn) return;
-    
+
     const remembered = localStorage.getItem('rememberedAdmin');
     if (remembered) {
         const usernameInput = qs('admin-username');
@@ -488,7 +488,7 @@ async function handleLogin() {
             rememberCheckbox.checked = true;
         }
     }
-    
+
     console.log('Login page ready - Direct login mode');
 })();
 
@@ -507,11 +507,11 @@ qs('admin-password')?.addEventListener('keypress', e => {
     if (e.key === 'Enter') handleLogin()
 })
 
-qs('admin-username')?.addEventListener('input', function() {
+qs('admin-username')?.addEventListener('input', function () {
     clearError(this)
 })
 
-qs('admin-password')?.addEventListener('input', function() {
+qs('admin-password')?.addEventListener('input', function () {
     clearError(this)
 })
 

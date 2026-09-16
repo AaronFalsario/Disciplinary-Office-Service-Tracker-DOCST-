@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>SAOCST — Admin Login</title>
+    <title>SAOCST â€” Admin Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/Assets/Student_Authentication/Admin_Authentication/Admin.css">
     <link rel="icon" href="/Assets/Images/DOCST LOGO.png">
@@ -1191,7 +1191,7 @@
             const hasValidSession = await checkExistingSession();
             if (hasValidSession) {
                 console.log('Already logged in - redirecting to dashboard...');
-                window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+                window.location.href = '/Assets/Admin_dashboard/adminDashboard.html';
                 return true;
             }
             return false;
@@ -1284,7 +1284,7 @@
                 showSuccessToast(`Welcome back, ${admin.full_name || admin.admin_id}! Redirecting to dashboard...`, 'Login Successful', 2000);
 
                 setTimeout(() => {
-                    window.location.href = '/Assets/Admin_dashboard/AdminDashboard.html';
+                    window.location.href = '/Assets/Admin_dashboard/adminDashboard.html';
                 }, 1500);
 
             } catch (err) {
